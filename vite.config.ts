@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import { configDefaults } from 'vitest/config'
 import path from 'path'
+import dts from 'vite-plugin-dts'
 
 export default defineConfig({
   resolve: {
@@ -30,4 +31,5 @@ export default defineConfig({
       formats: ['es', 'cjs'], // Suport both ESM and CommonJS
     },
   },
+  plugins: [dts()],
 })
