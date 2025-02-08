@@ -7,7 +7,6 @@
     "test": "run-p --print-label lint format test:unit test:coverage build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
-    "test:vitest": "vitest",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "build": "tsc && vite build"
