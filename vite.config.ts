@@ -1,13 +1,33 @@
 import { defineConfig } from "vite";
 import { configDefaults } from "vitest/config";
+import path from "path";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   test: {
-    environment: "happy-dom", // 使用 happy-dom 模拟 DOM 环境
-    exclude: [...configDefaults.exclude, "**/e2e/**"], // 排除不需要测试的文件
+    environment: "happy-dom",
+    exclude: [...configDefaults.exclude, "**/e2e/**"],
     coverage: {
-      provider: "v8", // 使用 v8 生成覆盖率报告
-      reporter: ["text", "json", "html"], // 输出格式
+      provider: "v8",
+      reporter: ["text", "json", "html"], // Output report format
+      thresholds: {
+        lines: 100,
+        functions: 100,
+        branches: 100,
+        statements: 100,
+      },
+    },
+  },
+  build: {
+    lib: {
+      entry: "./src/index.ts", // Entry point file
+      name: "TouchStone", // Global variable name for UMD format
+      fileName: (format) => `TouchStone.${format}.js`, // Output filenames
+      formats: ["es", "cjs"], // Suport both ESM and CommonJS
     },
   },
 });
