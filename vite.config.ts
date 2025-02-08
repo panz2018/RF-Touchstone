@@ -30,6 +30,12 @@ export default defineConfig({
       fileName: (format) => `TouchStone.${format}.js`, // Output filenames
       formats: ['es', 'cjs'], // Suport both ESM and CommonJS
     },
+    rollupOptions: {
+      external: [
+        '**/*.test.ts', // Exclude files ending with '.test.ts'
+        '**/tests/**', // Exclude the entire 'tests' directory
+      ],
+    },
   },
-  plugins: [dts()],
+  plugins: [dts({ exclude: '**/*.test.ts' })],
 })
