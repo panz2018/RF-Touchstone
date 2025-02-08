@@ -1,19 +1,19 @@
-import { defineConfig } from "vite";
-import { configDefaults } from "vitest/config";
-import path from "path";
+import { defineConfig } from 'vite'
+import { configDefaults } from 'vitest/config'
+import path from 'path'
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      '@': path.resolve(__dirname, './src'),
     },
   },
   test: {
-    environment: "happy-dom",
-    exclude: [...configDefaults.exclude, "**/e2e/**"],
+    environment: 'happy-dom',
+    exclude: [...configDefaults.exclude, '**/e2e/**'],
     coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html"], // Output report format
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'], // Output report format
       thresholds: {
         lines: 100,
         functions: 100,
@@ -24,10 +24,10 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: "./src/index.ts", // Entry point file
-      name: "TouchStone", // Global variable name for UMD format
+      entry: './src/index.ts', // Entry point file
+      name: 'TouchStone', // Global variable name for UMD format
       fileName: (format) => `TouchStone.${format}.js`, // Output filenames
-      formats: ["es", "cjs"], // Suport both ESM and CommonJS
+      formats: ['es', 'cjs'], // Suport both ESM and CommonJS
     },
   },
-});
+})
