@@ -26,8 +26,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: './src/index.ts', // Entry point file
-      name: 'TouchStone', // Global variable name for UMD format
-      fileName: (format) => `TouchStone.${format}.js`, // Output filenames
+      name: 'Network', // Global variable name for UMD format
+      fileName: (format) => `Network.${format}.js`, // Output filenames
       formats: ['es', 'cjs'], // Suport both ESM and CommonJS
     },
     rollupOptions: {
