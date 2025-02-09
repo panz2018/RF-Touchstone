@@ -27,3 +27,6 @@ dist-ssr
 yarn.lock
 coverage/*
 *.code-workspace
+
+# Python environment
+.venv/

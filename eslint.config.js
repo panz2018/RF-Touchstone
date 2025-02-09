@@ -23,6 +23,7 @@ export default [
       '**/dist-ssr/**',
       '**/coverage/**',
       '**/node_modules/**',
+      '**/.venv/**',
     ],
   },
   { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
@@ -33,7 +34,12 @@ export default [
       prettier: prettierPlugin,
     },
     rules: {
-      'prettier/prettier': 'error',
+      'prettier/prettier': [
+        'error',
+        {
+          endOfLine: 'auto',
+        },
+      ],
     },
   },
   prettierConfig,
