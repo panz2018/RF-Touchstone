@@ -2,7 +2,9 @@
 
 ## Project setup
 
-### Install [Node.js](https://nodejs.org/en/download/package-manager)
+### Node.js environment
+
+#### Download and install [Node.js](https://nodejs.org/en/download/package-manager) from the official website
 
 #### Check the current version of Node.js
 
@@ -10,28 +12,80 @@
 node -v
 ```
 
-### Install yarn
+#### Install yarn
 
 ```sh
 npm install --global yarn
 ```
 
-### Install packages
+#### Install packages
 
 ```sh
 yarn install
 ```
 
-### Check for outdated packages
+#### Check for outdated packages
 
 ```sh
 yarn outdated
 ```
 
-### Upgrades packages
+#### Upgrades packages
 
 ```
 yarn upgrade --latest
+```
+
+### Python environment
+
+#### Create and Use Virtual Environments
+
+##### Create a new virtual environment
+
+```sh
+python -m venv python\.venv
+```
+
+##### Activate a virtual environment
+
+On Windows:
+
+```sh
+python\.venv\Scripts\activate
+```
+
+On MacOS/Linux
+
+```sh
+source python/.venv/bin/activate
+```
+
+##### To confirm the virtual environment is activated, check the location of your Python interpreter:
+
+```sh
+where python
+```
+
+##### Check python version
+
+```sh
+python --version
+```
+
+##### Deactivate a virtual environment
+
+On Windows:
+
+```sh
+python\.venv\Scripts\deactivate
+```
+
+#### Install packages using pip
+
+##### Install packages using a requirements file
+
+```sh
+python -m pip install -r python\requirements.txt
 ```
 
 ## Development
