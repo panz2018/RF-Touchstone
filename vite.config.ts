@@ -25,10 +25,10 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: './src/index.ts', // Entry point file
+      entry: './src/network.ts', // Entry point file
       name: 'Network', // Global variable name for UMD format
       fileName: (format) => `Network.${format}.js`, // Output filenames
-      formats: ['es', 'cjs'], // Suport both ESM and CommonJS
+      formats: ['es', 'cjs', 'umd'], // Suport both ESM and CommonJS
     },
     rollupOptions: {
       external: [
