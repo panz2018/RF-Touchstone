@@ -18,16 +18,17 @@ jobs:
   pre-merge:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'yarn'
 
-      - name: Run install
-        run: yarn install
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile=false
 
-      - name: Test
+      - name: Run tests
         run: yarn test
