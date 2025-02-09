@@ -82,10 +82,22 @@ On Windows:
 
 #### Install packages using pip
 
+##### Upgrade pip
+
+```sh
+pip install --upgrade pip
+```
+
 ##### Install packages using a requirements file
 
 ```sh
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
+```
+
+##### Check packages available for update
+
+```sh
+pip list --outdated
 ```
 
 ## Development

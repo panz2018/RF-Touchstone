@@ -23,6 +23,7 @@ export default [
       '**/dist-ssr/**',
       '**/coverage/**',
       '**/node_modules/**',
+      '**/.venv/**',
     ],
   },
   { languageOptions: { globals: { ...globals.browser, ...globals.node } } },

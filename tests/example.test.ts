@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import sum from '@/index.ts'
+import { sum } from '@/index.ts'
 
 describe('Example Test Suite', () => {
   it('should pass a basic test', () => {

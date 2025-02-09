@@ -1,7 +1,7 @@
 export type Input = number
 export const PI = 3.14159
 
-export default (numbers: Input[]) => {
+export const sum = (numbers: Input[]) => {
   return numbers.reduce((sum, num) => sum + num, 0)
 }
 

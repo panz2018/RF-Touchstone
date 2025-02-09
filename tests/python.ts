@@ -3,7 +3,7 @@ import path from 'path'
 
 // Calculate python path
 const isWindows = process.platform === 'win32'
-const venvDir = path.resolve(process.cwd(), './python/.venv')
+const venvDir = path.resolve(process.cwd(), './.venv')
 const pythonBin = isWindows ? 'Scripts/python' : 'bin/python'
 const pythonPath = path.join(venvDir, pythonBin)
 
