@@ -43,7 +43,7 @@ yarn upgrade --latest
 ##### Create a new virtual environment
 
 ```sh
-python -m venv python\.venv
+python -m venv .venv
 ```
 
 ##### Activate a virtual environment
@@ -51,13 +51,13 @@ python -m venv python\.venv
 On Windows:
 
 ```sh
-python\.venv\Scripts\activate
+.venv\Scripts\activate
 ```
 
 On MacOS/Linux
 
 ```sh
-source python/.venv/bin/activate
+source .venv/bin/activate
 ```
 
 ##### To confirm the virtual environment is activated, check the location of your Python interpreter:
@@ -77,7 +77,7 @@ python --version
 On Windows:
 
 ```sh
-python\.venv\Scripts\deactivate
+.venv\Scripts\deactivate
 ```
 
 #### Install packages using pip
@@ -85,7 +85,7 @@ python\.venv\Scripts\deactivate
 ##### Install packages using a requirements file
 
 ```sh
-python -m pip install -r python\requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ## Development
