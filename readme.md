@@ -46,7 +46,7 @@ yarn upgrade --latest
 python -m venv .venv
 ```
 
-##### Activate a virtual environment
+##### Activate the virtual environment
 
 On Windows:
 
@@ -82,7 +82,7 @@ On Windows:
 
 #### Install packages using pip
 
-##### Upgrade pip
+##### Update pip
 
 ```sh
 pip install --upgrade pip
