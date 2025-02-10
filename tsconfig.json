@@ -31,5 +31,13 @@
     "noUncheckedSideEffectImports": true
   },
   "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist", "coverage"]
+  "exclude": ["node_modules", "dist", "coverage"],
+  "typedocOptions": {
+    "name": "RF Network",
+    "entryPoints": ["src/network.ts", "src/touchstone.ts"],
+    "out": "docs/api",
+    "includeVersion": false,
+    "excludePrivate": true,
+    "excludeProtected": true
+  }
 }

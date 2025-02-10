@@ -11,7 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: 'happy-dom',
-    exclude: [...configDefaults.exclude, '**/e2e/**'],
+    exclude: [...configDefaults.exclude, '**/docs/**', '**/e2e/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'], // Output report format
@@ -21,14 +21,15 @@ export default defineConfig({
         branches: 100,
         statements: 100,
       },
+      include: ['src/**/*.ts'],
     },
   },
   build: {
     lib: {
-      entry: './src/index.ts', // Entry point file
-      name: 'TouchStone', // Global variable name for UMD format
-      fileName: (format) => `TouchStone.${format}.js`, // Output filenames
-      formats: ['es', 'cjs'], // Suport both ESM and CommonJS
+      entry: './src/network.ts', // Entry point file
+      name: 'Network', // Global variable name for UMD format
+      fileName: (format) => `Network.${format}.js`, // Output filenames
+      formats: ['es', 'cjs', 'umd'], // Suport both ESM and CommonJS
     },
     rollupOptions: {
       external: [
@@ -37,5 +38,5 @@ export default defineConfig({
       ],
     },
   },
-  plugins: [dts({ exclude: '**/*.test.ts' })],
+  plugins: [dts({ exclude: ['**/*.test.ts', '**/tests/**'] })],
 })
