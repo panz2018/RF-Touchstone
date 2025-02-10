@@ -11,7 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: 'happy-dom',
-    exclude: [...configDefaults.exclude, '**/e2e/**'],
+    exclude: [...configDefaults.exclude, '**/docs/**', '**/e2e/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'], // Output report format
@@ -21,6 +21,7 @@ export default defineConfig({
         branches: 100,
         statements: 100,
       },
+      include: ['src/**/*.ts'],
     },
   },
   build: {

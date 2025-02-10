@@ -24,6 +24,7 @@ export default [
       '**/coverage/**',
       '**/node_modules/**',
       '**/.venv/**',
+      '**/docs/**',
     ],
   },
   { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
