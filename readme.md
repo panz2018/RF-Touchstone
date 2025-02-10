@@ -1,52 +1,50 @@
 # Network-rf.js
 
-## Project setup
+## Setup Node.js environment
 
-### Node.js environment
+### Download and install [Node.js](https://nodejs.org/en/download/package-manager) from the official website
 
-#### Download and install [Node.js](https://nodejs.org/en/download/package-manager) from the official website
-
-#### Check the current version of Node.js
+### Check the current version of Node.js
 
 ```sh
 node -v
 ```
 
-#### Install yarn
+### Install yarn
 
 ```sh
 npm install --global yarn
 ```
 
-#### Install packages
+### Install packages
 
 ```sh
 yarn install
 ```
 
-#### Check for outdated packages
+### Check for outdated packages
 
 ```sh
 yarn outdated
 ```
 
-#### Upgrades packages
+### Upgrades packages
 
 ```
 yarn upgrade --latest
 ```
 
-### Python environment
+## Setup Python environment
 
-#### Create and Use Virtual Environments
+### Create and Use Virtual Environments
 
-##### Create a new virtual environment
+#### Create a new virtual environment
 
 ```sh
 python -m venv .venv
 ```
 
-##### Activate the virtual environment
+#### Activate the virtual environment
 
 On Windows:
 
@@ -60,19 +58,19 @@ On MacOS/Linux
 source .venv/bin/activate
 ```
 
-##### To confirm the virtual environment is activated, check the location of your Python interpreter:
+#### To confirm the virtual environment is activated, check the location of your Python interpreter:
 
 ```sh
 where python
 ```
 
-##### Check python version
+#### Check python version
 
 ```sh
 python --version
 ```
 
-##### Deactivate a virtual environment
+#### Deactivate a virtual environment
 
 On Windows:
 
@@ -80,21 +78,21 @@ On Windows:
 .venv\Scripts\deactivate
 ```
 
-#### Install packages using pip
+### Install packages using pip
 
-##### Update pip
+#### Update pip
 
 ```sh
 pip install --upgrade pip
 ```
 
-##### Install packages using a requirements file
+#### Install packages using a requirements file
 
 ```sh
 pip install -r requirements.txt
 ```
 
-##### Check packages available for update
+#### Check packages available for update
 
 ```sh
 pip list --outdated
@@ -134,14 +132,22 @@ yarn test:unit
 yarn test:coverage
 ```
 
-### Lint, format, unit-test, coverage, and build
+### All tests
+
+Convenient command includes: lint, format, unit:test, test:coverage, build, and generate API docs
 
 ```sh
 yarn test
 ```
 
-## Compile, build and minify for production
+### Compile, build and minify for production
 
 ```sh
 yarn build
+```
+
+### Generate API docs
+
+```sh
+yarn docs
 ```

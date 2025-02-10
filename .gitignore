@@ -30,3 +30,6 @@ coverage/*
 
 # Python environment
 .venv/
+
+# TypeDocs
+docs/api/*
