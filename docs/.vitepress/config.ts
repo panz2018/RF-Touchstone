@@ -6,6 +6,7 @@ export default defineConfig({
   title: 'RF Network',
   description:
     'Reading/writing touchstone snp files, similar to SignalIntegrity and scikit-rf in python',
+  base: '/Network-rf.ts/',
 
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
