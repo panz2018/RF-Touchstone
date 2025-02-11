@@ -40,7 +40,7 @@ jobs:
       - name: Run install
         run: yarn install
 
-      - name: Build API docs
+      - name: Build VitePress docs
         run: yarn docs:build
 
       - name: Setup Pages
