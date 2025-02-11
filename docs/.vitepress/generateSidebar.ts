@@ -27,26 +27,42 @@ export function generateSidebar(basePath: string): DefaultTheme.Sidebar {
       items.push({ text: 'Overview', link })
     }
 
+    // Read markdown files frist
     files.forEach((file) => {
       if (file === 'README.md') {
         return // 跳过 README.md，因为它已经被处理
       }
-
+      // Get full path
       const fullPath = path.join(dir, file)
       const stat = fs.statSync(fullPath)
-
       if (stat.isDirectory()) {
-        // 如果是目录，递归处理子目录
-        items.push({
-          text: file,
-          collapsed: false,
-          items: traverse(fullPath, `${prefix}${file}/`),
-        })
-      } else if (file.endsWith('.md')) {
+        // If directory, skip
+        return
+      }
+      if (file.endsWith('.md')) {
         // 如果是 Markdown 文件，添加到侧边栏
         const link = `${prefix}${file.replace(/\.md$/, '')}`
         items.push({ text: file.replace(/\.md$/, ''), link })
       }
+    })
+    // Read subfolder next
+    files.forEach((file) => {
+      if (file === 'README.md') {
+        return // 跳过 README.md，因为它已经被处理
+      }
+      // Get full path
+      const fullPath = path.join(dir, file)
+      const stat = fs.statSync(fullPath)
+      // If not directory, skip
+      if (!stat.isDirectory()) {
+        return
+      }
+      // 如果是目录，递归处理子目录
+      items.push({
+        text: file,
+        collapsed: false,
+        items: traverse(fullPath, `${prefix}${file}/`),
+      })
     })
 
     return items

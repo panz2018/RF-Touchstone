@@ -3,10 +3,10 @@ import { generateSidebar } from './generateSidebar.js'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: 'RF Network',
+  title: 'RF Touchstone',
   description:
     'Reading/writing touchstone snp files, similar to SignalIntegrity and scikit-rf in python',
-  base: '/Network-rf.ts/',
+  base: '/RF-Touchstone/',
 
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -18,7 +18,7 @@ export default defineConfig({
     sidebar: generateSidebar('api'),
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/panz2018/Network-rf.ts' },
+      { icon: 'github', link: 'https://github.com/panz2018/RF-Touchstone' },
     ],
   },
 

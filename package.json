@@ -1,17 +1,18 @@
 {
-  "name": "network-rf.ts",
+  "name": "rf-touchstone",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "test": "run-p --print-label lint format test:unit test:coverage build docs:build",
+    "test": "run-p --print-label lint format test:unit test:coverage build docs:md && run-s docs:build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "build": "tsc && vite build",
-    "docs:dev": "typedoc --tsconfig tsconfig.json && vitepress dev docs",
-    "docs:build": "typedoc --tsconfig tsconfig.json && vitepress build docs",
+    "docs:md": "typedoc --tsconfig tsconfig.json",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {},
