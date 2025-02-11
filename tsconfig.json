@@ -34,7 +34,7 @@
   "exclude": ["node_modules", "dist", "coverage"],
   "typedocOptions": {
     "name": "RF Touchstone",
-    "entryPoints": ["src/touchstone.ts"],
+    "entryPoints": ["src/**/*"],
     "out": "docs/api",
     "includeVersion": false,
     "excludePrivate": true,

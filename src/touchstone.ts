@@ -1,15 +1,13 @@
 /**
  * Touchstone class is used to read/write a touchstone(R) file.
  *
- * # References
+ * References:
  * - {@link https://ibis.org/touchstone_ver2.1/touchstone_ver2_1.pdf Touchstone(R) File Format Specification (Version 2.1)}
  * - {@link https://books.google.com/books/about/S_Parameters_for_Signal_Integrity.html?id=_dLKDwAAQBAJ S-Parameters for Signal Integrity}
  * - {@link https://github.com/scikit-rf/scikit-rf/blob/master/skrf/io/touchstone.py scikit-rf: Open Source RF Engineering}
  * - {@link https://github.com/Nubis-Communications/SignalIntegrity/blob/master/SignalIntegrity/Lib/SParameters/SParameters.py SignalIntegrity: Signal and Power Integrity Tools}
  */
 export class Touchstone {
-  /** Version 1.1 is supported in this class */
-  version = '1.1' as const
   /** Comments in the file header with "!" symbol at the beginning of each row */
   comments = ''
   /** S-parameter format: MA, DB, and RI
