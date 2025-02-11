@@ -10,9 +10,8 @@
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "build": "tsc && vite build",
-    "docs:typedoc": "typedoc --tsconfig tsconfig.json",
-    "docs:dev": "yarn docs:typedoc && vitepress dev docs",
-    "docs:build": "yarn docs:typedoc && vitepress build docs",
+    "docs:dev": "typedoc --tsconfig tsconfig.json && vitepress dev docs",
+    "docs:build": "typedoc --tsconfig tsconfig.json && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {},
