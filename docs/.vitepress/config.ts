@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitepress'
-import { generateSidebar } from './generateSidebar.js'
+import { generateSidebar } from './generateSidebar'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({

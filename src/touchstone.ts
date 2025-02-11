@@ -8,12 +8,31 @@
  * - {@link https://github.com/Nubis-Communications/SignalIntegrity/blob/master/SignalIntegrity/Lib/SParameters/SParameters.py SignalIntegrity: Signal and Power Integrity Tools}
  */
 export class Touchstone {
-  /** Comments in the file header with "!" symbol at the beginning of each row */
+  /**
+   * Comments in the file header with "!" symbol at the beginning of each row
+   */
   comments = ''
-  /** S-parameter format: MA, DB, and RI
+
+  /**
+   * S-parameter format: MA, DB, and RI
    * - RI: real and imaginary, i.e. $A + j \cdot B$
    * - MA: magnitude and angle (in degrees), i.e. $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
    * - DB: decibels and angle (in degrees), i.e. $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
    */
   format: 'RI' | 'MA' | 'DB' | undefined
+
+  /**
+   * Type of network parameters
+   * - S: Scattering parameters
+   * - Y: Admittance parameters
+   * - Z: Impedance parameters
+   * - H: Hybrid-h parameters
+   * - G: Hybrid-g parameters
+   */
+  parameter: 'S' | 'Y' | 'Z' | 'G' | 'H' | undefined
+
+  /**
+   * Reference impedance for all ports
+   */
+  resistance: number | undefined
 }
