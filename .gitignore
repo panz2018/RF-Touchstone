@@ -25,11 +25,15 @@ dist-ssr
 
 # Build the Typescript library
 yarn.lock
-coverage/*
+coverage
 *.code-workspace
 
 # Python environment
-.venv/
+.venv
 
 # TypeDocs
-docs/api/*
+docs/api
+
+# VitePress
+docs/.vitepress/dist
+docs/.vitepress/cache
