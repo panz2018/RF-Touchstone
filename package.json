@@ -11,7 +11,7 @@
     "test:coverage": "vitest run --coverage",
     "build": "tsc && vite build",
     "docs:typedoc": "typedoc --tsconfig tsconfig.json",
-    "docs:dev": "vitepress dev docs",
+    "docs:dev": "yarn docs:typedoc && vitepress dev docs",
     "docs:build": "yarn docs:typedoc && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
@@ -26,6 +26,7 @@
     "eslint-plugin-prettier": "^5.2.3",
     "globals": "^15.14.0",
     "happy-dom": "^17.0.2",
+    "markdown-it-mathjax3": "^4.3.2",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.4.2",
     "typedoc": "^0.27.7",
