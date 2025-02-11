@@ -32,4 +32,8 @@ coverage
 .venv
 
 # TypeDocs
-docs
+docs/api
+
+# VitePress
+docs/.vitepress/dist
+docs/.vitepress/cache

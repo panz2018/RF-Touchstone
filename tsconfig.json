@@ -35,7 +35,7 @@
   "typedocOptions": {
     "name": "RF Network",
     "entryPoints": ["src/network.ts", "src/touchstone.ts"],
-    "out": "docs",
+    "out": "docs/api",
     "includeVersion": false,
     "excludePrivate": true,
     "excludeProtected": true,
