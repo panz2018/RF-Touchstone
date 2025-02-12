@@ -25,6 +25,8 @@ export default defineConfig({
     },
   },
   build: {
+    minify: 'esbuild',
+    target: 'esnext', // 确保目标环境支持现代语法
     lib: {
       entry: './src/touchstone.ts', // Entry point file
       name: 'Touchstone', // Global variable name for UMD format
@@ -32,6 +34,7 @@ export default defineConfig({
       formats: ['es', 'cjs', 'umd'], // Suport both ESM, CommonJS, and UMD formats
     },
     rollupOptions: {
+      treeshake: true, // 显式启用 Tree Shaking
       external: [
         '**/*.test.ts', // Exclude files ending with '.test.ts'
         '**/tests/**', // Exclude the entire 'tests' directory
