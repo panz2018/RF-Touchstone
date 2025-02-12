@@ -15,7 +15,10 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@stdlib/complex-float32": "^0.3.0",
+    "@stdlib/ndarray-ctor": "^0.2.2"
+  },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
     "@types/eslint-config-prettier": "^6.11.3",

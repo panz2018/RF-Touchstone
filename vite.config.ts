@@ -21,7 +21,7 @@ export default defineConfig({
         branches: 100,
         statements: 100,
       },
-      include: ['src/**/*.ts'],
+      include: ['src/**/*.ts', 'tests/**/*.ts'],
     },
   },
   build: {

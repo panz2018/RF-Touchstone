@@ -1,3 +1,21 @@
+import ndarray from '@stdlib/ndarray-ctor'
+import Complex64 from '@stdlib/complex-float32'
+import { Frequency } from './frequency'
+
+/**
+ * Interface for a complex number
+ */
+export type Complex = typeof Complex64
+
+/**
+ * The interface for the 2D matrix of complex numbers
+ */
+export interface TouchStoneData {
+  data: Complex[] // 数据存储为一维复数数组
+  shape: [number, number] // 形状为二维数组 (行数, 列数)
+  dtype: 'complex64' // 数据类型为 complex64
+}
+
 /**
  * Touchstone class is used to read/write a touchstone(R) file.
  *
@@ -11,7 +29,7 @@ export class Touchstone {
   /**
    * Comments in the file header with "!" symbol at the beginning of each row
    */
-  comments = ''
+  public comments = ''
 
   /**
    * S-parameter format: MA, DB, and RI
@@ -19,7 +37,7 @@ export class Touchstone {
    * - MA: magnitude and angle (in degrees), i.e. $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
    * - DB: decibels and angle (in degrees), i.e. $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
    */
-  format: 'RI' | 'MA' | 'DB' | undefined
+  private format: 'RI' | 'MA' | 'DB' | undefined
 
   /**
    * Type of network parameters
@@ -29,10 +47,32 @@ export class Touchstone {
    * - H: Hybrid-h parameters
    * - G: Hybrid-g parameters
    */
-  parameter: 'S' | 'Y' | 'Z' | 'G' | 'H' | undefined
+  private parameter: 'S' | 'Y' | 'Z' | 'G' | 'H' | undefined
 
   /**
    * Reference impedance for all ports
    */
-  resistance: number | undefined
+  private resistance: number = 50
+
+  /**
+   * Frequency points
+   */
+  private frequency: Frequency | undefined
+
+  /**
+   * 2D matrix of complex number in TouchStone file
+   */
+  private matrix: TouchStoneData | undefined
+
+  public read_text(text: string) {
+    console.log(text, ndarray)
+    console.log(
+      this.comments,
+      this.format,
+      this.parameter,
+      this.resistance,
+      this.frequency,
+      this.matrix
+    )
+  }
 }
