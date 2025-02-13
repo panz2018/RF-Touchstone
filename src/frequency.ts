@@ -23,10 +23,46 @@ export class Frequency {
    * Frequency unit: 'Hz', 'kHz', 'MHz', 'GHz', 'THz'
    *  Default: 'Hz'
    */
-  unit: FrequencyUnit = 'Hz'
+  private unit: FrequencyUnit = 'Hz'
 
   /**
    * Frequency values
    */
-  f: FrequencyValue = []
+  public f: FrequencyValue = []
+
+  /**
+   * Set the frequency unit
+   * @param unit
+   * @returns
+   * @throws Will throw an error if the frequency unit is not valid
+   */
+  public setUnit(unit: FrequencyUnit) {
+    switch (unit.toLowerCase()) {
+      case 'hz':
+        this.unit = 'Hz'
+        break
+      case 'khz':
+        this.unit = 'kHz'
+        break
+      case 'mhz':
+        this.unit = 'MHz'
+        break
+      case 'ghz':
+        this.unit = 'GHz'
+        break
+      case 'thz':
+        this.unit = 'THz'
+        break
+      default:
+        throw new Error(`Frequency unit "${unit}" is not supported`)
+    }
+  }
+
+  /**
+   * Get the frequency unit
+   * @returns
+   */
+  public getUnit(): FrequencyUnit {
+    return this.unit
+  }
 }

@@ -39,11 +39,11 @@ export type TouchstoneParameter = (typeof TouchstoneParameters)[number]
 export type TouchstoneResistance = number | number[]
 
 /**
- * The data of touchstone file
- * A three dimensional matrix
+ * 3D array to store the network parameter data.
  * - The first dimension is the exits (output) port number
  * - The second dimension is the enters (input) port number
  * - The third dimension is the frequency index
+ * For example, data[i][j][k] would be the parameter from j+1 to i+1 at frequency index k
  */
 export type TouchstoneMatrix = Complex[][][]
 
@@ -162,16 +162,29 @@ export class Touchstone {
     // Parse comments
     this.comments = lines.filter((line) => line.startsWith('!'))
 
-    console.log(lines)
-    console.log(
-      this.comments,
-      this.format,
-      this.parameter,
-      this.resistance,
-      this.nports,
-      this.frequency,
-      this.matrix
+    // Parse options
+    const options = lines.filter((line) => line.startsWith('#'))
+    if (options.length === 0) {
+      throw new Error('Unable to find the option line starting with "#"')
+    } else if (options.length > 1) {
+      throw new Error(
+        `Only one option line starting with "#" is supported, but found ${options.length} lines`
+      )
+    }
+    const tokens = options[0].slice(1).trim().split(/\s+/)
+    // Frequency unit
+    this.frequency = new Frequency()
+    // this.frequency.setUnit('z')
+    //
+    console.log(tokens)
+
+    // Parse data
+    const data = lines.filter(
+      (line) => !line.startsWith('!') && !line.startsWith('#')
     )
+
+    console.log(data)
+    console.log(this)
   }
 
   /**
