@@ -8,11 +8,16 @@ describe('touchstone.ts', () => {
   it('Initialize', () => {
     const touchstone = new Touchstone()
     expect(touchstone).toBeTruthy()
-    expect(touchstone.comments).toBe('')
-    expect(touchstone.read_text).toBeTruthy()
+    expect(touchstone.comments).toStrictEqual([])
+    expect(touchstone.readFromString).toBeTruthy()
   })
-  it('read_text: empty', () => {
+  it('readFromString: test', () => {
+    const string = `
+! 1-port S-parameter file
+# MHz S MA R 50
+100 0.99 -4 200 0.80 -22 300 0.707 -45
+`
     const touchstone = new Touchstone()
-    touchstone.read_text('')
+    touchstone.readFromString(string, 1)
   })
 })
