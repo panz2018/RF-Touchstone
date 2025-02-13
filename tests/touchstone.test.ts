@@ -12,7 +12,7 @@ describe('touchstone.ts', () => {
   it('Touchstone:format', () => {
     const touchstone = new Touchstone()
     expect(touchstone.format).toBe(undefined)
-    // Wrong format type
+    // Wrong input type
     expect(() => (touchstone.format = 0 as never)).toThrow(
       `Unknown Touchstone format: 0`
     )
@@ -22,16 +22,16 @@ describe('touchstone.ts', () => {
     expect(() => (touchstone.format = {} as never)).toThrow(
       `Unknown Touchstone format: [object Object]`
     )
-    // Wrong unit string
+    // Wrong input value
     expect(() => (touchstone.format = 'z' as never)).toThrow(
       `Unknown Touchstone format: z`
     )
-    // Correct units
+    // Correct input values
     for (const format of TouchstoneFormats) {
       touchstone.format = format.toLowerCase() as never
       expect(touchstone.format).toBe(format)
     }
-    // Undefined format
+    // Undefined input value
     for (const format of [undefined, null]) {
       touchstone.format = format as never
       expect(touchstone.format).toBe(undefined)
@@ -40,29 +40,57 @@ describe('touchstone.ts', () => {
   it('Touchstone:parameter', () => {
     const touchstone = new Touchstone()
     expect(touchstone.parameter).toBe(undefined)
-    // Wrong parameter type
+    // Wrong input type
     expect(() => (touchstone.parameter = 0 as never)).toThrow(
-      `Unknown type of network paramter: 0`
+      `Unknown Touchstone paramter: 0`
     )
     expect(() => (touchstone.parameter = [] as never)).toThrow(
-      `Unknown type of network paramter: `
+      `Unknown Touchstone paramter: `
     )
     expect(() => (touchstone.parameter = {} as never)).toThrow(
-      `Unknown type of network paramter: [object Object]`
+      `Unknown Touchstone paramter: [object Object]`
     )
-    // Wrong unit string
+    // Wrong input value
     expect(() => (touchstone.parameter = 'x' as never)).toThrow(
-      `Unknown type of network paramter: x`
+      `Unknown Touchstone paramter: x`
     )
-    // Correct units
+    // Correct input values
     for (const parameter of TouchstoneParameters) {
       touchstone.parameter = parameter.toLowerCase() as never
       expect(touchstone.parameter).toBe(parameter)
     }
-    // Undefined format
+    // Undefined input value
     for (const parameter of [undefined, null]) {
       touchstone.parameter = parameter as never
       expect(touchstone.parameter).toBe(undefined)
+    }
+  })
+  it('Touchstone:impedance', () => {
+    const touchstone = new Touchstone()
+    expect(touchstone.impedance).toBe(50)
+    // Wrong input type
+    expect(() => (touchstone.impedance = 'a' as never)).toThrow(
+      `Unknown Touchstone impedance: a`
+    )
+    expect(() => (touchstone.impedance = [50, 'a'] as never)).toThrow(
+      `Unknown Touchstone impedance: 50,a`
+    )
+    expect(() => (touchstone.impedance = [] as never)).toThrow(
+      `Unknown Touchstone impedance: `
+    )
+    expect(() => (touchstone.impedance = {} as never)).toThrow(
+      `Unknown Touchstone impedance: [object Object]`
+    )
+    // Correct input values
+    for (const impedance of [0, 10.5, 50, [10], [10, 25], [30, 67.1, 80.9]]) {
+      touchstone.impedance = impedance
+      expect(touchstone.impedance).toStrictEqual(impedance)
+    }
+    // Undefined input value
+    for (const impedance of [undefined, null]) {
+      expect(() => (touchstone.impedance = impedance as never)).toThrow(
+        `Unknown Touchstone impedance: ${impedance}`
+      )
     }
   })
 

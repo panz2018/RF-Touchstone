@@ -176,7 +176,7 @@ export class Touchstone {
       return
     }
     if (typeof parameter !== 'string') {
-      throw new Error(`Unknown type of network paramter: ${parameter}`)
+      throw new Error(`Unknown Touchstone paramter: ${parameter}`)
     }
     switch (parameter.toLowerCase()) {
       case 's':
@@ -195,7 +195,7 @@ export class Touchstone {
         this._parameter = 'H'
         break
       default:
-        throw new Error(`Unknown type of network paramter: ${parameter}`)
+        throw new Error(`Unknown Touchstone paramter: ${parameter}`)
     }
   }
 
@@ -209,7 +209,37 @@ export class Touchstone {
   /**
    * Reference impedance(s) for the network parameters
    */
-  public resistance: TouchstoneResistance = 50
+  private _impedance: TouchstoneResistance = 50
+
+  /**
+   * Set the Touchstone impedance
+   * @param
+   * @returns
+   * @throws Will throw an error if the impedance is not valid
+   */
+  set impedance(impedance: TouchstoneResistance) {
+    if (typeof impedance === 'number') {
+      this._impedance = impedance
+      return
+    }
+    if (!Array.isArray(impedance) || impedance.length === 0) {
+      throw new Error(`Unknown Touchstone impedance: ${impedance}`)
+    }
+    for (const element of impedance) {
+      if (typeof element !== 'number') {
+        throw new Error(`Unknown Touchstone impedance: ${impedance}`)
+      }
+    }
+    this._impedance = impedance
+  }
+
+  /**
+   * Get the Touchstone format
+   * @returns
+   */
+  get impedance(): TouchstoneResistance {
+    return this._impedance
+  }
 
   /**
    * The number of ports in the network.

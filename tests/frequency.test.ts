@@ -8,7 +8,7 @@ describe('frequency.ts', () => {
   it('Frequency:unit', () => {
     const frequency = new Frequency()
     expect(frequency.unit).toBeTruthy()
-    // Wrong unit type
+    // Wrong input type
     expect(() => (frequency.unit = 0 as never)).toThrow(
       `Unknown frequency unit: 0`
     )
@@ -18,14 +18,14 @@ describe('frequency.ts', () => {
     expect(() => (frequency.unit = null as never)).toThrow(
       `Unknown frequency unit: null`
     )
-    // Wrong unit string
+    // Wrong input value
     expect(() => (frequency.unit = 'z' as never)).toThrow(
       `Unknown frequency unit: z`
     )
     expect(() => (frequency.unit = '' as never)).toThrow(
       `Unknown frequency unit: `
     )
-    // Correct units
+    // Correct input values
     for (const unit of FrequencyUnits) {
       frequency.unit = unit.toLowerCase() as never
       expect(frequency.unit).toBe(unit)
