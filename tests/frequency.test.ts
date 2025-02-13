@@ -5,20 +5,30 @@ describe('frequency.ts', () => {
   it('Valid class', () => {
     expect(Frequency).toBeTruthy()
   })
-  it('Initialize', () => {
+  it('Frequency:unit', () => {
     const frequency = new Frequency()
-    expect(frequency.setUnit).toBeTruthy()
-  })
-  it('Frequency:setUnit and getUnit', () => {
-    const frequency = new Frequency()
-    // Wrong unit
-    expect(() => frequency.setUnit('z' as never)).toThrow(
-      `Frequency unit "z" is not supported`
+    expect(frequency.unit).toBeTruthy()
+    // Wrong unit type
+    expect(() => (frequency.unit = 0 as never)).toThrow(
+      `Unknown frequency unit: 0`
+    )
+    expect(() => (frequency.unit = undefined as never)).toThrow(
+      `Unknown frequency unit: undefined`
+    )
+    expect(() => (frequency.unit = null as never)).toThrow(
+      `Unknown frequency unit: null`
+    )
+    // Wrong unit string
+    expect(() => (frequency.unit = 'z' as never)).toThrow(
+      `Unknown frequency unit: z`
+    )
+    expect(() => (frequency.unit = '' as never)).toThrow(
+      `Unknown frequency unit: `
     )
     // Correct units
     for (const unit of FrequencyUnits) {
-      frequency.setUnit(unit.toLowerCase() as never)
-      expect(frequency.getUnit()).toBe(unit)
+      frequency.unit = unit.toLowerCase() as never
+      expect(frequency.unit).toBe(unit)
     }
   })
 })

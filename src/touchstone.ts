@@ -1,5 +1,6 @@
-import { Frequency } from './frequency'
 import { Complex } from 'mathjs'
+import type { FrequencyUnit } from './frequency'
+import { Frequency } from './frequency'
 
 /**
  * S-parameter format: MA, DB, and RI
@@ -117,14 +118,93 @@ export class Touchstone {
   public comments: string[] = []
 
   /**
-   * S-parameter format: MA, DB, and RI
+   * Touchstone format: MA, DB, and RI
    */
-  public format: TouchstoneFormat | undefined
+  private _format: TouchstoneFormat | undefined
 
   /**
-   * Type of network parameters: 'S' | 'Y' | 'Z' | 'G' | 'H'
+   * Set the Touchstone format: MA, DB, RI, or undefined
+   * @param
+   * @returns
+   * @throws Will throw an error if the format is not valid
    */
-  public parameter: TouchstoneParameter | undefined
+  set format(format: TouchstoneFormat | undefined | null) {
+    if (format === undefined || format === null) {
+      this._format = undefined
+      return
+    }
+    if (typeof format !== 'string') {
+      throw new Error(`Unknown Touchstone format: ${format}`)
+    }
+    switch (format.toLowerCase()) {
+      case 'ma':
+        this._format = 'MA'
+        break
+      case 'db':
+        this._format = 'DB'
+        break
+      case 'ri':
+        this._format = 'RI'
+        break
+      default:
+        throw new Error(`Unknown Touchstone format: ${format}`)
+    }
+  }
+
+  /**
+   * Get the Touchstone format
+   * @returns
+   */
+  get format(): TouchstoneFormat | undefined {
+    return this._format
+  }
+
+  /**
+   * Type of network parameter: 'S' | 'Y' | 'Z' | 'G' | 'H'
+   */
+  private _parameter: TouchstoneParameter | undefined
+
+  /**
+   * Set the type of network parameter
+   * @param parameter
+   * @returns
+   * @throws Will throw an error if the type is not valid
+   */
+  set parameter(parameter: TouchstoneParameter | undefined | null) {
+    if (parameter === undefined || parameter === null) {
+      this._parameter = undefined
+      return
+    }
+    if (typeof parameter !== 'string') {
+      throw new Error(`Unknown type of network paramter: ${parameter}`)
+    }
+    switch (parameter.toLowerCase()) {
+      case 's':
+        this._parameter = 'S'
+        break
+      case 'y':
+        this._parameter = 'Y'
+        break
+      case 'z':
+        this._parameter = 'Z'
+        break
+      case 'g':
+        this._parameter = 'G'
+        break
+      case 'h':
+        this._parameter = 'H'
+        break
+      default:
+        throw new Error(`Unknown type of network paramter: ${parameter}`)
+    }
+  }
+
+  /**
+   * Get the type of network parameter
+   */
+  get parameter() {
+    return this._parameter
+  }
 
   /**
    * Reference impedance(s) for the network parameters
@@ -161,6 +241,8 @@ export class Touchstone {
       .filter((line) => line !== '')
     // Parse comments
     this.comments = lines.filter((line) => line.startsWith('!'))
+    // Initialize frequency
+    this.frequency = new Frequency()
 
     // Parse options
     const options = lines.filter((line) => line.startsWith('#'))
@@ -173,8 +255,7 @@ export class Touchstone {
     }
     const tokens = options[0].slice(1).trim().split(/\s+/)
     // Frequency unit
-    this.frequency = new Frequency()
-    // this.frequency.setUnit('z')
+    this.frequency.unit = tokens[0] as FrequencyUnit
     //
     console.log(tokens)
 
