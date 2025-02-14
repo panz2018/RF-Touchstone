@@ -1,4 +1,4 @@
-import { Complex } from 'mathjs'
+import { Complex, Matrix } from 'mathjs'
 import type { FrequencyUnit } from './frequency'
 import { Frequency } from './frequency'
 
@@ -46,7 +46,7 @@ export type TouchstoneResistance = number | number[]
  * - The third dimension is the frequency index
  * For example, data[i][j][k] would be the parameter from j+1 to i+1 at frequency index k
  */
-export type TouchstoneMatrix = Complex[][][]
+export type TouchstoneMatrix = Matrix<Complex>
 
 /**
  * Touchstone class supports both reading (parsing) and writing (generating) touchstone files.
@@ -242,9 +242,39 @@ export class Touchstone {
   }
 
   /**
-   * The number of ports in the network.
+   * The number of ports in the network
    */
-  public nports: number | undefined
+  private _nports: number | undefined
+
+  /**
+   * Set the ports number
+   * @param
+   * @returns
+   * @throws Will throw an error if the impedance is not valid
+   */
+  set nports(nports: number | undefined | null) {
+    if (nports === undefined || nports === null) {
+      this._nports = undefined
+      return
+    }
+    if (typeof nports !== 'number') {
+      throw new Error(`Unknown ports number: ${nports}`)
+    }
+    if (!Number.isInteger(nports)) {
+      throw new Error(`Unknown ports number: ${nports}`)
+    }
+    if (nports < 1) {
+      throw new Error(`Unknown ports number: ${nports}`)
+    }
+    this._nports = nports
+  }
+
+  /**
+   * Get the ports number
+   */
+  get nports() {
+    return this._nports
+  }
 
   /**
    * Frequency points
@@ -252,9 +282,13 @@ export class Touchstone {
   public frequency: Frequency | undefined
 
   /**
-   * 2D matrix of complex number in TouchStone file
+   * 3D array to store the network parameter data
+   * - The first dimension is the exits (output) port number
+   * - The second dimension is the enters (input) port number
+   * - The third dimension is the frequency index
+   * For example, data[i][j][k] would be the parameter from j+1 to i+1 at frequency index k
    */
-  public matrix: TouchstoneMatrix = []
+  public matrix: TouchstoneMatrix | undefined
 
   /**
    * Read a Touchstone file and parse the content into the internal data structure
