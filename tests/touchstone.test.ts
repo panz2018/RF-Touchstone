@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { round, abs, arg, pi } from 'mathjs'
 import {
   Touchstone,
   TouchstoneFormats,
@@ -193,35 +194,51 @@ describe('touchstone.ts', () => {
     expect(() => touchstone.readFromString(string, 1)).toThrow(
       'Touchstone invalid data number: 8, which should be multiple of 3'
     )
-    expect(touchstone.comments).toStrictEqual(['! 1-port S-parameter file'])
+    expect(touchstone.comments).toStrictEqual(['1-port S-parameter file'])
     expect(touchstone.format).toBe('MA')
     expect(touchstone.parameter).toBe('S')
     expect(touchstone.impedance).toBe(50)
     expect(touchstone.nports).toBe(1)
     expect(touchstone.frequency!.unit).toBe('MHz')
   })
-  // it('readFromString: no impedance', () => {
-  //   const string = `
-  //     ! 1-port S-parameter file
-  //     # MHz S MA
-  //     100 0.99
-  //     -4 200 0.80
-  //     -22 300
-  //     0.707 -45
-  //   `
-  //   const touchstone = new Touchstone()
-  //   touchstone.readFromString(string, 1)
-  //   expect(touchstone.comments).toStrictEqual(['! 1-port S-parameter file'])
-  //   expect(touchstone.format).toBe('MA')
-  //   expect(touchstone.parameter).toBe('S')
-  //   expect(touchstone.impedance).toBe(50)
-  //   expect(touchstone.nports).toBe(1)
-  //   expect(touchstone.frequency!.unit).toBe('MHz')
-  //   expect(touchstone.frequency!.value).toStrictEqual([100, 200, 300])
-
-  //   console.log(touchstone)
-  // })
-  it('readFromString: no impedance', () => {
+  it('readFromString: 1-port S-parameter file', () => {
+    const string = `
+      ! 1-port S-parameter file
+      # MHz S MA
+      100 0.99
+      -4 200 0.80
+      -22 300
+      0.707 -45
+    `
+    const touchstone = new Touchstone()
+    touchstone.readFromString(string, 1)
+    expect(touchstone.comments).toStrictEqual(['1-port S-parameter file'])
+    expect(touchstone.format).toBe('MA')
+    expect(touchstone.parameter).toBe('S')
+    expect(touchstone.impedance).toBe(50)
+    expect(touchstone.nports).toBe(1)
+    // Check frequency
+    expect(touchstone.frequency).toBeTruthy()
+    expect(touchstone.frequency!.unit).toBe('MHz')
+    expect(touchstone.frequency!.value).toStrictEqual([100, 200, 300])
+    // Check matrix
+    expect(touchstone.matrix).toBeTruthy()
+    expect(touchstone.matrix!.length).toBe(1)
+    touchstone.matrix!.forEach((array) => {
+      expect(array.length).toBe(1)
+      array.forEach((a) => {
+        expect(a.length).toBe(3)
+      })
+    })
+    // S11
+    expect(touchstone.matrix![0][0].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.99, 0.8, 0.707]
+    )
+    expect(
+      touchstone.matrix![0][0].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-4, -22, -45])
+  })
+  it('readFromString: 3-port S-parameter file', () => {
     const string = `
       ! 3-port S-parameter file
       # Hz S MA
@@ -235,13 +252,85 @@ describe('touchstone.ts', () => {
     `
     const touchstone = new Touchstone()
     touchstone.readFromString(string, 3)
+    expect(touchstone.comments.length).toBe(3)
+    expect(touchstone.comments[0]).toBe('3-port S-parameter file')
     expect(touchstone.format).toBe('MA')
     expect(touchstone.parameter).toBe('S')
     expect(touchstone.impedance).toBe(50)
     expect(touchstone.nports).toBe(3)
+    expect(touchstone.frequency).toBeTruthy()
     expect(touchstone.frequency!.unit).toBe('Hz')
     expect(touchstone.frequency!.value).toStrictEqual([1e6, 5e6, 1e7, 5e7, 1e8])
-
-    console.log(touchstone)
+    expect(touchstone.matrix).toBeTruthy()
+    expect(touchstone.matrix!.length).toBe(3)
+    touchstone.matrix!.forEach((array) => {
+      expect(array.length).toBe(3)
+      array.forEach((a) => {
+        expect(a.length).toBe(5)
+      })
+    })
+    // S11
+    expect(touchstone.matrix![0][0].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.8, 0.75, 0.7, 0.6, 0.5]
+    )
+    expect(
+      touchstone.matrix![0][0].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-20, -40, -60, -80, -100])
+    // S12
+    expect(touchstone.matrix![0][1].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.05, 0.1, 0.15, 0.2, 0.25]
+    )
+    expect(
+      touchstone.matrix![0][1].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([30, 45, 60, 75, 90])
+    // S13
+    expect(touchstone.matrix![0][2].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.03, 0.06, 0.09, 0.12, 0.15]
+    )
+    expect(
+      touchstone.matrix![0][2].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-45, -60, -75, -90, -105])
+    // S21
+    expect(touchstone.matrix![1][0].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.05, 0.1, 0.15, 0.2, 0.25]
+    )
+    expect(
+      touchstone.matrix![1][0].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-30, -45, -60, -75, -90])
+    // S22
+    expect(touchstone.matrix![1][1].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.75, 0.7, 0.65, 0.55, 0.45]
+    )
+    expect(
+      touchstone.matrix![1][1].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-10, -20, -30, -40, -50])
+    // S23
+    expect(touchstone.matrix![1][2].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.02, 0.04, 0.06, 0.08, 0.1]
+    )
+    expect(
+      touchstone.matrix![1][2].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([15, 25, 35, 45, 55])
+    // S31
+    expect(touchstone.matrix![2][0].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.02, 0.04, 0.06, 0.08, 0.1]
+    )
+    expect(
+      touchstone.matrix![2][0].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([45, 60, -75, -90, -105])
+    // S32
+    expect(touchstone.matrix![2][1].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.03, 0.06, 0.09, 0.12, 0.15]
+    )
+    expect(
+      touchstone.matrix![2][1].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-10, -20, -30, -40, -50])
+    // S33
+    expect(touchstone.matrix![2][2].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.7, 0.65, 0.6, 0.5, 0.4]
+    )
+    expect(
+      touchstone.matrix![2][2].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-5, -10, -15, -20, -25])
   })
 })

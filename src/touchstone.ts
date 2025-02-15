@@ -318,7 +318,9 @@ export class Touchstone {
       .map((line) => line.trim())
       .filter((line) => line !== '')
     // Parse comments
-    this.comments = lines.filter((line) => line.startsWith('!'))
+    this.comments = lines
+      .filter((line) => line.startsWith('!'))
+      .map((line) => line.slice(1).trim())
     // Initialize frequency
     this.frequency = new Frequency()
 
@@ -431,20 +433,6 @@ export class Touchstone {
         }
       }
     }
-
-    for (let outPort = 0; outPort < nports; outPort++) {
-      for (let inPort = 0; inPort < nports; inPort++) {
-        console.log(
-          outPort,
-          inPort,
-          this.matrix[outPort][inPort].map((c) => round(abs(c), 5)),
-          this.matrix[outPort][inPort].map((c) => round((arg(c) / pi) * 180, 5))
-        )
-      }
-    }
-    const test = complex(1, sqrt(3) as number)
-    console.log(test, abs(test), (arg(test) / pi) * 180)
-    console.log(complex({ r: 2, phi: (60 / 180) * pi }))
   }
 
   /**
