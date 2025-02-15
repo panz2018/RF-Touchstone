@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { round, abs, arg, pi } from 'mathjs'
+import { abs, arg, Complex, log10, pi, round } from 'mathjs'
 import {
   Touchstone,
   TouchstoneFormats,
@@ -238,43 +238,6 @@ describe('touchstone.ts', () => {
       touchstone.matrix![0][0].map((c) => round((arg(c) / pi) * 180, 5))
     ).toStrictEqual([-4, -22, -45])
   })
-  it('readFromString: 1-port S-parameter file, one impedance', () => {
-    const string = `
-      ! 1-port S-parameter file
-      # MHz S MA r 34
-      100 0.99
-      -4 200 0.80
-      -22 300
-      0.707 -45
-    `
-    const touchstone = new Touchstone()
-    touchstone.readFromString(string, 1)
-    expect(touchstone.comments).toStrictEqual(['1-port S-parameter file'])
-    expect(touchstone.format).toBe('MA')
-    expect(touchstone.parameter).toBe('S')
-    expect(touchstone.impedance).toBe(34)
-    expect(touchstone.nports).toBe(1)
-    // Check frequency
-    expect(touchstone.frequency).toBeTruthy()
-    expect(touchstone.frequency!.unit).toBe('MHz')
-    expect(touchstone.frequency!.value).toStrictEqual([100, 200, 300])
-    // Check matrix
-    expect(touchstone.matrix).toBeTruthy()
-    expect(touchstone.matrix!.length).toBe(1)
-    touchstone.matrix!.forEach((array) => {
-      expect(array.length).toBe(1)
-      array.forEach((a) => {
-        expect(a.length).toBe(3)
-      })
-    })
-    // S11
-    expect(touchstone.matrix![0][0].map((c) => round(abs(c), 5))).toStrictEqual(
-      [0.99, 0.8, 0.707]
-    )
-    expect(
-      touchstone.matrix![0][0].map((c) => round((arg(c) / pi) * 180, 5))
-    ).toStrictEqual([-4, -22, -45])
-  })
   it('readFromString: 3-port S-parameter file, three impedances', () => {
     const string = `
       ! 3-port S-parameter file
@@ -369,5 +332,93 @@ describe('touchstone.ts', () => {
     expect(
       touchstone.matrix![2][2].map((c) => round((arg(c) / pi) * 180, 5))
     ).toStrictEqual([-5, -10, -15, -20, -25])
+  })
+  it('readFromString: 4-port S-parameter file, one impedance', () => {
+    const string = `
+      ! 4-port S-parameter data
+      ! Data points are at three frequency points (non-aligned)
+      ! Format: Frequency, then S-parameters in DB-Angle format, row by row
+
+      # GHz S DB R 32
+
+      ! -----------------------------------------------------------------------
+      ! Data block starts - Frequency and S-parameter data in DB-Angle format
+      ! -----------------------------------------------------------------------
+      ! Frequency unit: GHz (Gigahertz)
+      ! S-parameter data representation: Decibel-Angle (DB) format.
+      !   Magnitude is converted to dB (Decibel = 20 * log10(Magnitude)).
+      !   Angle remains in degrees.
+      ! Data is arranged row-wise, for each frequency.
+
+      5.00000     -2.92  170.0     -13.98  -30.0    -26.02  -60.0    -33.98  -90.0    ! ! Row 1 - 5.0 GHz
+                  -20.00  -150.0   -2.48  160.0     -30.46  -70.0    -24.44  -80.0    ! ! Row 2 - 5.0 GHz
+                  -26.02  -120.0   -30.46  -100.0   -1.94  150.0     -21.94  -50.0    ! ! Row 3 - 5.0 GHz
+                  -33.98  -180.0   -24.44  -110.0   -21.94  -40.0    -1.41  140.0    ! ! Row 4 - 5.0 GHz
+
+      6.00000     -4.44  150.37    -13.98  -35.0    -24.44  -65.0    -30.46  -95.0    ! ! Row 1 - 6.0 GHz
+                  -20.00  -155.0   -3.01  150.37    -24.44  -75.0    -23.01  -85.0    ! ! Row 2 - 6.0 GHz
+                  -24.44  -125.0   -27.96  -105.0   -2.51  150.37    -20.97  -55.0    ! ! Row 3 - 6.0 GHz
+                  -30.46  -185.0   -23.01  -115.0   -20.97  -45.0    -1.94  150.37    ! ! Row 4 - 6.0 GHz
+
+      7.00000     -6.02  136.69    -12.92  -40.0    -23.01  -70.0    -27.96  -100.0   ! ! Row 1 - 7.0 GHz
+                  -16.44  -160.0   -3.98  136.69    -26.02  -80.0    -21.94  -90.0    ! ! Row 2 - 7.0 GHz
+                  -23.01  -130.0   -26.02  -110.0   -3.01  136.69    -20.00  -60.0    ! ! Row 3 - 7.0 GHz
+                  -27.96  -190.0   -21.94  -120.0   -20.00  -50.0    -2.51  136.69    ! ! Row 4 - 7.0 GHz
+    `
+    const touchstone = new Touchstone()
+    touchstone.readFromString(string, 4)
+    expect(touchstone.comments.length).toBe(11)
+    expect(touchstone.comments[0]).toBe('4-port S-parameter data')
+    expect(touchstone.format).toBe('DB')
+    expect(touchstone.parameter).toBe('S')
+    expect(touchstone.impedance).toBe(32)
+    expect(touchstone.nports).toBe(4)
+    expect(touchstone.frequency).toBeTruthy()
+    expect(touchstone.frequency!.unit).toBe('GHz')
+    expect(touchstone.frequency!.value).toStrictEqual([5, 6, 7])
+    expect(touchstone.matrix).toBeTruthy()
+    expect(touchstone.matrix!.length).toBe(4)
+    touchstone.matrix!.forEach((array) => {
+      expect(array.length).toBe(4)
+      array.forEach((a) => {
+        expect(a.length).toBe(3)
+      })
+    })
+    // S11
+    expect(
+      touchstone.matrix![0][0].map((c: Complex) =>
+        round(20 * log10(abs(c) as unknown as number), 5)
+      )
+    ).toStrictEqual([-2.92, -4.44, -6.02])
+    expect(
+      touchstone.matrix![0][0].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([170, 150.37, 136.69])
+    // S12
+    expect(
+      touchstone.matrix![0][1].map((c) =>
+        round(20 * log10(abs(c) as unknown as number), 5)
+      )
+    ).toStrictEqual([-13.98, -13.98, -12.92])
+    expect(
+      touchstone.matrix![0][1].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-30, -35, -40])
+    // S13
+    expect(
+      touchstone.matrix![0][2].map((c) =>
+        round(20 * log10(abs(c) as unknown as number), 5)
+      )
+    ).toStrictEqual([-26.02, -24.44, -23.01])
+    expect(
+      touchstone.matrix![0][2].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-60, -65, -70])
+    // S14
+    expect(
+      touchstone.matrix![0][3].map((c) =>
+        round(20 * log10(abs(c) as unknown as number), 5)
+      )
+    ).toStrictEqual([-33.98, -30.46, -27.96])
+    expect(
+      touchstone.matrix![0][3].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-90, -95, -100])
   })
 })

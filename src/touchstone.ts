@@ -22,6 +22,9 @@ export const TouchstoneFormats = ['RI', 'MA', 'DB'] as const
 
 /**
  * S-parameter format: MA, DB, and RI
+ * - RI: real and imaginary, i.e. $A + j \cdot B$
+ * - MA: magnitude and angle (in degrees), i.e. $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
+ * - DB: decibels and angle (in degrees), i.e. $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
  */
 export type TouchstoneFormat = (typeof TouchstoneFormats)[number]
 
@@ -37,6 +40,11 @@ export const TouchstoneParameters = ['S', 'Y', 'Z', 'G', 'H']
 
 /**
  * Type of network parameters: 'S' | 'Y' | 'Z' | 'G' | 'H'
+ * - S: Scattering parameters
+ * - Y: Admittance parameters
+ * - Z: Impedance parameters
+ * - H: Hybrid-h parameters
+ * - G: Hybrid-g parameters
  */
 export type TouchstoneParameter = (typeof TouchstoneParameters)[number]
 
@@ -134,6 +142,9 @@ export class Touchstone {
 
   /**
    * Set the Touchstone format: MA, DB, RI, or undefined
+   * - RI: real and imaginary, i.e. $A + j \cdot B$
+   * - MA: magnitude and angle (in degrees), i.e. $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
+   * - DB: decibels and angle (in degrees), i.e. $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
    * @param format
    * @returns
    * @throws Will throw an error if the format is not valid
@@ -176,6 +187,11 @@ export class Touchstone {
 
   /**
    * Set the type of network parameter
+   * - S: Scattering parameters
+   * - Y: Admittance parameters
+   * - Z: Impedance parameters
+   * - H: Hybrid-h parameters
+   * - G: Hybrid-g parameters
    * @param parameter
    * @returns
    * @throws Will throw an error if the type is not valid
@@ -361,6 +377,16 @@ export class Touchstone {
     // Parse frequency data
     const content = lines
       .filter((line) => !line.startsWith('!') && !line.startsWith('#'))
+      .map((line) => {
+        const index = line.indexOf('!')
+        if (index !== -1) {
+          // If '!' is found，ignore after '!'
+          return line.substring(0, index).trim()
+        } else {
+          // if '!' is not found, return the original line
+          return line.trim()
+        }
+      })
       .join(' ')
     const data = content.split(/\s+/).map((d) => parseFloat(d))
     // countColumn(Columns count): 1 + 2 * nports^2
