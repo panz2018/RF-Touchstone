@@ -201,7 +201,7 @@ describe('touchstone.ts', () => {
     expect(touchstone.nports).toBe(1)
     expect(touchstone.frequency!.unit).toBe('MHz')
   })
-  it('readFromString: 1-port S-parameter file', () => {
+  it('readFromString: 1-port S-parameter file, no impedance', () => {
     const string = `
       ! 1-port S-parameter file
       # MHz S MA
@@ -238,10 +238,47 @@ describe('touchstone.ts', () => {
       touchstone.matrix![0][0].map((c) => round((arg(c) / pi) * 180, 5))
     ).toStrictEqual([-4, -22, -45])
   })
-  it('readFromString: 3-port S-parameter file', () => {
+  it('readFromString: 1-port S-parameter file, one impedance', () => {
+    const string = `
+      ! 1-port S-parameter file
+      # MHz S MA r 34
+      100 0.99
+      -4 200 0.80
+      -22 300
+      0.707 -45
+    `
+    const touchstone = new Touchstone()
+    touchstone.readFromString(string, 1)
+    expect(touchstone.comments).toStrictEqual(['1-port S-parameter file'])
+    expect(touchstone.format).toBe('MA')
+    expect(touchstone.parameter).toBe('S')
+    expect(touchstone.impedance).toBe(34)
+    expect(touchstone.nports).toBe(1)
+    // Check frequency
+    expect(touchstone.frequency).toBeTruthy()
+    expect(touchstone.frequency!.unit).toBe('MHz')
+    expect(touchstone.frequency!.value).toStrictEqual([100, 200, 300])
+    // Check matrix
+    expect(touchstone.matrix).toBeTruthy()
+    expect(touchstone.matrix!.length).toBe(1)
+    touchstone.matrix!.forEach((array) => {
+      expect(array.length).toBe(1)
+      array.forEach((a) => {
+        expect(a.length).toBe(3)
+      })
+    })
+    // S11
+    expect(touchstone.matrix![0][0].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.99, 0.8, 0.707]
+    )
+    expect(
+      touchstone.matrix![0][0].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-4, -22, -45])
+  })
+  it('readFromString: 3-port S-parameter file, three impedances', () => {
     const string = `
       ! 3-port S-parameter file
-      # Hz S MA
+      # Hz S MA R 20 35 60
       ! Freq     S11_Mag    S11_Ang     S12_Mag    S12_Ang     S13_Mag    S13_Ang     S21_Mag    S21_Ang     S22_Mag    S22_Ang     S23_Mag    S23_Ang     S31_Mag    S31_Ang     S32_Mag    S32_Ang     S33_Mag    S33_Ang
       ! ---------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------
       1.000E+06  0.80       -20.0       0.05        30.0       0.03       -45.0       0.05       -30.0       0.75       -10.0       0.02        15.0       0.02        45.0       0.03        -10.0       0.70       -5.0
@@ -256,7 +293,7 @@ describe('touchstone.ts', () => {
     expect(touchstone.comments[0]).toBe('3-port S-parameter file')
     expect(touchstone.format).toBe('MA')
     expect(touchstone.parameter).toBe('S')
-    expect(touchstone.impedance).toBe(50)
+    expect(touchstone.impedance).toStrictEqual([20, 35, 60])
     expect(touchstone.nports).toBe(3)
     expect(touchstone.frequency).toBeTruthy()
     expect(touchstone.frequency!.unit).toBe('Hz')

@@ -27,7 +27,7 @@ export class Frequency {
 
   /**
    * Set the frequency unit
-   * @param
+   * @param unit
    * @returns
    * @throws Will throw an error if the frequency unit is not valid
    */

@@ -1,7 +1,5 @@
 import {
-  abs,
   add,
-  arg,
   complex,
   Complex,
   index,
@@ -9,9 +7,7 @@ import {
   pi,
   pow,
   range,
-  sqrt,
   subset,
-  round,
 } from 'mathjs'
 import type { FrequencyUnit } from './frequency'
 import { Frequency } from './frequency'
@@ -138,7 +134,7 @@ export class Touchstone {
 
   /**
    * Set the Touchstone format: MA, DB, RI, or undefined
-   * @param
+   * @param format
    * @returns
    * @throws Will throw an error if the format is not valid
    */
@@ -227,7 +223,7 @@ export class Touchstone {
 
   /**
    * Set the Touchstone impedance
-   * @param
+   * @param impedance
    * @returns
    * @throws Will throw an error if the impedance is not valid
    */
@@ -262,7 +258,7 @@ export class Touchstone {
 
   /**
    * Set the ports number
-   * @param
+   * @param nports
    * @returns
    * @throws Will throw an error if the impedance is not valid
    */
@@ -308,6 +304,8 @@ export class Touchstone {
    * Read a Touchstone file and parse the content into the internal data structure
    * @param string
    * @param nports
+   * @returns
+   * @throws Will throw an error if the impedance is not valid
    */
   public readFromString(string: string, nports: number) {
     // Assign the number of ports
