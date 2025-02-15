@@ -1,4 +1,15 @@
-import { Complex, Matrix } from 'mathjs'
+import {
+  abs,
+  arg,
+  complex,
+  Complex,
+  index,
+  multiply,
+  pi,
+  range,
+  sqrt,
+  subset,
+} from 'mathjs'
 import type { FrequencyUnit } from './frequency'
 import { Frequency } from './frequency'
 
@@ -46,7 +57,7 @@ export type TouchstoneResistance = number | number[]
  * - The third dimension is the frequency index
  * For example, data[i][j][k] would be the parameter from j+1 to i+1 at frequency index k
  */
-export type TouchstoneMatrix = Matrix<Complex>
+export type TouchstoneMatrix = Complex[][][]
 
 /**
  * Touchstone class supports both reading (parsing) and writing (generating) touchstone files.
@@ -255,6 +266,7 @@ export class Touchstone {
   set nports(nports: number | undefined | null) {
     if (nports === undefined || nports === null) {
       this._nports = undefined
+      this.matrix = undefined
       return
     }
     if (typeof nports !== 'number') {
@@ -267,6 +279,14 @@ export class Touchstone {
       throw new Error(`Unknown ports number: ${nports}`)
     }
     this._nports = nports
+    // Initialize matrix
+    this.matrix = []
+    for (let outPort = 0; outPort < nports; outPort++) {
+      this.matrix[outPort] = []
+      for (let inPort = 0; inPort < nports; inPort++) {
+        this.matrix[outPort][inPort] = []
+      }
+    }
   }
 
   /**
@@ -320,73 +340,53 @@ export class Touchstone {
     const tokens = options[0].slice(1).trim().split(/\s+/)
     // Frequency unit
     this.frequency.unit = tokens[0] as FrequencyUnit
-    //
-    console.log(tokens)
+    // Touchstone parameter
+    this.parameter = tokens[1] as TouchstoneParameter
+    // Touchstone format
+    this.format = tokens[2] as TouchstoneFormat
+    // Touchstone impedance
+    if (tokens.length >= 4) {
+      if (tokens[3].toLowerCase() !== 'r') {
+        throw new Error(
+          `Uknown Touchstone impedance: ${tokens.slice(3).join(' ')}`
+        )
+      }
+      const array = tokens.slice(4).map((d) => parseFloat(d))
+      if (array.length === 0 || array.some(Number.isNaN)) {
+        throw new Error(
+          `Uknown Touchstone impedance: ${tokens.slice(3).join(' ')}`
+        )
+      }
+      if (array.length === 1) {
+        this.impedance = array[0]
+      } else {
+        this.impedance = array
+      }
+    }
 
     // Parse data
-    const data = lines.filter(
-      (line) => !line.startsWith('!') && !line.startsWith('#')
+    const content = lines
+      .filter((line) => !line.startsWith('!') && !line.startsWith('#'))
+      .join(' ')
+    const data = content.split(/\s+/).map((d) => parseFloat(d))
+    const countColumn = 2 * Math.pow(this.nports, 2) + 1
+    if (data.length % countColumn !== 0) {
+      throw new Error(
+        `Touchstone invalid data number: ${data.length}, which should be multiple of ${countColumn}`
+      )
+    }
+    const points = data.length / countColumn
+    this.frequency.value = subset(
+      data,
+      index(multiply(range(0, points), countColumn))
     )
 
-    console.log(data)
-    console.log(this)
+    const test = complex(1, sqrt(3) as number)
+    console.log(test, abs(test), (arg(test) / pi) * 180)
+    console.log(complex({ r: 2, phi: (60 / 180) * pi }))
+
+    console.log(data.length, countColumn, data)
   }
-
-  /**
-   * Reads a Touchstone file and parses its contents into the internal data structure.
-   *
-   * @param filePath - The path to the Touchstone file.
-   * @returns A new instance of the Touchstone class with parsed data.
-   * @throws Will throw an error if the file format is invalid or unsupported.
-   */
-  // static async readFromFile(filePath: string): Promise<Touchstone> {
-  //   const fileContent = await this.readFileContent(filePath)
-  //   const lines = fileContent.split('\n').map((line) => line.trim())
-
-  //   let frequencyUnit: string = 'GHz'
-  //   let parameterType: string = 'S'
-  //   let dataFormat: string = 'MA'
-  //   let referenceResistance: number | number[] = 50
-  //   let numberOfPorts: number = 1
-  //   const networkData: { frequency: number; values: number[] }[] = []
-
-  //   // Parse the option line and network data
-  //   for (const line of lines) {
-  //     if (line.startsWith('!') || line.startsWith('#')) {
-  //       if (line.startsWith('#')) {
-  //         const tokens = line.slice(1).trim().split(/\s+/)
-  //         frequencyUnit = tokens[0] || 'GHz'
-  //         parameterType = tokens[1] || 'S'
-  //         dataFormat = tokens[2] || 'MA'
-
-  //         // Handle reference resistance
-  //         const rIndex = tokens.indexOf('R')
-  //         if (rIndex !== -1) {
-  //           const resistances = tokens.slice(rIndex + 1).map(Number)
-  //           referenceResistance =
-  //             resistances.length === 1 ? resistances[0] : resistances
-  //         }
-  //       }
-  //     } else if (line && !line.startsWith('!')) {
-  //       const tokens = line.split(/\s+/).map(Number)
-  //       const frequency = tokens[0]
-  //       const values = tokens.slice(1)
-  //       networkData.push({ frequency, values })
-  //     }
-  //   }
-
-  //   // Infer the number of ports from the data
-  //   numberOfPorts = Math.sqrt(networkData[0].values.length / 2)
-
-  //   return new Touchstone(
-  //     frequencyUnit,
-  //     parameterType,
-  //     dataFormat,
-  //     referenceResistance,
-  //     numberOfPorts,
-  //     networkData
-  //   )
-  // }
 
   /**
    * Writes the current Touchstone data to a file in Touchstone 1.0 or 1.1 format.

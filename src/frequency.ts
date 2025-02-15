@@ -67,5 +67,5 @@ export class Frequency {
   /**
    * Frequency values
    */
-  public _freq: FrequencyValue = []
+  public value: FrequencyValue = []
 }

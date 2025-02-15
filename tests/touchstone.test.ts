@@ -116,11 +116,16 @@ describe('touchstone.ts', () => {
     for (const nports of [1, 6, 13, 50]) {
       touchstone.nports = nports
       expect(touchstone.nports).toStrictEqual(nports)
+      expect(touchstone.matrix!.length).toBe(nports)
+      touchstone.matrix!.forEach((array) => {
+        expect(array.length).toBe(nports)
+      })
     }
     // Undefined input value
     for (const nports of [undefined, null]) {
       touchstone.nports = nports as never
       expect(touchstone.nports).toBe(undefined)
+      expect(touchstone.matrix).toBe(undefined)
     }
   })
   it('readFromString error: no option line', () => {
@@ -147,13 +152,101 @@ describe('touchstone.ts', () => {
       'Only one option line starting with "#" is supported, but found 3 lines'
     )
   })
-  it('readFromString: test', () => {
+  it('readFromString error: wrong impedance token', () => {
     const string = `
       ! 1-port S-parameter file
-      # MHz S MA R 50
+      # MHz  S MA  Z  50 
       100 0.99 -4 200 0.80 -22 300 0.707 -45
     `
     const touchstone = new Touchstone()
-    touchstone.readFromString(string, 1)
+    expect(() => touchstone.readFromString(string, 1)).toThrow(
+      'Uknown Touchstone impedance: Z 50'
+    )
+  })
+  it('readFromString error: wrong single impedance value', () => {
+    const string = `
+      ! 1-port S-parameter file
+      # MHz  S MA  r  resistance 
+      100 0.99 -4 200 0.80 -22 300 0.707 -45
+    `
+    const touchstone = new Touchstone()
+    expect(() => touchstone.readFromString(string, 1)).toThrow(
+      'Uknown Touchstone impedance: r resistance'
+    )
+  })
+  it('readFromString error: wrong multiple impedance values', () => {
+    const string = `
+      ! 1-port S-parameter file
+      # MHz  S MA  r 50 resistance 
+      100 0.99 -4 200 0.80 -22 300 0.707 -45
+    `
+    const touchstone = new Touchstone()
+    expect(() => touchstone.readFromString(string, 1)).toThrow(
+      'Uknown Touchstone impedance: r 50 resistance'
+    )
+  })
+  it('readFromString: invalid data number', () => {
+    const string = `
+      ! 1-port S-parameter file
+      # MHz S MA
+      100 0.99 
+      -4 200 0.80 
+      -22 300 
+      0.707
+    `
+    const touchstone = new Touchstone()
+    expect(() => touchstone.readFromString(string, 1)).toThrow(
+      'Touchstone invalid data number: 8, which should be multiple of 3'
+    )
+    expect(touchstone.comments).toStrictEqual(['! 1-port S-parameter file'])
+    expect(touchstone.format).toBe('MA')
+    expect(touchstone.parameter).toBe('S')
+    expect(touchstone.impedance).toBe(50)
+    expect(touchstone.nports).toBe(1)
+    expect(touchstone.frequency!.unit).toBe('MHz')
+  })
+  // it('readFromString: no impedance', () => {
+  //   const string = `
+  //     ! 1-port S-parameter file
+  //     # MHz S MA
+  //     100 0.99
+  //     -4 200 0.80
+  //     -22 300
+  //     0.707 -45
+  //   `
+  //   const touchstone = new Touchstone()
+  //   touchstone.readFromString(string, 1)
+  //   expect(touchstone.comments).toStrictEqual(['! 1-port S-parameter file'])
+  //   expect(touchstone.format).toBe('MA')
+  //   expect(touchstone.parameter).toBe('S')
+  //   expect(touchstone.impedance).toBe(50)
+  //   expect(touchstone.nports).toBe(1)
+  //   expect(touchstone.frequency!.unit).toBe('MHz')
+  //   expect(touchstone.frequency!.value).toStrictEqual([100, 200, 300])
+
+  //   console.log(touchstone)
+  // })
+  it('readFromString: no impedance', () => {
+    const string = `
+      ! 3-port S-parameter file
+      # Hz S MA
+      ! Freq     S11_Mag    S11_Ang     S21_Mag    S21_Ang     S31_Mag    S31_Ang     S12_Mag    S12_Ang     S22_Mag    S22_Ang     S32_Mag    S32_Ang     S13_Mag    S13_Ang     S23_Mag    S23_Ang     S33_Mag    S33_Ang
+      ! ---------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------
+      1.000E+06  0.80       -20.0       0.05        30.0       0.03       -45.0       0.05       -30.0       0.75       -10.0       0.02        15.0       0.02        45.0       0.03        -10.0       0.70       -5.0
+      5.000E+06  0.75       -40.0       0.10        45.0       0.06       -60.0       0.10       -45.0       0.70       -20.0       0.04        25.0       0.04        60.0       0.06        -20.0       0.65       -10.0
+      1.000E+07  0.70       -60.0       0.15        60.0       0.09       -75.0       0.15       -60.0       0.65       -30.0       0.06        35.0       0.06       -75.0       0.09        -30.0       0.60       -15.0
+      5.000E+07  0.60       -80.0       0.20        75.0       0.12       -90.0       0.20       -75.0       0.55       -40.0       0.08        45.0       0.08       -90.0       0.12        -40.0       0.50       -20.0
+      1.000E+08  0.50      -100.0       0.25        90.0       0.15      -105.0       0.25       -90.0       0.45       -50.0       0.10        55.0       0.10      -105.0       0.15        -50.0       0.40       -25.0
+    `
+    const touchstone = new Touchstone()
+    touchstone.readFromString(string, 3)
+    expect(touchstone.format).toBe('MA')
+    expect(touchstone.parameter).toBe('S')
+    expect(touchstone.impedance).toBe(50)
+    expect(touchstone.nports).toBe(3)
+    expect(touchstone.frequency!.unit).toBe('Hz')
+    expect(touchstone.frequency!.value).toStrictEqual([1e6, 5e6, 1e7, 5e7, 1e8])
+
+    console.log(touchstone)
   })
 })
