@@ -435,24 +435,34 @@ export class Touchstone {
           )
         )
         // Array in matrix
-        this.matrix[outPort][inPort] = new Array(points)
+        if (nports === 2) {
+          this.matrix[inPort][outPort] = new Array(points)
+        } else {
+          this.matrix[outPort][inPort] = new Array(points)
+        }
         for (let n = 0; n < points; n++) {
+          let value: Complex
           switch (this.format) {
             case 'RI':
-              this.matrix[outPort][inPort][n] = complex(A[n], B[n])
+              value = complex(A[n], B[n])
               break
             case 'MA':
-              this.matrix[outPort][inPort][n] = complex({
+              value = complex({
                 r: A[n],
                 phi: (B[n] / 180) * pi,
               })
               break
             case 'DB':
-              this.matrix[outPort][inPort][n] = complex({
+              value = complex({
                 r: pow(10, A[n] / 20) as number,
                 phi: (B[n] / 180) * pi,
               })
               break
+          }
+          if (nports === 2) {
+            this.matrix[inPort][outPort][n] = value
+          } else {
+            this.matrix[outPort][inPort][n] = value
           }
         }
       }

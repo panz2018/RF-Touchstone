@@ -421,4 +421,62 @@ describe('touchstone.ts', () => {
       touchstone.matrix![0][3].map((c) => round((arg(c) / pi) * 180, 5))
     ).toStrictEqual([-90, -95, -100])
   })
+  it('readFromString: 3-port S-parameter file, two impedances', () => {
+    const string = `
+      # Hz S RI R 23 45
+      ! Freq       S11_Real    S11_Imag     S21_Real    S21_Imag     S12_Real    S12_Imag     S22_Real    S22_Imag
+      ! ---------|------------|------------|------------|------------|------------|------------|------------|------------
+      1.000E+06  0.9000      0.0000      0.0100      -0.0200     -0.0200     0.0100      0.9000      0.0000
+      2.000E+06  0.8000      0.0000      0.0200      -0.0400     -0.0400     0.0200      0.8000      0.0000
+      3.000E+06  0.7000      0.0000      0.0300      -0.0600     -0.0600     0.0300      0.7000      0.0000
+      4.000E+06  0.6000      0.0000      0.0400      -0.0800     -0.0800     0.0400      0.6000      0.0000
+      5.000E+06  0.5000      0.0000      0.0500      -0.1000     -0.1000     0.0500      0.5000      0.0000
+    `
+    const touchstone = new Touchstone()
+    touchstone.readFromString(string, 2)
+    expect(touchstone.comments.length).toBe(2)
+    expect(touchstone.format).toBe('RI')
+    expect(touchstone.parameter).toBe('S')
+    expect(touchstone.impedance).toStrictEqual([23, 45])
+    expect(touchstone.nports).toBe(2)
+    expect(touchstone.frequency).toBeTruthy()
+    expect(touchstone.frequency!.unit).toBe('Hz')
+    expect(touchstone.frequency!.value).toStrictEqual([1e6, 2e6, 3e6, 4e6, 5e6])
+    expect(touchstone.matrix).toBeTruthy()
+    expect(touchstone.matrix!.length).toBe(2)
+    touchstone.matrix!.forEach((array) => {
+      expect(array.length).toBe(2)
+      array.forEach((a) => {
+        expect(a.length).toBe(5)
+      })
+    })
+    // S11
+    expect(touchstone.matrix![0][0].map((c) => round(c.re, 5))).toStrictEqual([
+      0.9, 0.8, 0.7, 0.6, 0.5,
+    ])
+    expect(touchstone.matrix![0][0].map((c) => round(c.im, 5))).toStrictEqual([
+      0, 0, 0, 0, 0,
+    ])
+    // S12
+    expect(touchstone.matrix![0][1].map((c) => round(c.re, 5))).toStrictEqual([
+      -0.02, -0.04, -0.06, -0.08, -0.1,
+    ])
+    expect(touchstone.matrix![0][1].map((c) => round(c.im, 5))).toStrictEqual([
+      0.01, 0.02, 0.03, 0.04, 0.05,
+    ])
+    // S21
+    expect(touchstone.matrix![1][0].map((c) => round(c.re, 5))).toStrictEqual([
+      0.01, 0.02, 0.03, 0.04, 0.05,
+    ])
+    expect(touchstone.matrix![1][0].map((c) => round(c.im, 5))).toStrictEqual([
+      -0.02, -0.04, -0.06, -0.08, -0.1,
+    ])
+    // S22
+    expect(touchstone.matrix![1][1].map((c) => round(c.re, 5))).toStrictEqual([
+      0.9, 0.8, 0.7, 0.6, 0.5,
+    ])
+    expect(touchstone.matrix![1][1].map((c) => round(c.im, 5))).toStrictEqual([
+      0, 0, 0, 0, 0,
+    ])
+  })
 })
