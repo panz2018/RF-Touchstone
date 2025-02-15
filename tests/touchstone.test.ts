@@ -116,16 +116,11 @@ describe('touchstone.ts', () => {
     for (const nports of [1, 6, 13, 50]) {
       touchstone.nports = nports
       expect(touchstone.nports).toStrictEqual(nports)
-      expect(touchstone.matrix!.length).toBe(nports)
-      touchstone.matrix!.forEach((array) => {
-        expect(array.length).toBe(nports)
-      })
     }
     // Undefined input value
     for (const nports of [undefined, null]) {
       touchstone.nports = nports as never
       expect(touchstone.nports).toBe(undefined)
-      expect(touchstone.matrix).toBe(undefined)
     }
   })
   it('readFromString error: no option line', () => {
@@ -230,7 +225,7 @@ describe('touchstone.ts', () => {
     const string = `
       ! 3-port S-parameter file
       # Hz S MA
-      ! Freq     S11_Mag    S11_Ang     S21_Mag    S21_Ang     S31_Mag    S31_Ang     S12_Mag    S12_Ang     S22_Mag    S22_Ang     S32_Mag    S32_Ang     S13_Mag    S13_Ang     S23_Mag    S23_Ang     S33_Mag    S33_Ang
+      ! Freq     S11_Mag    S11_Ang     S12_Mag    S12_Ang     S13_Mag    S13_Ang     S21_Mag    S21_Ang     S22_Mag    S22_Ang     S23_Mag    S23_Ang     S31_Mag    S31_Ang     S32_Mag    S32_Ang     S33_Mag    S33_Ang
       ! ---------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------
       1.000E+06  0.80       -20.0       0.05        30.0       0.03       -45.0       0.05       -30.0       0.75       -10.0       0.02        15.0       0.02        45.0       0.03        -10.0       0.70       -5.0
       5.000E+06  0.75       -40.0       0.10        45.0       0.06       -60.0       0.10       -45.0       0.70       -20.0       0.04        25.0       0.04        60.0       0.06        -20.0       0.65       -10.0

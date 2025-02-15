@@ -1,14 +1,17 @@
 import {
   abs,
+  add,
   arg,
   complex,
   Complex,
   index,
   multiply,
   pi,
+  pow,
   range,
   sqrt,
   subset,
+  round,
 } from 'mathjs'
 import type { FrequencyUnit } from './frequency'
 import { Frequency } from './frequency'
@@ -55,7 +58,7 @@ export type TouchstoneResistance = number | number[]
  * - The first dimension is the exits (output) port number
  * - The second dimension is the enters (input) port number
  * - The third dimension is the frequency index
- * For example, data[i][j][k] would be the parameter from j+1 to i+1 at frequency index k
+ * For example, data[i][j][k] would be the parameter from j+1 port to i+1 port at frequency index k
  */
 export type TouchstoneMatrix = Complex[][][]
 
@@ -266,7 +269,6 @@ export class Touchstone {
   set nports(nports: number | undefined | null) {
     if (nports === undefined || nports === null) {
       this._nports = undefined
-      this.matrix = undefined
       return
     }
     if (typeof nports !== 'number') {
@@ -279,14 +281,6 @@ export class Touchstone {
       throw new Error(`Unknown ports number: ${nports}`)
     }
     this._nports = nports
-    // Initialize matrix
-    this.matrix = []
-    for (let outPort = 0; outPort < nports; outPort++) {
-      this.matrix[outPort] = []
-      for (let inPort = 0; inPort < nports; inPort++) {
-        this.matrix[outPort][inPort] = []
-      }
-    }
   }
 
   /**
@@ -306,7 +300,7 @@ export class Touchstone {
    * - The first dimension is the exits (output) port number
    * - The second dimension is the enters (input) port number
    * - The third dimension is the frequency index
-   * For example, data[i][j][k] would be the parameter from j+1 to i+1 at frequency index k
+   * For example, data[i][j][k] would be the parameter from j+1 port to i+1 port at frequency index k
    */
   public matrix: TouchstoneMatrix | undefined
 
@@ -364,11 +358,12 @@ export class Touchstone {
       }
     }
 
-    // Parse data
+    // Parse frequency data
     const content = lines
       .filter((line) => !line.startsWith('!') && !line.startsWith('#'))
       .join(' ')
     const data = content.split(/\s+/).map((d) => parseFloat(d))
+    // countColumn(Columns count): 1 + 2 * nports^2
     const countColumn = 2 * Math.pow(this.nports, 2) + 1
     if (data.length % countColumn !== 0) {
       throw new Error(
@@ -376,16 +371,80 @@ export class Touchstone {
       )
     }
     const points = data.length / countColumn
+    // f[n] = TokenList[n * countColumn]
     this.frequency.value = subset(
       data,
       index(multiply(range(0, points), countColumn))
     )
 
+    // Initialize matrix
+    this.matrix = []
+    for (let outPort = 0; outPort < nports; outPort++) {
+      this.matrix[outPort] = []
+      for (let inPort = 0; inPort < nports; inPort++) {
+        this.matrix[outPort][inPort] = []
+      }
+    }
+    // Parse matrix data
+    for (let outPort = 0; outPort < nports; outPort++) {
+      for (let inPort = 0; inPort < nports; inPort++) {
+        // A[outPort][inPort][n] = TokenList[countColumn * n + (outPort * nports + inPort) * 2 + 1]
+        const A = subset(
+          data,
+          index(
+            add(
+              multiply(range(0, points), countColumn),
+              (outPort * nports + inPort) * 2 + 1
+            )
+          )
+        )
+        // B[outPort][inPort][n] = TokenList[countColumn * n + (outPort * nports + inPort) * 2 + 2]
+        const B = subset(
+          data,
+          index(
+            add(
+              multiply(range(0, points), countColumn),
+              (outPort * nports + inPort) * 2 + 2
+            )
+          )
+        )
+        // Array in matrix
+        this.matrix[outPort][inPort] = new Array(points)
+        for (let n = 0; n < points; n++) {
+          switch (this.format) {
+            case 'RI':
+              this.matrix[outPort][inPort][n] = complex(A[n], B[n])
+              break
+            case 'MA':
+              this.matrix[outPort][inPort][n] = complex({
+                r: A[n],
+                phi: (B[n] / 180) * pi,
+              })
+              break
+            case 'DB':
+              this.matrix[outPort][inPort][n] = complex({
+                r: pow(10, A[n] / 20) as number,
+                phi: (B[n] / 180) * pi,
+              })
+              break
+          }
+        }
+      }
+    }
+
+    for (let outPort = 0; outPort < nports; outPort++) {
+      for (let inPort = 0; inPort < nports; inPort++) {
+        console.log(
+          outPort,
+          inPort,
+          this.matrix[outPort][inPort].map((c) => round(abs(c), 5)),
+          this.matrix[outPort][inPort].map((c) => round((arg(c) / pi) * 180, 5))
+        )
+      }
+    }
     const test = complex(1, sqrt(3) as number)
     console.log(test, abs(test), (arg(test) / pi) * 180)
     console.log(complex({ r: 2, phi: (60 / 180) * pi }))
-
-    console.log(data.length, countColumn, data)
   }
 
   /**
