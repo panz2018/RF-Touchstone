@@ -5,6 +5,7 @@ import {
   TouchstoneFormats,
   TouchstoneParameters,
 } from '@/touchstone'
+import { FrequencyUnits } from '@/frequency'
 
 describe('touchstone.ts', () => {
   it('Valid class', () => {
@@ -479,4 +480,16 @@ describe('touchstone.ts', () => {
       0, 0, 0, 0, 0,
     ])
   })
+  // Generate touchstone string using Scikit-RF, then test readFromString
+  for (const format of TouchstoneFormats) {
+    for (const parameter of TouchstoneParameters) {
+      for (const impedance of [undefined, 'one', 'multiple']) {
+        for (const nports of [1, 2, 3, 4, 5, 9, 15]) {
+          for (const unit of FrequencyUnits) {
+            console.log(format, parameter, impedance, nports, unit)
+          }
+        }
+      }
+    }
+  }
 })

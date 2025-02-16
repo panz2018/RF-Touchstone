@@ -55,7 +55,7 @@ export type TouchstoneParameter = (typeof TouchstoneParameters)[number]
  * For Touchstone 1.0, this is a single value for all ports.
  * For Touchstone 1.1, this can be an array of values (one per port)
  */
-export type TouchstoneResistance = number | number[]
+export type TouchstoneImpedance = number | number[]
 
 /**
  * 3D array to store the network parameter data.
@@ -235,7 +235,7 @@ export class Touchstone {
   /**
    * Reference impedance(s) for the network parameters
    */
-  private _impedance: TouchstoneResistance = 50
+  private _impedance: TouchstoneImpedance = 50
 
   /**
    * Set the Touchstone impedance
@@ -243,7 +243,7 @@ export class Touchstone {
    * @returns
    * @throws Will throw an error if the impedance is not valid
    */
-  set impedance(impedance: TouchstoneResistance) {
+  set impedance(impedance: TouchstoneImpedance) {
     if (typeof impedance === 'number') {
       this._impedance = impedance
       return
@@ -263,7 +263,7 @@ export class Touchstone {
    * Get the Touchstone format
    * @returns
    */
-  get impedance(): TouchstoneResistance {
+  get impedance(): TouchstoneImpedance {
     return this._impedance
   }
 
