@@ -404,11 +404,11 @@ export class Touchstone {
     )
 
     // Initialize matrix
-    this.matrix = []
+    this.matrix = new Array(nports)
     for (let outPort = 0; outPort < nports; outPort++) {
-      this.matrix[outPort] = []
+      this.matrix[outPort] = new Array(nports)
       for (let inPort = 0; inPort < nports; inPort++) {
-        this.matrix[outPort][inPort] = []
+        this.matrix[outPort][inPort] = new Array(points)
       }
     }
     // Parse matrix data
@@ -435,11 +435,6 @@ export class Touchstone {
           )
         )
         // Array in matrix
-        if (nports === 2) {
-          this.matrix[inPort][outPort] = new Array(points)
-        } else {
-          this.matrix[outPort][inPort] = new Array(points)
-        }
         for (let n = 0; n < points; n++) {
           let value: Complex
           switch (this.format) {

@@ -20,8 +20,9 @@ export async function run(program: string): Promise<string> {
     })
 
     // Record errors from python
+    let errorOutput = ''
     pythonProcess.stderr.on('data', (error) => {
-      reject(new Error(error.toString()))
+      errorOutput += error.toString()
     })
 
     // Return outputs and erros when python exits
@@ -34,7 +35,8 @@ export async function run(program: string): Promise<string> {
           reject(new Error(`Failed to parse Python output. Error: ${err}`))
         }
       } else {
-        reject(new Error(`Python process exited with code ${code}`))
+        const detailedErrorMessage = `Python process exited with code ${code}. \n**Python Traceback (Error Details):**\n${errorOutput}`
+        reject(new Error(detailedErrorMessage))
       }
     })
   })
@@ -69,6 +71,13 @@ export function dedent(code: string): string {
     return lines.join('\n')
   }
   // Remove the shared leading whitespace from each line
-  const dedentedLines = lines.map((line) => line.substring(indent))
+  const dedentedLines = lines.map((line) => {
+    const initialSubstring = line.substring(0, indent)
+    if (initialSubstring.trim() === '') {
+      return line.substring(indent)
+    } else {
+      return line
+    }
+  })
   return dedentedLines.join('\n')
 }

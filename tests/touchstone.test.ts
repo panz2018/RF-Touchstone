@@ -5,7 +5,6 @@ import {
   TouchstoneFormats,
   TouchstoneParameters,
 } from '@/touchstone'
-import { FrequencyUnits } from '@/frequency'
 
 describe('touchstone.ts', () => {
   it('Valid class', () => {

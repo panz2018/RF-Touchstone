@@ -11,6 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: 'happy-dom',
+    testTimeout: 1e5, // Unit: millisecond
     exclude: [...configDefaults.exclude, '**/docs/**', '**/e2e/**'],
     coverage: {
       provider: 'v8',

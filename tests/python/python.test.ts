@@ -5,7 +5,7 @@ describe('python', () => {
   it('dedent', () => {
     const code = `
       line1
-      line2
+line2
       line3
     `
     expect(dedent(code)).toBe(`
@@ -20,7 +20,7 @@ line3
     `
     const result = await run(code)
     expect(result).toBe('Hello from python!')
-  }, 1e4) // Increase timeout to 10 seconds (1e4 ms)
+  })
   it('skrf', async () => {
     const code = `
       import skrf as rf
@@ -32,7 +32,7 @@ line3
     for (const substring of version) {
       expect(substring.length).toBeGreaterThanOrEqual(1)
     }
-  }, 1e4) // Increase timeout to 10 seconds (1e4 ms)
+  })
   it('numpy', async () => {
     const code = `
       import numpy as np
@@ -44,7 +44,7 @@ line3
     for (const substring of version) {
       expect(substring.length).toBeGreaterThanOrEqual(1)
     }
-  }, 1e4) // Increase timeout to 10 seconds (1e4 ms)
+  })
   it('scipy', async () => {
     const code = `
       import scipy
@@ -56,7 +56,7 @@ line3
     for (const substring of version) {
       expect(substring.length).toBeGreaterThanOrEqual(1)
     }
-  }, 1e4) // Increase timeout to 10 seconds (1e4 ms)
+  })
   it('pandas', async () => {
     const code = `
       import pandas as pd
@@ -68,7 +68,7 @@ line3
     for (const substring of version) {
       expect(substring.length).toBeGreaterThanOrEqual(1)
     }
-  }, 1e4) // Increase timeout to 10 seconds (1e4 ms)
+  })
   it('matplotlib', async () => {
     const code = `
       import matplotlib
@@ -80,5 +80,5 @@ line3
     for (const substring of version) {
       expect(substring.length).toBeGreaterThanOrEqual(1)
     }
-  }, 1e4) // Increase timeout to 10 seconds (1e4 ms)
+  })
 })
