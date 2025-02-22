@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { abs, arg, Complex, log10, pi, round } from 'mathjs'
+import { abs, arg, complex, Complex, log10, pi, round } from 'mathjs'
 import {
   Touchstone,
   TouchstoneFormats,
   TouchstoneParameters,
 } from '@/touchstone'
+import { Frequency } from '@/frequency'
 
 describe('touchstone.ts', () => {
   it('Valid class', () => {
@@ -124,18 +125,18 @@ describe('touchstone.ts', () => {
       expect(touchstone.nports).toBe(undefined)
     }
   })
-  it('readFromString error: no option line', () => {
+  it('readContent error: no option line', () => {
     const string = `
       ! 1-port S-parameter file
       100 0.99 -4 200 0.80 -22 300 0.707 -45
     `
     const touchstone = new Touchstone()
-    expect(touchstone.readFromString).toBeTruthy()
-    expect(() => touchstone.readFromString(string, 1)).toThrow(
+    expect(touchstone.readContent).toBeTruthy()
+    expect(() => touchstone.readContent(string, 1)).toThrow(
       'Unable to find the option line starting with "#"'
     )
   })
-  it('readFromString error: multiple option lines', () => {
+  it('readContent error: multiple option lines', () => {
     const string = `
       ! 1-port S-parameter file
       # MHz S MA R 50
@@ -144,44 +145,44 @@ describe('touchstone.ts', () => {
       100 0.99 -4 200 0.80 -22 300 0.707 -45
     `
     const touchstone = new Touchstone()
-    expect(() => touchstone.readFromString(string, 1)).toThrow(
+    expect(() => touchstone.readContent(string, 1)).toThrow(
       'Only one option line starting with "#" is supported, but found 3 lines'
     )
   })
-  it('readFromString error: wrong impedance token', () => {
+  it('readContent error: wrong impedance token', () => {
     const string = `
       ! 1-port S-parameter file
       # MHz  S MA  Z  50 
       100 0.99 -4 200 0.80 -22 300 0.707 -45
     `
     const touchstone = new Touchstone()
-    expect(() => touchstone.readFromString(string, 1)).toThrow(
+    expect(() => touchstone.readContent(string, 1)).toThrow(
       'Uknown Touchstone impedance: Z 50'
     )
   })
-  it('readFromString error: wrong single impedance value', () => {
+  it('readContent error: wrong single impedance value', () => {
     const string = `
       ! 1-port S-parameter file
       # MHz  S MA  r  resistance 
       100 0.99 -4 200 0.80 -22 300 0.707 -45
     `
     const touchstone = new Touchstone()
-    expect(() => touchstone.readFromString(string, 1)).toThrow(
+    expect(() => touchstone.readContent(string, 1)).toThrow(
       'Uknown Touchstone impedance: r resistance'
     )
   })
-  it('readFromString error: wrong multiple impedance values', () => {
+  it('readContent error: wrong multiple impedance values', () => {
     const string = `
       ! 1-port S-parameter file
       # MHz  S MA  r 50 resistance 
       100 0.99 -4 200 0.80 -22 300 0.707 -45
     `
     const touchstone = new Touchstone()
-    expect(() => touchstone.readFromString(string, 1)).toThrow(
+    expect(() => touchstone.readContent(string, 1)).toThrow(
       'Uknown Touchstone impedance: r 50 resistance'
     )
   })
-  it('readFromString: invalid data number', () => {
+  it('readContent: invalid data number', () => {
     const string = `
       ! 1-port S-parameter file
       # MHz S MA
@@ -191,7 +192,7 @@ describe('touchstone.ts', () => {
       0.707
     `
     const touchstone = new Touchstone()
-    expect(() => touchstone.readFromString(string, 1)).toThrow(
+    expect(() => touchstone.readContent(string, 1)).toThrow(
       'Touchstone invalid data number: 8, which should be multiple of 3'
     )
     expect(touchstone.comments).toStrictEqual(['1-port S-parameter file'])
@@ -201,7 +202,7 @@ describe('touchstone.ts', () => {
     expect(touchstone.nports).toBe(1)
     expect(touchstone.frequency!.unit).toBe('MHz')
   })
-  it('readFromString: 1-port S-parameter file, no impedance', () => {
+  it('readContent: 1-port S-parameter file, no impedance', () => {
     const string = `
       ! 1-port S-parameter file
       # MHz S MA
@@ -211,7 +212,7 @@ describe('touchstone.ts', () => {
       0.707 -45
     `
     const touchstone = new Touchstone()
-    touchstone.readFromString(string, 1)
+    touchstone.readContent(string, 1)
     expect(touchstone.comments).toStrictEqual(['1-port S-parameter file'])
     expect(touchstone.format).toBe('MA')
     expect(touchstone.parameter).toBe('S')
@@ -238,7 +239,7 @@ describe('touchstone.ts', () => {
       touchstone.matrix![0][0].map((c) => round((arg(c) / pi) * 180, 5))
     ).toStrictEqual([-4, -22, -45])
   })
-  it('readFromString: 3-port S-parameter file, three impedances', () => {
+  it('readContent: 3-port S-parameter file, three impedances', () => {
     const string = `
       ! 3-port S-parameter file
       # Hz S MA R 20 35 60
@@ -251,7 +252,7 @@ describe('touchstone.ts', () => {
       1.000E+08  0.50      -100.0       0.25        90.0       0.15      -105.0       0.25       -90.0       0.45       -50.0       0.10        55.0       0.10      -105.0       0.15        -50.0       0.40       -25.0
     `
     const touchstone = new Touchstone()
-    touchstone.readFromString(string, 3)
+    touchstone.readContent(string, 3)
     expect(touchstone.comments.length).toBe(3)
     expect(touchstone.comments[0]).toBe('3-port S-parameter file')
     expect(touchstone.format).toBe('MA')
@@ -333,7 +334,7 @@ describe('touchstone.ts', () => {
       touchstone.matrix![2][2].map((c) => round((arg(c) / pi) * 180, 5))
     ).toStrictEqual([-5, -10, -15, -20, -25])
   })
-  it('readFromString: 4-port S-parameter file, one impedance', () => {
+  it('readContent: 4-port S-parameter file, one impedance', () => {
     const string = `
       ! 4-port S-parameter data
       ! Data points are at three frequency points (non-aligned)
@@ -366,7 +367,7 @@ describe('touchstone.ts', () => {
                   -27.96  -190.0   -21.94  -120.0   -20.00  -50.0    -2.51  136.69    ! ! Row 4 - 7.0 GHz
     `
     const touchstone = new Touchstone()
-    touchstone.readFromString(string, 4)
+    touchstone.readContent(string, 4)
     expect(touchstone.comments.length).toBe(11)
     expect(touchstone.comments[0]).toBe('4-port S-parameter data')
     expect(touchstone.format).toBe('DB')
@@ -421,7 +422,7 @@ describe('touchstone.ts', () => {
       touchstone.matrix![0][3].map((c) => round((arg(c) / pi) * 180, 5))
     ).toStrictEqual([-90, -95, -100])
   })
-  it('readFromString: 3-port S-parameter file, two impedances', () => {
+  it('readContent: 2-port S-parameter file, two impedances', () => {
     const string = `
       # Hz S RI R 23 45
       ! Freq       S11_Real    S11_Imag     S21_Real    S21_Imag     S12_Real    S12_Imag     S22_Real    S22_Imag
@@ -433,7 +434,7 @@ describe('touchstone.ts', () => {
       5.000E+06  0.5000      0.0000      0.0500      -0.1000     -0.1000     0.0500      0.5000      0.0000
     `
     const touchstone = new Touchstone()
-    touchstone.readFromString(string, 2)
+    touchstone.readContent(string, 2)
     expect(touchstone.comments.length).toBe(2)
     expect(touchstone.format).toBe('RI')
     expect(touchstone.parameter).toBe('S')
@@ -479,7 +480,146 @@ describe('touchstone.ts', () => {
       0, 0, 0, 0, 0,
     ])
   })
-  // Generate touchstone string using Scikit-RF, then test readFromString
+  it('readContent: 2-port S-parameter file, 3 impedances', () => {
+    const string = `
+      # Hz S RI R 23 45 67
+      ! Freq       S11_Real    S11_Imag     S21_Real    S21_Imag     S12_Real    S12_Imag     S22_Real    S22_Imag
+      ! ---------|------------|------------|------------|------------|------------|------------|------------|------------
+      1.000E+06  0.9000      0.0000      0.0100      -0.0200     -0.0200     0.0100      0.9000      0.0000
+      2.000E+06  0.8000      0.0000      0.0200      -0.0400     -0.0400     0.0200      0.8000      0.0000
+      3.000E+06  0.7000      0.0000      0.0300      -0.0600     -0.0600     0.0300      0.7000      0.0000
+      4.000E+06  0.6000      0.0000      0.0400      -0.0800     -0.0800     0.0400      0.6000      0.0000
+      5.000E+06  0.5000      0.0000      0.0500      -0.1000     -0.1000     0.0500      0.5000      0.0000
+    `
+    const touchstone = new Touchstone()
+    expect(() => touchstone.readContent(string, 2)).toThrow(
+      '2-ports network, but find 3 impedances: [23,45,67]'
+    )
+  })
+  it('writeContent: 2-port S-parameter file, 2 impedances', () => {
+    const touchstone = new Touchstone()
+    expect(touchstone.writeContent).toBeTruthy()
+    expect(() => touchstone.writeContent()).toThrow(
+      'Number of ports is not defined'
+    )
+    touchstone.nports = 2
+    expect(() => touchstone.writeContent()).toThrow(
+      'Touchstone frequency is not defined'
+    )
+    touchstone.frequency = new Frequency()
+    expect(touchstone.frequency.unit).toBe('Hz')
+    expect(() => touchstone.writeContent()).toThrow(
+      'Touchstone frequency value is not defined'
+    )
+    touchstone.frequency.value = [1e6, 2e6, 3e6, 4e6, 5e6]
+    expect(() => touchstone.writeContent()).toThrow(
+      'Touchstone parameter is not defined'
+    )
+    touchstone.parameter = 'S'
+    expect(() => touchstone.writeContent()).toThrow(
+      'Touchstone format is not defined'
+    )
+    touchstone.format = 'RI'
+    expect(() => touchstone.writeContent()).toThrow(
+      'Touchstone matrix is not defined'
+    )
+    touchstone.matrix = []
+    expect(() => touchstone.writeContent()).toThrow(
+      'Touchstone matrix has 0 rows, but expected 2'
+    )
+    touchstone.matrix = [[], []]
+    expect(() => touchstone.writeContent()).toThrow(
+      `Touchstone matrix at row #0 has 0 columns, but expected 2`
+    )
+    touchstone.matrix = [
+      [[], []],
+      [[], []],
+    ]
+    expect(() => touchstone.writeContent()).toThrow(
+      `Touchstone matrix at row #0 column #0 has 0 points, but expected 5`
+    )
+    touchstone.matrix = [
+      [
+        [
+          complex(0.9, 0),
+          complex(0.8, 0),
+          complex(0.7, 0),
+          complex(0.6, 0),
+          complex(0.5, 0),
+        ],
+        [
+          complex(-0.02, 0.01),
+          complex(-0.04, 0.02),
+          complex(-0.06, 0.03),
+          complex(-0.08, 0.04),
+          complex(-0.1, 0.05),
+        ],
+      ],
+      [
+        [
+          complex(0.01, -0.02),
+          complex(0.02, -0.04),
+          complex(0.03, -0.06),
+          complex(0.04, -0.08),
+          complex(0.05, -0.1),
+        ],
+        [
+          complex(0.9, 0),
+          complex(0.8, 0),
+          complex(0.7, 0),
+          complex(0.6, 0),
+          complex(0.5, 0),
+        ],
+      ],
+    ]
+    // Default impedance, no comments
+    expect(touchstone.writeContent()).toBe(`# Hz S RI R 50
+1000000 0.9 0 0.01 -0.02 -0.02 0.01 0.9 0
+2000000 0.8 0 0.02 -0.04 -0.04 0.02 0.8 0
+3000000 0.7 0 0.03 -0.06 -0.06 0.03 0.7 0
+4000000 0.6 0 0.04 -0.08 -0.08 0.04 0.6 0
+5000000 0.5 0 0.05 -0.1 -0.1 0.05 0.5 0
+`)
+    // Default impedance, with comments
+    touchstone.comments = [
+      '2-port S-parameter touchstone',
+      'Generated by RF-Touchstone',
+    ]
+    expect(touchstone.writeContent()).toBe(`! 2-port S-parameter touchstone
+! Generated by RF-Touchstone
+# Hz S RI R 50
+1000000 0.9 0 0.01 -0.02 -0.02 0.01 0.9 0
+2000000 0.8 0 0.02 -0.04 -0.04 0.02 0.8 0
+3000000 0.7 0 0.03 -0.06 -0.06 0.03 0.7 0
+4000000 0.6 0 0.04 -0.08 -0.08 0.04 0.6 0
+5000000 0.5 0 0.05 -0.1 -0.1 0.05 0.5 0
+`)
+
+    // Two impedances, with comments
+    touchstone.impedance = [23, 45]
+    expect(touchstone.writeContent()).toBe(`! 2-port S-parameter touchstone
+! Generated by RF-Touchstone
+# Hz S RI R 23 45
+1000000 0.9 0 0.01 -0.02 -0.02 0.01 0.9 0
+2000000 0.8 0 0.02 -0.04 -0.04 0.02 0.8 0
+3000000 0.7 0 0.03 -0.06 -0.06 0.03 0.7 0
+4000000 0.6 0 0.04 -0.08 -0.08 0.04 0.6 0
+5000000 0.5 0 0.05 -0.1 -0.1 0.05 0.5 0
+`)
+
+    // One impedance, with comments
+    touchstone.impedance = 46
+    expect(touchstone.writeContent()).toBe(`! 2-port S-parameter touchstone
+! Generated by RF-Touchstone
+# Hz S RI R 46
+1000000 0.9 0 0.01 -0.02 -0.02 0.01 0.9 0
+2000000 0.8 0 0.02 -0.04 -0.04 0.02 0.8 0
+3000000 0.7 0 0.03 -0.06 -0.06 0.03 0.7 0
+4000000 0.6 0 0.04 -0.08 -0.08 0.04 0.6 0
+5000000 0.5 0 0.05 -0.1 -0.1 0.05 0.5 0
+`)
+  })
+  // Generate touchstone string using Scikit-RF, then test readContent
   // for (const format of TouchstoneFormats) {
   //   for (const parameter of TouchstoneParameters) {
   //     for (const impedance of [undefined, 'one', 'multiple']) {

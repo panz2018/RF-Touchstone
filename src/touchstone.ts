@@ -1,7 +1,10 @@
 import {
+  abs,
   add,
+  arg,
   complex,
   Complex,
+  log10,
   index,
   multiply,
   pi,
@@ -194,7 +197,7 @@ export class Touchstone {
    * - G: Hybrid-g parameters
    * @param parameter
    * @returns
-   * @throws Will throw an error if the type is not valid
+   * @throws Will throw an error if the parameter is not valid
    */
   set parameter(parameter: TouchstoneParameter | undefined | null) {
     if (parameter === undefined || parameter === null) {
@@ -276,7 +279,7 @@ export class Touchstone {
    * Set the ports number
    * @param nports
    * @returns
-   * @throws Will throw an error if the impedance is not valid
+   * @throws Will throw an error if the number of ports is not valid
    */
   set nports(nports: number | undefined | null) {
     if (nports === undefined || nports === null) {
@@ -321,9 +324,9 @@ export class Touchstone {
    * @param string
    * @param nports
    * @returns
-   * @throws Will throw an error if the impedance is not valid
+   * @throws Will throw an error if anything is not valid
    */
-  public readFromString(string: string, nports: number) {
+  public readContent(string: string, nports: number) {
     // Assign the number of ports
     this.nports = nports
     // Parse lines from the string
@@ -369,8 +372,12 @@ export class Touchstone {
       }
       if (array.length === 1) {
         this.impedance = array[0]
-      } else {
+      } else if (array.length === this.nports) {
         this.impedance = array
+      } else {
+        throw new Error(
+          `${this.nports}-ports network, but find ${array.length} impedances: [${array}]`
+        )
       }
     }
 
@@ -453,6 +460,8 @@ export class Touchstone {
                 phi: (B[n] / 180) * pi,
               })
               break
+            default:
+              throw new Error(`Unknown Touchstone format: ${this.format}`)
           }
           if (nports === 2) {
             this.matrix[inPort][outPort][n] = value
@@ -465,33 +474,110 @@ export class Touchstone {
   }
 
   /**
-   * Writes the current Touchstone data to a file in Touchstone 1.0 or 1.1 format.
-   *
-   * @param filePath - The path where the Touchstone file will be saved.
-   * @param version - The Touchstone version to use ("1.0" or "1.1").
-   * @throws Will throw an error if the specified version is unsupported.
+   * Writes the current Touchstone data to a text in Touchstone version 1.0 or 1.1 format.
+   * @returns The Touchstone file content as a string
+   * @throws Will throw an error if anything is not valid
    */
-  // async writeToFile(filePath: string, version: '1.0' | '1.1'): Promise<void> {
-  //   if (version !== '1.0' && version !== '1.1') {
-  //     throw new Error(`Unsupported Touchstone version: ${version}`)
-  //   }
+  public writeContent(): string {
+    // Check if all required data exists
+    if (!this.nports) {
+      throw new Error('Number of ports is not defined')
+    }
+    if (!this.frequency) {
+      throw new Error('Touchstone frequency is not defined')
+    }
+    if (!this.frequency.unit) {
+      throw new Error('Touchstone frequency unit is not defined')
+    }
+    if (this.frequency.value.length === 0) {
+      throw new Error('Touchstone frequency value is not defined')
+    }
+    if (!this.parameter) {
+      throw new Error('Touchstone parameter is not defined')
+    }
+    if (!this.format) {
+      throw new Error('Touchstone format is not defined')
+    }
+    if (!this.matrix) {
+      throw new Error('Touchstone matrix is not defined')
+    }
 
-  //   let content = `# ${this.frequencyUnit} ${this.parameterType} ${this.dataFormat}`
+    // Calculate points number in the network
+    const points = this.frequency.value.length
+    // Check the matrix size
+    if (this.matrix.length !== this.nports) {
+      throw new Error(
+        `Touchstone matrix has ${this.matrix.length} rows, but expected ${this.nports}`
+      )
+    }
+    for (let outPort = 0; outPort < this.nports; outPort++) {
+      if (this.matrix[outPort].length !== this.nports) {
+        throw new Error(
+          `Touchstone matrix at row #${outPort} has ${this.matrix[outPort].length} columns, but expected ${this.nports}`
+        )
+      }
+      for (let inPort = 0; inPort < this.nports; inPort++) {
+        if (this.matrix[outPort][inPort].length !== points) {
+          throw new Error(
+            `Touchstone matrix at row #${outPort} column #${inPort} has ${this.matrix[outPort][inPort].length} points, but expected ${points}`
+          )
+        }
+      }
+    }
 
-  //   // Add reference resistance
-  //   if (Array.isArray(this.referenceResistance)) {
-  //     content += ` R ${this.referenceResistance.join(' ')}`
-  //   } else {
-  //     content += ` R ${this.referenceResistance}`
-  //   }
+    // Generate Touchstone content lines
+    const lines: string[] = []
 
-  //   content += '\n'
+    // Add comments if they exist
+    if (this.comments.length > 0) {
+      lines.push(...this.comments.map((comment) => `! ${comment}`))
+    }
 
-  //   // Add network data
-  //   for (const { frequency, values } of this.networkData) {
-  //     content += `${frequency} ${values.join(' ')}\n`
-  //   }
+    // Add option line
+    let optionLine = `# ${this.frequency.unit} ${this.parameter} ${this.format}`
+    if (Array.isArray(this.impedance)) {
+      optionLine += ` R ${this.impedance.join(' ')}`
+    } else {
+      optionLine += ` R ${this.impedance}`
+    }
+    lines.push(optionLine)
 
-  //   await this.writeFileContent(filePath, content)
-  // }
+    // Add network data
+    for (let n = 0; n < points; n++) {
+      const dataLine: string[] = [this.frequency.value[n].toString()]
+
+      // Add matrix data for this frequency point
+      for (let outPort = 0; outPort < this.nports; outPort++) {
+        for (let inPort = 0; inPort < this.nports; inPort++) {
+          const value =
+            this.nports === 2
+              ? this.matrix[inPort][outPort][n]
+              : this.matrix[outPort][inPort][n]
+
+          let A: number, B: number
+          switch (this.format) {
+            case 'RI':
+              A = value.re
+              B = value.im
+              break
+            case 'MA':
+              A = abs(value) as unknown as number
+              B = (arg(value) / pi) * 180
+              break
+            case 'DB':
+              A = 20 * log10(abs(value) as unknown as number)
+              B = (arg(value) / pi) * 180
+              break
+            default:
+              throw new Error(`Unknown Touchstone format: ${this.format}`)
+          }
+          dataLine.push(A.toString(), B.toString())
+        }
+      }
+      lines.push(dataLine.join(' '))
+    }
+
+    lines.push('')
+    return lines.join('\n')
+  }
 }

@@ -38,5 +38,5 @@ docs/api
 docs/.vitepress/dist
 docs/.vitepress/cache
 
-# Build visualizer
+# Vite build visualizer
 build
