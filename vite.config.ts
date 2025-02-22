@@ -1,7 +1,8 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type PluginOption } from 'vite'
 import { configDefaults } from 'vitest/config'
 import path from 'path'
 import dts from 'vite-plugin-dts'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
   resolve: {
@@ -42,5 +43,11 @@ export default defineConfig({
       ],
     },
   },
-  plugins: [dts({ exclude: ['**/*.test.ts', '**/tests/**'] })],
+  plugins: [
+    dts({ exclude: ['**/*.test.ts', '**/tests/**'] }),
+    visualizer({
+      filename: './build/build.html',
+      open: true,
+    }) as PluginOption,
+  ],
 })

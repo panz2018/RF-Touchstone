@@ -37,3 +37,6 @@ docs/api
 # VitePress
 docs/.vitepress/dist
 docs/.vitepress/cache
+
+# Build visualizer
+build
