@@ -3,25 +3,29 @@ import path from 'path'
 import type { DefaultTheme } from 'vitepress'
 
 /**
- * 生成 VitePress 的侧边栏配置。
- * @param basePath - 基础路径（如 'api'）。
- * @returns VitePress 的侧边栏配置对象。
+ * Generates the sidebar configuration for VitePress documentation.
+ * Automatically creates a hierarchical sidebar structure based on the directory contents.
+ * 
+ * @param basePath - Base directory path (e.g., 'api') relative to the docs folder
+ * @returns VitePress sidebar configuration object
  */
 export function generateSidebar(basePath: string): DefaultTheme.Sidebar {
   const sidebar: DefaultTheme.Sidebar = {}
   const apiPath = path.join(process.cwd(), 'docs', basePath)
 
   /**
-   * 遍历目录并生成侧边栏项。
-   * @param dir - 当前目录路径。
-   * @param prefix - 当前路径前缀。
-   * @returns 侧边栏项数组。
+   * Recursively traverses directories to generate sidebar items.
+   * Processes README.md files first, then other markdown files, and finally subdirectories.
+   * 
+   * @param dir - Current directory path to process
+   * @param prefix - URL prefix for the current path level
+   * @returns Array of sidebar items for the current directory
    */
   function traverse(dir: string, prefix = ''): DefaultTheme.SidebarItem[] {
     const items: DefaultTheme.SidebarItem[] = []
     const files = fs.readdirSync(dir)
 
-    // 如果存在 README.md，则添加 Overview 链接
+    // Add Overview link if README.md exists
     if (files.includes('README.md')) {
       const link = `${prefix}README`
       items.push({ text: 'Overview', link })
@@ -29,38 +33,35 @@ export function generateSidebar(basePath: string): DefaultTheme.Sidebar {
       updateMarkdownFile(fullPath, false, false)
     }
 
-    // Read markdown files frist
+    // Process markdown files first (excluding README.md)
     files.forEach((file) => {
       if (file === 'README.md') {
-        return // 跳过 README.md，因为它已经被处理
+        return // Skip README.md as it's already processed
       }
-      // Get full path
       const fullPath = path.join(dir, file)
       const stat = fs.statSync(fullPath)
       if (stat.isDirectory()) {
-        // If directory, skip
-        return
+        return // Skip directories in this pass
       }
       if (file.endsWith('.md')) {
-        // 如果是 Markdown 文件，添加到侧边栏
+        // Add markdown file to sidebar
         const link = `${prefix}${file.replace(/\.md$/, '')}`
         items.push({ text: file.replace(/\.md$/, ''), link })
       }
       updateMarkdownFile(fullPath, false, false)
     })
-    // Read subfolder next
+
+    // Process subdirectories
     files.forEach((file) => {
       if (file === 'README.md') {
-        return // 跳过 README.md，因为它已经被处理
+        return // Skip README.md
       }
-      // Get full path
       const fullPath = path.join(dir, file)
       const stat = fs.statSync(fullPath)
-      // If not directory, skip
       if (!stat.isDirectory()) {
-        return
+        return // Skip non-directory items
       }
-      // 如果是目录，递归处理子目录
+      // Recursively process subdirectory
       items.push({
         text: file,
         collapsed: false,
@@ -71,16 +72,28 @@ export function generateSidebar(basePath: string): DefaultTheme.Sidebar {
     return items
   }
 
-  // 生成侧边栏配置
+  // Generate the sidebar configuration
   sidebar[`/${basePath}/`] = traverse(apiPath, `${basePath}/`)
   return sidebar
 }
 
 /**
- * 更新 Markdown 文件的 Frontmatter。
- * @param filePath - Markdown 文件的路径。
- * @param prev - 上一页的链接。
- * @param next - 下一页的链接。
+ * Updates or creates frontmatter in markdown files.
+ * Handles navigation links between pages.
+ * 
+ * @param filePath - Path to the markdown file
+ * @param prev - Previous page link or false if none
+ * @param next - Next page link or false if none
+ * @throws {Error} If the specified file does not exist
+ * 
+ * @example
+ * Generated frontmatter format:
+ * ```md
+ * ---
+ * prev: 'previous-page'
+ * next: 'next-page'
+ * ---
+ * ```
  */
 function updateMarkdownFile(
   filePath: string,
@@ -93,14 +106,14 @@ function updateMarkdownFile(
 
   let content = fs.readFileSync(filePath, 'utf8')
 
-  // 构造 Frontmatter
+  // Construct frontmatter content
   const frontmatter = `---
 prev: ${prev ? `'${prev}'` : false}
 next: ${next ? `'${next}'` : false}
 ---\n\n`
 
   if (content.startsWith('---')) {
-    // 如果文件已经有 Frontmatter，则只更新 prev 和 next
+    // Update existing frontmatter's prev and next fields
     const endOfFrontmatter = content.indexOf('\n---') + 4
     const existingFrontmatter = content.slice(0, endOfFrontmatter)
     const restContent = content.slice(endOfFrontmatter)
@@ -111,10 +124,10 @@ next: ${next ? `'${next}'` : false}
 
     content = updatedFrontmatter + restContent
   } else {
-    // 如果没有 Frontmatter，则添加新的
+    // Add new frontmatter to the file
     content = frontmatter + content
   }
 
-  // 写回文件
+  // Write updated content back to file
   fs.writeFileSync(filePath, content, 'utf8')
 }
