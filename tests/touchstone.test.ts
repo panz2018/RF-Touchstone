@@ -530,7 +530,10 @@ describe('touchstone.ts', () => {
     expect(() => touchstone.writeContent()).toThrow(
       'Data format (RI/MA/DB) is not defined'
     )
-    touchstone.format = 'RI'
+    Object.defineProperty(touchstone, '_format', {
+      value: 'a' as never,
+      writable: true,
+    })
     expect(() => touchstone.writeContent()).toThrow(
       'Network parameter matrix is not defined'
     )
@@ -583,6 +586,10 @@ describe('touchstone.ts', () => {
         ],
       ],
     ]
+    expect(() => touchstone.writeContent()).toThrow(
+      'Unknown Touchstone format: a'
+    )
+    touchstone.format = 'RI'
     // Default impedance, no comments
     expect(touchstone.writeContent()).toBe(`# Hz S RI R 50
 1000000 0.9 0 0.01 -0.02 -0.02 0.01 0.9 0
