@@ -4,9 +4,14 @@ import path from 'path'
 import dts from 'vite-plugin-dts'
 import { visualizer } from 'rollup-plugin-visualizer'
 
+/**
+ * Vite configuration for RF-Touchstone library
+ * Handles both development and production builds
+ */
 export default defineConfig({
   resolve: {
     alias: {
+      // Set up path alias for better import readability
       '@': path.resolve(__dirname, './src'),
     },
   },
@@ -16,8 +21,9 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, '**/docs/**', '**/e2e/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'], // Output report format
+      reporter: ['text', 'json', 'html'], // Multiple report formats for different use cases
       thresholds: {
+        // Enforce 100% test coverage across all metrics
         lines: 100,
         functions: 100,
         branches: 100,
@@ -28,26 +34,28 @@ export default defineConfig({
   },
   build: {
     minify: 'esbuild',
-    target: 'esnext', // 确保目标环境支持现代语法
+    target: 'esnext', // Ensure modern JavaScript features are supported
     lib: {
-      entry: './src/touchstone.ts', // Entry point file
-      name: 'Touchstone', // Global variable name for UMD format
-      fileName: (format) => `Touchstone.${format}.js`, // Output filenames
-      formats: ['es', 'cjs', 'umd'], // Suport both ESM, CommonJS, and UMD formats
+      entry: './src/touchstone.ts', // Main library entry point
+      name: 'Touchstone', // Global variable name when used in browser
+      fileName: (format) => `Touchstone.${format}.js`, // Generate different bundles for each format
+      formats: ['es', 'cjs', 'umd'], // Support ESM, CommonJS, and Universal Module Definition
     },
     rollupOptions: {
-      treeshake: true, // 显式启用 Tree Shaking
+      treeshake: true, // Enable dead code elimination
       external: [
-        '**/*.test.ts', // Exclude files ending with '.test.ts'
-        '**/tests/**', // Exclude the entire 'tests' directory
+        '**/*.test.ts', // Exclude test files from the build
+        '**/tests/**', // Exclude test directory from the build
       ],
     },
   },
   plugins: [
+    // Generate TypeScript declaration files
     dts({ exclude: ['**/*.test.ts', '**/tests/**'] }),
+    // Generate build visualization report
     visualizer({
-      filename: './build/build.html',
-      open: true,
+      filename: './build/build.html', // Output bundle analysis report
+      open: true, // Automatically open report after build
     }) as PluginOption,
   ],
 })
