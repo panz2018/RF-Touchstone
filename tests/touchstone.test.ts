@@ -149,6 +149,17 @@ describe('touchstone.ts', () => {
       'Only one option line starting with "#" is supported, but found 3 lines'
     )
   })
+  it('readContent error: invalid format', () => {
+    const touchstone = new Touchstone()
+    const invalidContent = `
+      ! Test invalid format
+      # MHz S INVALID R 50
+      100 0.99 -4
+    `
+    expect(() => touchstone.readContent(invalidContent, 1)).toThrow(
+      'Unknown Touchstone format: INVALID'
+    )
+  })
   it('readContent error: wrong impedance token', () => {
     const string = `
       ! 1-port S-parameter file

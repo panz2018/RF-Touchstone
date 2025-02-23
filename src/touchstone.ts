@@ -494,6 +494,10 @@ export class Touchstone {
                 phi: (B[n] / 180) * pi,
               })
               break
+            /* v8 ignore start */
+            default:
+              throw new Error(`Unknown Touchstone format: ${this.format}`)
+            /* v8 ignore end */
           }
 
           // Store the value in the matrix
@@ -609,6 +613,10 @@ export class Touchstone {
               A = 20 * log10(abs(value) as unknown as number)
               B = (arg(value) / pi) * 180
               break
+            /* v8 ignore start */
+            default:
+              throw new Error(`Unknown Touchstone format: ${this.format}`)
+            /* v8 ignore end */
           }
           // Format numbers to avoid scientific notation and limit decimal places
           dataLine.push(round(A, 12).toString(), round(B, 12).toString())
