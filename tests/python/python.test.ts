@@ -25,7 +25,7 @@ line3
     const code = `
       import skrf as rf
       print(rf.__version__)
-        `
+    `
     const result = await run(code)
     const version = result.split('.')
     expect(version.length).toBe(3)
@@ -37,7 +37,7 @@ line3
     const code = `
       import numpy as np
       print(np.__version__)
-        `
+    `
     const result = await run(code)
     const version = result.split('.')
     expect(version.length).toBe(3)
@@ -49,7 +49,7 @@ line3
     const code = `
       import scipy
       print(scipy.__version__)
-        `
+    `
     const result = await run(code)
     const version = result.split('.')
     expect(version.length).toBe(3)
@@ -61,7 +61,7 @@ line3
     const code = `
       import pandas as pd
       print(pd.__version__)
-        `
+    `
     const result = await run(code)
     const version = result.split('.')
     expect(version.length).toBe(3)
@@ -73,7 +73,7 @@ line3
     const code = `
       import matplotlib
       print(matplotlib.__version__)
-        `
+    `
     const result = await run(code)
     const version = result.split('.')
     expect(version.length).toBe(3)
