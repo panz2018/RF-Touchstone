@@ -92,7 +92,7 @@ export class Frequency {
    * Each element represents a frequency point in the specified unit
    * @private
    */
-  private _value: number[] = []
+  private _f_scaled: number[] = []
 
   /**
    * Array of frequency points in the current frequency unit
@@ -110,7 +110,7 @@ export class Frequency {
    * freq.value = [1.0, 1.5, 2.0]; // Three frequency points: 1 GHz, 1.5 GHz, and 2 GHz
    * ```
    */
-  set value(value: number[]) {
+  set f_scaled(value: number[]) {
     // Validate input is an array
     if (!Array.isArray(value)) {
       throw new Error('Frequency value must be an array')
@@ -126,14 +126,14 @@ export class Frequency {
     }
 
     // Store the validated frequency points
-    this._value = value
+    this._f_scaled = value
   }
 
   /**
    * Gets the array of frequency points
    * @returns Array of frequency points in the current unit
    */
-  get value(): number[] {
-    return this._value
+  get f_scaled(): number[] {
+    return this._f_scaled
   }
 }

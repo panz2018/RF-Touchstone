@@ -33,18 +33,18 @@ describe('frequency.ts', () => {
   })
   it('Frequency:value', () => {
     const frequency = new Frequency()
-    expect(frequency.value).toBeTruthy()
+    expect(frequency.f_scaled).toBeTruthy()
     // Wrong input type
-    expect(() => (frequency.value = 0 as never)).toThrow(
+    expect(() => (frequency.f_scaled = 0 as never)).toThrow(
       'Frequency value must be an array'
     )
-    expect(() => (frequency.value = ['1', '2', '3'] as never[])).toThrow(
+    expect(() => (frequency.f_scaled = ['1', '2', '3'] as never[])).toThrow(
       'Frequency value must be an array of numbers'
     )
-    expect(() => (frequency.value = [1, 2, -3])).toThrow(
+    expect(() => (frequency.f_scaled = [1, 2, -3])).toThrow(
       'Frequency values cannot be negative'
     )
-    frequency.value = [1, 2, 3]
-    expect(frequency.value).toStrictEqual([1, 2, 3])
+    frequency.f_scaled = [1, 2, 3]
+    expect(frequency.f_scaled).toStrictEqual([1, 2, 3])
   })
 })

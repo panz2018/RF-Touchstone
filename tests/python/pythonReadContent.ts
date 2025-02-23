@@ -12,7 +12,7 @@ import type { TouchstoneParameter } from '@/touchstone'
  * {
  *   "frequency": {
  *     "unit": string,     // Frequency unit (Hz, kHz, MHz, GHz)
- *     "points": number[]  // Array of frequency points
+ *     "f_scaled": number[]  // Array of frequency f_scaled
  *   },
  *   "impedance": number,  // Reference impedance value
  *   "matrix": [          // 3D array: [output_port][input_port][frequency]
@@ -28,7 +28,7 @@ import type { TouchstoneParameter } from '@/touchstone'
  * @remarks
  * This function uses scikit-rf to:
  * 1. Read Touchstone data from a string buffer
- * 2. Extract frequency information (unit and points)
+ * 2. Extract frequency information (unit and f_scaled)
  * 3. Get reference impedance value
  * 4. Convert network parameters to complex numbers
  * 5. Return all data in a JSON format
@@ -55,7 +55,7 @@ export const pythonReadContent = async (
     data = {
         'frequency': {
             'unit': ntwk.frequency.unit,            # Get frequency unit
-            'points': ntwk.frequency.f_scaled.tolist()  # Get scaled frequency points
+            'f_scaled': ntwk.frequency.f_scaled.tolist()  # Get scaled frequency points
         },
         'impedance': float(ntwk.z0[0][0]),         # Get reference impedance
         'matrix': []
@@ -68,7 +68,7 @@ export const pythonReadContent = async (
         data_out = []
         for j in range(${nports}):      # Input port loop
             data_in = []
-            for f_idx in range(len(data['frequency']['points'])):  # Frequency loop
+            for f_idx in range(len(data['frequency']['f_scaled'])):  # Frequency loop
                 # Get parameter value at current indices
                 value = ntwk.${parameter.toLowerCase()}[f_idx, i, j]
                 # Store as complex number with real and imaginary parts
@@ -82,5 +82,6 @@ export const pythonReadContent = async (
     # Convert to JSON string and print
     print(json.dumps(data))
   `
+
   return await run(code)
 }

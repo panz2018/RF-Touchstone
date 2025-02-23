@@ -29,7 +29,7 @@ describe('randomTouchstoneMatrix.ts', () => {
     const touchstone = new Touchstone()
     touchstone.nports = 1
     touchstone.frequency = new Frequency()
-    touchstone.frequency.value = [1, 2, 3]
+    touchstone.frequency.f_scaled = [1, 2, 3]
 
     const matrix = createRandomTouchstoneMatrix(touchstone)
 
@@ -67,7 +67,7 @@ describe('randomTouchstoneMatrix.ts', () => {
     const touchstone = new Touchstone()
     touchstone.nports = 2
     touchstone.frequency = new Frequency()
-    touchstone.frequency.value = [1, 2]
+    touchstone.frequency.f_scaled = [1, 2]
 
     const matrix = createRandomTouchstoneMatrix(touchstone)
 

@@ -5,54 +5,118 @@ import { Frequency } from '@/frequency'
 import { createRandomTouchstoneMatrix } from './randomTouchstoneMatrix'
 import { pythonReadContent } from './pythonReadContent'
 
+/**
+ * Test suite for pythonReadContent functionality
+ * Validates the compatibility between TypeScript Touchstone implementation
+ * and Python scikit-rf library by comparing parsing results
+ */
 describe('pythonReadContent.ts', () => {
-  it('Compare with Python scikit-rf', async () => {
-    // 创建一个带随机数据的 Touchstone 实例
+  /**
+   * Test case 1: 2-port network with Real-Imaginary format S-parameters
+   *
+   * Workflow:
+   * 1. Create a 2-port Touchstone instance with RI format
+   * 2. Generate random S-parameters
+   * 3. Convert to Touchstone string format
+   * 4. Parse using Python scikit-rf
+   * 5. Compare parsed results with original data
+   */
+  it('Compare with Python scikit-rf: 2 ports, RI format, s-parameter', async () => {
+    // Initialize a new Touchstone instance with test configuration
     const touchstone = new Touchstone()
-    touchstone.format = 'RI'
-    touchstone.parameter = 'S'
-    touchstone.impedance = round(random(1, 50), 3)
-    touchstone.nports = 2
+    touchstone.format = 'RI' // Real-Imaginary format
+    touchstone.parameter = 'S' // S-parameters
+    touchstone.impedance = round(random(1, 50), 3) // Random impedance between 1-50Ω
+    touchstone.nports = 2 // 2-port network
     touchstone.frequency = new Frequency()
-    touchstone.frequency.unit = 'GHz'
-    touchstone.frequency.value = [1, 3, 5]
+    touchstone.frequency.unit = 'GHz' // Frequency unit in GHz
+    touchstone.frequency.f_scaled = [1, 3, 5] // Test frequencies: 1, 3, 5 GHz
     touchstone.matrix = createRandomTouchstoneMatrix(touchstone)
 
-    // 使用 writeContent 生成 Touchstone 格式字符串
+    // Generate Touchstone format string and parse with Python
     const content = touchstone.writeContent()
-
-    // 使用 Python scikit-rf 读取并解析该字符串
     const result = await pythonReadContent(
       content,
       touchstone.nports,
       touchstone.parameter
     )
     const data = JSON.parse(result)
-    console.log(content)
-    // console.log(result)
-    console.log(JSON.stringify(data, null, 2))
 
-    // 验证解析结果
-    // expect(data.frequency.unit).toBe(touchstone.frequency.unit)
-    // expect(data.frequency.points).toEqual(touchstone.frequency.value)
-    // expect(data.parameter).toBe(touchstone.parameter)
-    // expect(data.format).toBe(touchstone.format)
-    // expect(data.impedance).toBe(touchstone.impedance)
+    // Validate basic network properties
+    expect(data.frequency.unit).toBe(touchstone.frequency.unit)
+    expect(data.frequency.f_scaled).toStrictEqual(touchstone.frequency.f_scaled)
+    expect(data.impedance).toBe(touchstone.impedance)
 
-    // 验证矩阵数据
-    // expect(data.matrix.length).toBe(touchstone.frequency.value.length)
-    // for (let p = 0; p < data.matrix.length; p++) {
-    //   expect(data.matrix[p].length).toBe(touchstone.nports)
-    //   for (let i = 0; i < touchstone.nports; i++) {
-    //     expect(data.matrix[p][i].length).toBe(touchstone.nports)
-    //     for (let j = 0; j < touchstone.nports; j++) {
-    //       // 比较实部和虚部，考虑到浮点数精度，使用接近而不是完全相等
-    //       const expected = touchstone.matrix[i][j][p]
-    //       const actual = data.matrix[p][i][j]
-    //       expect(actual.real).toBeCloseTo(expected.re, 5)
-    //       expect(actual.imag).toBeCloseTo(expected.im, 5)
-    //     }
-    //   }
-    // }
+    // Validate matrix structure and values
+    validateMatrix(data.matrix, touchstone)
+  })
+
+  /**
+   * Test case 2: 3-port network with Decibel-Angle format S-parameters
+   *
+   * Workflow:
+   * 1. Create a 3-port Touchstone instance with DB format
+   * 2. Generate random S-parameters
+   * 3. Convert to Touchstone string format
+   * 4. Parse using Python scikit-rf
+   * 5. Compare parsed results with original data
+   */
+  it('Compare with Python scikit-rf: 3 ports, DB format, s-parameter', async () => {
+    // Initialize a new Touchstone instance with test configuration
+    const touchstone = new Touchstone()
+    touchstone.format = 'DB' // Decibel-Angle format
+    touchstone.parameter = 'S' // S-parameters
+    touchstone.impedance = round(random(1, 50), 3) // Random impedance between 1-50Ω
+    touchstone.nports = 3 // 3-port network
+    touchstone.frequency = new Frequency()
+    touchstone.frequency.unit = 'GHz' // Frequency unit in GHz
+    touchstone.frequency.f_scaled = [1, 3, 5] // Test frequencies: 1, 3, 5 GHz
+    touchstone.matrix = createRandomTouchstoneMatrix(touchstone)
+
+    // Generate Touchstone format string and parse with Python
+    const content = touchstone.writeContent()
+    const result = await pythonReadContent(
+      content,
+      touchstone.nports,
+      touchstone.parameter
+    )
+    const data = JSON.parse(result)
+
+    // Validate basic network properties
+    expect(data.frequency.unit).toBe(touchstone.frequency.unit)
+    expect(data.frequency.f_scaled).toStrictEqual(touchstone.frequency.f_scaled)
+    expect(data.impedance).toBe(touchstone.impedance)
+
+    // Validate matrix structure and values
+    validateMatrix(data.matrix, touchstone)
   })
 })
+
+/**
+ * Helper function to validate the network parameter matrix
+ * Compares dimensions and complex values between TypeScript and Python results
+ *
+ * @param matrix - Matrix data from Python parsing
+ * @param touchstone - Original Touchstone instance
+ */
+function validateMatrix(
+  matrix: { real: number; imag: number }[][][],
+  touchstone: Touchstone
+) {
+  expect(matrix.length).toBe(touchstone.nports)
+  for (let p = 0; p < matrix.length; p++) {
+    // Verify port dimensions
+    expect(matrix[p].length).toBe(touchstone.nports)
+    for (let i = 0; i < touchstone.nports!; i++) {
+      // Verify frequency points dimension
+      expect(matrix[p][i].length).toBe(touchstone.frequency!.f_scaled.length)
+      for (let j = 0; j < touchstone.nports!; j++) {
+        // Compare complex values with 5 decimal places tolerance
+        const expected = touchstone.matrix![i][j][p]
+        const actual = matrix[i][j][p]
+        expect(actual.real).toBeCloseTo(expected.re, 5)
+        expect(actual.imag).toBeCloseTo(expected.im, 5)
+      }
+    }
+  }
+}

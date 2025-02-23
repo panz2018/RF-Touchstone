@@ -39,8 +39,8 @@ export const createRandomTouchstoneMatrix = (
   for (let outPort = 0; outPort < touchstone.nports; outPort++) {
     matrix[outPort] = new Array(touchstone.nports)
     for (let inPort = 0; inPort < touchstone.nports; inPort++) {
-      matrix[outPort][inPort] = new Array(touchstone.frequency.value.length)
-      for (let p = 0; p < touchstone.frequency.value.length; p++) {
+      matrix[outPort][inPort] = new Array(touchstone.frequency.f_scaled.length)
+      for (let p = 0; p < touchstone.frequency.f_scaled.length; p++) {
         // Generate random complex number: real + j*imag
         matrix[outPort][inPort][p] = complex(
           round(random(-1, 1), 3), // Real part

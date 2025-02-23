@@ -471,7 +471,7 @@ export class Touchstone {
     }
     const points = data.length / countColumn
     // f[n] = TokenList[n * countColumn]
-    this.frequency.value = subset(
+    this.frequency.f_scaled = subset(
       data,
       index(multiply(range(0, points), countColumn))
     )
@@ -584,7 +584,7 @@ export class Touchstone {
     if (!this.frequency) {
       throw new Error('Frequency object is not defined')
     }
-    if (this.frequency.value.length === 0) {
+    if (this.frequency.f_scaled.length === 0) {
       throw new Error('Frequency points array is empty')
     }
     if (!this.parameter) {
@@ -598,7 +598,7 @@ export class Touchstone {
     }
 
     // Calculate points number in the network
-    const points = this.frequency.value.length
+    const points = this.frequency.f_scaled.length
     // Check the matrix size
     if (this.matrix.length !== this.nports) {
       throw new Error(
@@ -639,7 +639,7 @@ export class Touchstone {
     this.validate()
 
     // Calculate points number in the network
-    const points = this.frequency!.value.length
+    const points = this.frequency!.f_scaled.length
 
     // Generate Touchstone content lines
     const lines: string[] = []
@@ -660,7 +660,7 @@ export class Touchstone {
 
     // Add network data
     for (let n = 0; n < points; n++) {
-      const dataLine: string[] = [this.frequency!.value[n].toString()]
+      const dataLine: string[] = [this.frequency!.f_scaled[n].toString()]
 
       // Add matrix data for this frequency point
       for (let outPort = 0; outPort < this.nports!; outPort++) {

@@ -248,7 +248,7 @@ describe('touchstone.ts', () => {
     // Check frequency
     expect(touchstone.frequency).toBeTruthy()
     expect(touchstone.frequency!.unit).toBe('MHz')
-    expect(touchstone.frequency!.value).toStrictEqual([100, 200, 300])
+    expect(touchstone.frequency!.f_scaled).toStrictEqual([100, 200, 300])
     // Check matrix
     expect(touchstone.matrix).toBeTruthy()
     expect(touchstone.matrix!.length).toBe(1)
@@ -288,7 +288,9 @@ describe('touchstone.ts', () => {
     expect(touchstone.nports).toBe(3)
     expect(touchstone.frequency).toBeTruthy()
     expect(touchstone.frequency!.unit).toBe('Hz')
-    expect(touchstone.frequency!.value).toStrictEqual([1e6, 5e6, 1e7, 5e7, 1e8])
+    expect(touchstone.frequency!.f_scaled).toStrictEqual([
+      1e6, 5e6, 1e7, 5e7, 1e8,
+    ])
     expect(touchstone.matrix).toBeTruthy()
     expect(touchstone.matrix!.length).toBe(3)
     touchstone.matrix!.forEach((array) => {
@@ -403,7 +405,7 @@ describe('touchstone.ts', () => {
     expect(touchstone.nports).toBe(4)
     expect(touchstone.frequency).toBeTruthy()
     expect(touchstone.frequency!.unit).toBe('GHz')
-    expect(touchstone.frequency!.value).toStrictEqual([5, 6, 7])
+    expect(touchstone.frequency!.f_scaled).toStrictEqual([5, 6, 7])
     expect(touchstone.matrix).toBeTruthy()
     expect(touchstone.matrix!.length).toBe(4)
     touchstone.matrix!.forEach((array) => {
@@ -469,7 +471,9 @@ describe('touchstone.ts', () => {
     expect(touchstone.nports).toBe(2)
     expect(touchstone.frequency).toBeTruthy()
     expect(touchstone.frequency!.unit).toBe('Hz')
-    expect(touchstone.frequency!.value).toStrictEqual([1e6, 2e6, 3e6, 4e6, 5e6])
+    expect(touchstone.frequency!.f_scaled).toStrictEqual([
+      1e6, 2e6, 3e6, 4e6, 5e6,
+    ])
     expect(touchstone.matrix).toBeTruthy()
     expect(touchstone.matrix!.length).toBe(2)
     touchstone.matrix!.forEach((array) => {
@@ -538,7 +542,7 @@ describe('touchstone.ts', () => {
     expect(() => touchstone.writeContent()).toThrow(
       'Frequency points array is empty'
     )
-    touchstone.frequency.value = [1e6, 2e6, 3e6, 4e6, 5e6]
+    touchstone.frequency.f_scaled = [1e6, 2e6, 3e6, 4e6, 5e6]
     expect(() => touchstone.writeContent()).toThrow(
       'Network parameter type is not defined'
     )
@@ -658,7 +662,7 @@ describe('touchstone.ts', () => {
     touchstone.nports = 1
     touchstone.frequency = new Frequency()
     touchstone.frequency.unit = 'MHz'
-    touchstone.frequency.value = [100, 200, 300]
+    touchstone.frequency.f_scaled = [100, 200, 300]
     touchstone.parameter = 'Z'
     touchstone.format = 'MA'
     touchstone.matrix = [
@@ -681,7 +685,7 @@ describe('touchstone.ts', () => {
     touchstone.nports = 3
     touchstone.frequency = new Frequency()
     touchstone.frequency.unit = 'MHz'
-    touchstone.frequency.value = [100, 200, 300]
+    touchstone.frequency.f_scaled = [100, 200, 300]
     touchstone.parameter = 'Y'
     touchstone.format = 'DB'
     touchstone.impedance = [20, 35, 60]
