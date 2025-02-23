@@ -334,6 +334,14 @@ export class Touchstone {
    */
   private _matrix: TouchstoneMatrix | undefined
 
+  /**
+   * Sets the network parameter matrix.
+   *
+   * @param matrix - The 3D complex matrix to store, or undefined/null to clear
+   * @remarks
+   * This setter provides a way to directly assign the network parameter matrix.
+   * Setting to undefined or null will clear the existing matrix data.
+   */
   set matrix(matrix: TouchstoneMatrix | undefined | null) {
     if (matrix === undefined || matrix === null) {
       this._matrix = undefined
@@ -342,6 +350,26 @@ export class Touchstone {
     this._matrix = matrix
   }
 
+  /**
+   * Gets the current network parameter matrix (3D array).
+   * Represents the S/Y/Z/G/H-parameters of the network.
+   *
+   * @remarks
+   * Matrix Structure:
+   * - First dimension [i]: Output (exit) port number (0 to nports-1)
+   * - Second dimension [j]: Input (enter) port number (0 to nports-1)
+   * - Third dimension [k]: Frequency point index
+   *
+   * Example:
+   * - matrix[i][j][k] represents the parameter from port j+1 to port i+1 at frequency k
+   * - For S-parameters: matrix[1][0][5] is S₂₁ at the 6th frequency point
+   *
+   * Special case for 2-port networks:
+   * - Indices are swapped to match traditional Touchstone format
+   * - matrix[0][1][k] represents S₁₂ (not S₂₁)
+   *
+   * @returns The current network parameter matrix, or undefined if not set
+   */
   get matrix() {
     return this._matrix
   }
