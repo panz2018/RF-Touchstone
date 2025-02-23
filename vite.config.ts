@@ -54,8 +54,11 @@ export default defineConfig({
     dts({ exclude: ['**/*.test.ts', '**/tests/**'] }),
     // Generate build visualization report
     visualizer({
-      filename: './build/build.html', // Output bundle analysis report
-      open: true, // Automatically open report after build
+      filename: './build/build.html',
+      template: 'treemap', // Use treemap visualization template
+      gzipSize: true, // Show size after gzip compression
+      brotliSize: true, // Show size after brotli compression
+      open: false, // Do not open the report in the browser
     }) as PluginOption,
   ],
 })
