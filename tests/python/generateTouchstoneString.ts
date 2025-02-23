@@ -1,5 +1,5 @@
 import { run } from './python'
-import { abs, complex, random, round } from 'mathjs'
+import { abs } from 'mathjs'
 import { Touchstone, TouchstoneMatrix } from '@/touchstone'
 
 /**
@@ -59,35 +59,6 @@ export const pythonGenerateTouchstoneString = async (
     print(content)
   `
   return await run(code)
-}
-
-/**
- * Create touchstone matrix with random values
- */
-export const createRandomTouchstoneMatrix = (touchstone: Touchstone) => {
-  if (!touchstone) {
-    throw new Error('Touchstone instance is not defined')
-  }
-  if (!touchstone.nports) {
-    throw new Error('Touchstone nports is not defined')
-  }
-  if (!touchstone.frequency) {
-    throw new Error('Touchstone frequency is not defined')
-  }
-  const matrix = new Array(touchstone.nports)
-  for (let outPort = 0; outPort < touchstone.nports; outPort++) {
-    matrix[outPort] = new Array(touchstone.nports)
-    for (let inPort = 0; inPort < touchstone.nports; inPort++) {
-      matrix[outPort][inPort] = new Array(touchstone.frequency.value.length)
-      for (let p = 0; p < touchstone.frequency.value.length; p++) {
-        matrix[outPort][inPort][p] = complex(
-          round(random(-1, 1), 3),
-          round(random(-1, 1), 3)
-        )
-      }
-    }
-  }
-  return matrix
 }
 
 export const convertMatrixPythonString = (matrix: TouchstoneMatrix) => {
