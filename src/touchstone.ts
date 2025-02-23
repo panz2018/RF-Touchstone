@@ -254,7 +254,7 @@ export class Touchstone {
   private _impedance: TouchstoneImpedance = 50
 
   /**
-   * Set the Touchstone impedance
+   * Set the Touchstone impedance.
    * Default: 50Ω
    * @param impedance
    * @returns
@@ -277,7 +277,7 @@ export class Touchstone {
   }
 
   /**
-   * Get the Touchstone impedance
+   * Get the Touchstone impedance.
    * Default: 50Ω
    * @returns
    */
