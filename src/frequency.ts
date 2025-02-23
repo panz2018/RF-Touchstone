@@ -21,20 +21,20 @@ export type FrequencyValue = number[]
 
 /**
  * Class representing frequency data in RF and microwave engineering
- * 
+ *
  * @remarks
  * The Frequency class manages frequency-related data, including:
  * - Frequency unit management
  * - Storage of frequency points
  * - Unit conversion capabilities
- * 
+ *
  * @example
  * ```typescript
  * const freq = new Frequency();
  * freq.unit = 'GHz';
  * freq.value = [1.0, 2.0, 3.0];
  * ```
- * 
+ *
  * References:
  * - {@link https://github.com/scikit-rf/scikit-rf/blob/master/skrf/frequency.py scikit-rf: Open Source RF Engineering}
  */
@@ -47,10 +47,10 @@ export class Frequency {
 
   /**
    * Sets the frequency unit for the instance
-   * 
+   *
    * @param unit - The frequency unit to set
    * @throws {Error} If the provided unit is not one of the supported frequency units
-   * 
+   *
    * @example
    * ```typescript
    * const freq = new Frequency();
@@ -84,9 +84,9 @@ export class Frequency {
 
   /**
    * Gets the current frequency unit
-   * 
+   *
    * @returns The current frequency unit
-   * 
+   *
    * @example
    * ```typescript
    * const freq = new Frequency();
@@ -100,7 +100,7 @@ export class Frequency {
   /**
    * Array of frequency points in the current unit
    * Each element represents a discrete frequency point for measurement or analysis
-   * 
+   *
    * @example
    * ```typescript
    * const freq = new Frequency();
