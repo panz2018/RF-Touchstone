@@ -104,16 +104,17 @@ function validateMatrix(
   touchstone: Touchstone
 ) {
   expect(matrix.length).toBe(touchstone.nports)
-  for (let p = 0; p < matrix.length; p++) {
+  for (let m = 0; m < touchstone.nports!; m++) {
     // Verify port dimensions
-    expect(matrix[p].length).toBe(touchstone.nports)
-    for (let i = 0; i < touchstone.nports!; i++) {
+    expect(matrix[m].length).toBe(touchstone.nports)
+    for (let n = 0; n < touchstone.nports!; n++) {
       // Verify frequency points dimension
-      expect(matrix[p][i].length).toBe(touchstone.frequency!.f_scaled.length)
-      for (let j = 0; j < touchstone.nports!; j++) {
+      const points = touchstone.frequency!.f_scaled.length
+      expect(matrix[m][n].length).toBe(points)
+      for (let p = 0; p < points; p++) {
         // Compare complex values with 5 decimal places tolerance
-        const expected = touchstone.matrix![i][j][p]
-        const actual = matrix[i][j][p]
+        const expected = touchstone.matrix![m][n][p]
+        const actual = matrix[m][n][p]
         expect(actual.real).toBeCloseTo(expected.re, 5)
         expect(actual.imag).toBeCloseTo(expected.im, 5)
       }

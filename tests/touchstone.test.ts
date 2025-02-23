@@ -1,11 +1,24 @@
 import { describe, it, expect } from 'vitest'
-import { abs, arg, complex, Complex, log10, pi, pow, round } from 'mathjs'
+import {
+  abs,
+  arg,
+  complex,
+  Complex,
+  log10,
+  pi,
+  pow,
+  random,
+  round,
+} from 'mathjs'
 import {
   Touchstone,
   TouchstoneFormats,
   TouchstoneParameters,
 } from '@/touchstone'
+import type { TouchstoneFormat } from '@/touchstone'
 import { Frequency } from '@/frequency'
+import { createRandomTouchstoneMatrix } from './python/randomTouchstoneMatrix'
+import { pythonReadContent } from './python/pythonReadContent'
 
 describe('touchstone.ts', () => {
   it('Valid class', () => {
@@ -271,7 +284,7 @@ describe('touchstone.ts', () => {
       ! 3-port S-parameter file
       # Hz S MA R 20 35 60
       ! Freq     S11_Mag    S11_Ang     S12_Mag    S12_Ang     S13_Mag    S13_Ang     S21_Mag    S21_Ang     S22_Mag    S22_Ang     S23_Mag    S23_Ang     S31_Mag    S31_Ang     S32_Mag    S32_Ang     S33_Mag    S33_Ang
-      ! ---------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------
+      ! ---------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------
       1.000E+06  0.80       -20.0       0.05        30.0       0.03       -45.0       0.05       -30.0       0.75       -10.0       0.02        15.0       0.02        45.0       0.03        -10.0       0.70       -5.0
       5.000E+06  0.75       -40.0       0.10        45.0       0.06       -60.0       0.10       -45.0       0.70       -20.0       0.04        25.0       0.04        60.0       0.06        -20.0       0.65       -10.0
       1.000E+07  0.70       -60.0       0.15        60.0       0.09       -75.0       0.15       -60.0       0.65       -30.0       0.06        35.0       0.06       -75.0       0.09        -30.0       0.60       -15.0
@@ -759,6 +772,7 @@ describe('touchstone.ts', () => {
 `
     expect(touchstone.writeContent()).toBe(expected)
   })
+
   // Generate touchstone string using Scikit-RF, then test readContent
   // for (const format of TouchstoneFormats) {
   //   for (const parameter of TouchstoneParameters) {
@@ -771,4 +785,65 @@ describe('touchstone.ts', () => {
   //     }
   //   }
   // }
+})
+
+/**
+ * Generate random touchstone matrix, and test by python skrf
+ * Test suite for validating Touchstone format compatibility with scikit-rf
+ * Tests all combinations of:
+ * - Network formats (RI/MA/DB)
+ * - Number of ports (1,2,3,15)
+ */
+describe('writeContent and read by skrf', () => {
+  for (const format of TouchstoneFormats) {
+    for (const nports of [1, 2, 3, 15]) {
+      it(`writeContent: ${nports} ports, ${format} format, s-parameter`, async () => {
+        // Initialize a new Touchstone instance with test configuration
+        const touchstone = new Touchstone()
+        touchstone.format = format as TouchstoneFormat // Decibel-Angle format
+        touchstone.parameter = 'S' // S-parameters
+        touchstone.impedance = round(random(1, 50), 3) // Random impedance between 1-50Ω
+        touchstone.nports = nports // 3-port network
+        touchstone.frequency = new Frequency()
+        touchstone.frequency.unit = 'GHz' // Frequency unit
+        touchstone.frequency.f_scaled = [1, 3, 5] // Test frequencies: 1, 3, 5 GHz
+        touchstone.matrix = createRandomTouchstoneMatrix(touchstone)
+
+        // Generate Touchstone format string and parse with Python
+        const content = touchstone.writeContent()
+        const result = await pythonReadContent(
+          content,
+          touchstone.nports,
+          touchstone.parameter
+        )
+        const data = JSON.parse(result)
+
+        // Validate basic network properties
+        expect(data.frequency.unit).toBe(touchstone.frequency.unit)
+        expect(data.frequency.f_scaled).toStrictEqual(
+          touchstone.frequency.f_scaled
+        )
+        expect(data.impedance).toBe(touchstone.impedance)
+
+        // Validate matrix structure and values
+        expect(data.matrix.length).toBe(touchstone.nports)
+        for (let m = 0; m < touchstone.nports; m++) {
+          // Verify port dimensions
+          expect(data.matrix[m].length).toBe(touchstone.nports)
+          for (let n = 0; n < touchstone.nports!; n++) {
+            // Verify frequency points dimension
+            const points = touchstone.frequency!.f_scaled.length
+            expect(data.matrix[m][n].length).toBe(points)
+            for (let p = 0; p < points; p++) {
+              // Compare complex values with 5 decimal places tolerance
+              const expected = touchstone.matrix![m][n][p]
+              const actual = data.matrix[m][n][p]
+              expect(actual.real).toBeCloseTo(expected.re, 5)
+              expect(actual.imag).toBeCloseTo(expected.im, 5)
+            }
+          }
+        }
+      })
+    }
+  }
 })
