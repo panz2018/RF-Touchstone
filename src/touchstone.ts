@@ -61,17 +61,27 @@ export type TouchstoneParameter = (typeof TouchstoneParameters)[number]
 export type TouchstoneImpedance = number | number[]
 
 /**
- * 3D array to store the network parameter data.
- * - The first dimension is the exits (output) port number
- * - The second dimension is the enters (input) port number
- * - The third dimension is the frequency index
- * For example, data[i][j][k] would be the parameter from j+1 port to i+1 port at frequency index k
+ * Network parameter matrix stored as complex numbers.
+ *
+ * @remarks
+ * The matrix is a 3D array with the following dimensions:
+ * - First dimension: output port index (0 to nports-1)
+ * - Second dimension: input port index (0 to nports-1)
+ * - Third dimension: frequency point index
+ *
+ * For example:
+ * - matrix[i][j][k] represents the parameter from port j+1 to port i+1 at frequency k
+ * - For S-parameters: matrix[1][0][5] is S₂₁ at the 6th frequency point
+ *
+ * Special case for 2-port networks:
+ * - Indices are swapped to match traditional Touchstone format
+ * - matrix[0][1][k] represents S₁₂ (not S₂₁)
  */
 export type TouchstoneMatrix = Complex[][][]
 
 /**
- * Touchstone class supports both reading (parsing) and writing (generating) touchstone files.
- * Only version 1.0 and 1.1 are supported
+ * Touchstone class for reading and writing network parameter data in Touchstone format.
+ * Supports both version 1.0 and 1.1 of the Touchstone specification.
  *
  * ## Overview
  *
@@ -320,13 +330,24 @@ export class Touchstone {
   public matrix: TouchstoneMatrix | undefined
 
   /**
-   * Read a Touchstone file and parse the content into the internal data structure
-   * @param string
-   * @param nports
-   * @returns
-   * @throws Will throw an error if anything is not valid
+   * Reads and parses a Touchstone format string into the internal data structure.
+   *
+   * @param string - The Touchstone format string to parse
+   * @param nports - Number of ports in the network
+   *
+   * @throws {Error} If the option line is missing or invalid
+   * @throws {Error} If multiple option lines are found
+   * @throws {Error} If the impedance specification is invalid
+   * @throws {Error} If the data format is invalid or incomplete
+   *
+   * @remarks
+   * The method performs the following steps:
+   * 1. Parses comments and option line
+   * 2. Extracts frequency points
+   * 3. Converts raw data into complex numbers based on format
+   * 4. Stores the results in the matrix property
    */
-  public readContent(string: string, nports: number) {
+  public readContent(string: string, nports: number): void {
     // Assign the number of ports
     this.nports = nports
     // Parse lines from the string
@@ -387,14 +408,14 @@ export class Touchstone {
       .map((line) => {
         const index = line.indexOf('!')
         if (index !== -1) {
-          // If '!' is found，ignore after '!'
+          // If a comment is found in the line, remove it
           return line.substring(0, index).trim()
         } else {
-          // if '!' is not found, return the original line
           return line.trim()
         }
       })
       .join(' ')
+
     const data = content.split(/\s+/).map((d) => parseFloat(d))
     // countColumn(Columns count): 1 + 2 * nports^2
     const countColumn = 2 * Math.pow(this.nports, 2) + 1
@@ -410,7 +431,10 @@ export class Touchstone {
       index(multiply(range(0, points), countColumn))
     )
 
-    // Initialize matrix
+    // Initialize matrix with the correct dimensions:
+    // - First dimension: output ports (nports)
+    // - Second dimension: input ports (nports)
+    // - Third dimension: frequency points (points)
     this.matrix = new Array(nports)
     for (let outPort = 0; outPort < nports; outPort++) {
       this.matrix[outPort] = new Array(nports)
@@ -418,7 +442,8 @@ export class Touchstone {
         this.matrix[outPort][inPort] = new Array(points)
       }
     }
-    // Parse matrix data
+
+    // Parse matrix data: Convert raw data into complex numbers based on format
     for (let outPort = 0; outPort < nports; outPort++) {
       for (let inPort = 0; inPort < nports; inPort++) {
         // A[outPort][inPort][n] = TokenList[countColumn * n + (outPort * nports + inPort) * 2 + 1]
@@ -441,26 +466,33 @@ export class Touchstone {
             )
           )
         )
-        // Array in matrix
+
+        // Convert data pairs into complex numbers based on format
         for (let n = 0; n < points; n++) {
           let value: Complex
           switch (this.format) {
             case 'RI':
+              // Real-Imaginary format: A + jB
               value = complex(A[n], B[n])
               break
             case 'MA':
+              // Magnitude-Angle format: A∠B°
               value = complex({
                 r: A[n],
                 phi: (B[n] / 180) * pi,
               })
               break
             case 'DB':
+              // Decibel-Angle format: 20log₁₀(|A|)∠B°
               value = complex({
                 r: pow(10, A[n] / 20) as number,
                 phi: (B[n] / 180) * pi,
               })
               break
           }
+
+          // Store the value in the matrix
+          // Special case for 2-port networks: swap indices
           if (nports === 2) {
             this.matrix[inPort][outPort][n] = value
           } else {
@@ -472,9 +504,18 @@ export class Touchstone {
   }
 
   /**
-   * Writes the current Touchstone data to a text in Touchstone version 1.0 or 1.1 format.
-   * @returns The Touchstone file content as a string
-   * @throws Will throw an error if anything is not valid
+   * Generates a Touchstone format string from the internal data structure.
+   *
+   * @returns The generated Touchstone format string
+   *
+   * @throws {Error} If any required data is missing
+   * @throws {Error} If the matrix dimensions are invalid
+   *
+   * @remarks
+   * The generated string includes:
+   * 1. Comments (if any)
+   * 2. Option line with format, parameter type, and impedance
+   * 3. Network parameter data in the specified format
    */
   public writeContent(): string {
     // Check if all required data exists
