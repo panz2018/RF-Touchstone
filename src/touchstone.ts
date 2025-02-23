@@ -460,8 +460,6 @@ export class Touchstone {
                 phi: (B[n] / 180) * pi,
               })
               break
-            default:
-              throw new Error(`Unknown Touchstone format: ${this.format}`)
           }
           if (nports === 2) {
             this.matrix[inPort][outPort][n] = value
@@ -485,9 +483,6 @@ export class Touchstone {
     }
     if (!this.frequency) {
       throw new Error('Touchstone frequency is not defined')
-    }
-    if (!this.frequency.unit) {
-      throw new Error('Touchstone frequency unit is not defined')
     }
     if (this.frequency.value.length === 0) {
       throw new Error('Touchstone frequency value is not defined')
@@ -568,8 +563,6 @@ export class Touchstone {
               A = 20 * log10(abs(value) as unknown as number)
               B = (arg(value) / pi) * 180
               break
-            default:
-              throw new Error(`Unknown Touchstone format: ${this.format}`)
           }
           dataLine.push(A.toString(), B.toString())
         }
