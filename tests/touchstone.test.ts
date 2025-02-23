@@ -125,6 +125,22 @@ describe('touchstone.ts', () => {
       expect(touchstone.nports).toBe(undefined)
     }
   })
+  it('Touchstone:matrix', () => {
+    const touchstone = new Touchstone()
+    expect(touchstone.matrix).toBe(undefined)
+    touchstone.matrix = null
+    expect(touchstone.matrix).toBe(undefined)
+    touchstone.matrix = [
+      [[complex(1, 0)], [complex(2, 1)]],
+      [[complex(3, 2)], [complex(4, 5)]],
+    ]
+    expect(touchstone.matrix).toStrictEqual([
+      [[complex(1, 0)], [complex(2, 1)]],
+      [[complex(3, 2)], [complex(4, 5)]],
+    ])
+    touchstone.matrix = undefined
+    expect(touchstone.matrix).toBe(undefined)
+  })
   it('readContent error: no option line', () => {
     const string = `
       ! 1-port S-parameter file
