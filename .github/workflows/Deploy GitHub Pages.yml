@@ -41,7 +41,7 @@ jobs:
         run: yarn install
 
       - name: Build VitePress docs
-        run: yarn docs:build
+        run: yarn docs:md && yarn docs:build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
