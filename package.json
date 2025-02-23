@@ -1,20 +1,23 @@
 {
-  "name": "network-rf.ts",
+  "name": "rf-touchstone",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "test": "run-p --print-label lint format test:unit test:coverage build docs:build",
+    "test": "run-p --print-label lint format test:unit test:coverage build docs:md && run-s docs:build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "build": "tsc && vite build",
-    "docs:dev": "typedoc --tsconfig tsconfig.json && vitepress dev docs",
-    "docs:build": "typedoc --tsconfig tsconfig.json && vitepress build docs",
+    "docs:md": "typedoc --tsconfig tsconfig.json",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
-  "dependencies": {},
+  "dependencies": {
+    "mathjs": "^14.2.1"
+  },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
     "@types/eslint-config-prettier": "^6.11.3",
@@ -28,6 +31,7 @@
     "markdown-it-mathjax3": "^4.3.2",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.4.2",
+    "rollup-plugin-visualizer": "^5.14.0",
     "typedoc": "^0.27.7",
     "typedoc-plugin-markdown": "^4.4.2",
     "typescript": "^5.7.3",

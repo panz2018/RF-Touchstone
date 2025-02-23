@@ -3,9 +3,9 @@
 layout: home
 
 hero:
-  name: 'RF Network'
+  name: 'RF Touchstone'
   text: 'Reading/writing touchstone snp files, similar to SignalIntegrity and scikit-rf in python'
-  tagline: Written by TypeScript
+  tagline: Written in Javascript/TypeScript
   actions:
     - theme: brand
       text: Markdown Examples

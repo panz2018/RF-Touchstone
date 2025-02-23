@@ -1,4 +1,4 @@
-# Development for Network-rf.js
+# Development for RF Touchstone
 
 ## Setup Node.js environment
 
@@ -83,13 +83,13 @@ On Windows:
 #### Update pip
 
 ```sh
-pip install --upgrade pip
+python -m pip install --upgrade pip
 ```
 
 #### Install packages using a requirements file
 
 ```sh
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 #### Check packages available for update
