@@ -1,7 +1,7 @@
 /**
- * Frequency units: 'Hz', 'kHz', 'MHz', 'GHz', 'THz'
+ * Frequency units: 'Hz', 'kHz', 'MHz', 'GHz'
  */
-export const FrequencyUnits = ['Hz', 'kHz', 'MHz', 'GHz', 'THz'] as const
+export const FrequencyUnits = ['Hz', 'kHz', 'MHz', 'GHz'] as const
 
 /**
  * Type definition for frequency units
@@ -9,7 +9,6 @@ export const FrequencyUnits = ['Hz', 'kHz', 'MHz', 'GHz', 'THz'] as const
  * - kHz: Kilohertz (10³ Hz)
  * - MHz: Megahertz (10⁶ Hz)
  * - GHz: Gigahertz (10⁹ Hz)
- * - THz: Terahertz (10¹² Hz)
  */
 export type FrequencyUnit = (typeof FrequencyUnits)[number]
 
@@ -73,9 +72,6 @@ export class Frequency {
         break
       case 'ghz':
         this._unit = 'GHz'
-        break
-      case 'thz':
-        this._unit = 'THz'
         break
       default:
         throw new Error(`Unknown frequency unit: ${unit}`)
