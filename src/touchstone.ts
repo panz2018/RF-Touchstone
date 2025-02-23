@@ -10,6 +10,7 @@ import {
   pi,
   pow,
   range,
+  round,
   subset,
 } from 'mathjs'
 import type { FrequencyUnit } from './frequency'
@@ -54,6 +55,7 @@ export type TouchstoneParameter = (typeof TouchstoneParameters)[number]
 /**
  * The reference resistance(s) for the network parameters.
  * The token "R" (case-insensitive) followed by one or more reference resistance values.
+ * Default: 50Ω
  *
  * For Touchstone 1.0, this is a single value for all ports.
  * For Touchstone 1.1, this can be an array of values (one per port)
@@ -215,7 +217,7 @@ export class Touchstone {
       return
     }
     if (typeof parameter !== 'string') {
-      throw new Error(`Unknown Touchstone paramter: ${parameter}`)
+      throw new Error(`Unknown Touchstone parameter: ${parameter}`)
     }
     switch (parameter.toLowerCase()) {
       case 's':
@@ -234,7 +236,7 @@ export class Touchstone {
         this._parameter = 'H'
         break
       default:
-        throw new Error(`Unknown Touchstone paramter: ${parameter}`)
+        throw new Error(`Unknown Touchstone parameter: ${parameter}`)
     }
   }
 
@@ -247,11 +249,13 @@ export class Touchstone {
 
   /**
    * Reference impedance(s) for the network parameters
+   * Default: 50Ω
    */
   private _impedance: TouchstoneImpedance = 50
 
   /**
    * Set the Touchstone impedance
+   * Default: 50Ω
    * @param impedance
    * @returns
    * @throws Will throw an error if the impedance is not valid
@@ -273,7 +277,8 @@ export class Touchstone {
   }
 
   /**
-   * Get the Touchstone format
+   * Get the Touchstone impedance
+   * Default: 50Ω
    * @returns
    */
   get impedance(): TouchstoneImpedance {
@@ -382,13 +387,13 @@ export class Touchstone {
     if (tokens.length >= 4) {
       if (tokens[3].toLowerCase() !== 'r') {
         throw new Error(
-          `Uknown Touchstone impedance: ${tokens.slice(3).join(' ')}`
+          `Unknown Touchstone impedance: ${tokens.slice(3).join(' ')}`
         )
       }
       const array = tokens.slice(4).map((d) => parseFloat(d))
       if (array.length === 0 || array.some(Number.isNaN)) {
         throw new Error(
-          `Uknown Touchstone impedance: ${tokens.slice(3).join(' ')}`
+          `Unknown Touchstone impedance: ${tokens.slice(3).join(' ')}`
         )
       }
       if (array.length === 1) {
@@ -520,22 +525,22 @@ export class Touchstone {
   public writeContent(): string {
     // Check if all required data exists
     if (!this.nports) {
-      throw new Error('Number of ports is not defined')
+      throw new Error('Number of ports (nports) is not defined')
     }
     if (!this.frequency) {
-      throw new Error('Touchstone frequency is not defined')
+      throw new Error('Frequency object is not defined')
     }
     if (this.frequency.value.length === 0) {
-      throw new Error('Touchstone frequency value is not defined')
+      throw new Error('Frequency points array is empty')
     }
     if (!this.parameter) {
-      throw new Error('Touchstone parameter is not defined')
+      throw new Error('Network parameter type is not defined')
     }
     if (!this.format) {
-      throw new Error('Touchstone format is not defined')
+      throw new Error('Data format (RI/MA/DB) is not defined')
     }
     if (!this.matrix) {
-      throw new Error('Touchstone matrix is not defined')
+      throw new Error('Network parameter matrix is not defined')
     }
 
     // Calculate points number in the network
@@ -605,7 +610,8 @@ export class Touchstone {
               B = (arg(value) / pi) * 180
               break
           }
-          dataLine.push(A.toString(), B.toString())
+          // Format numbers to avoid scientific notation and limit decimal places
+          dataLine.push(round(A, 12).toString(), round(B, 12).toString())
         }
       }
       lines.push(dataLine.join(' '))

@@ -39,7 +39,7 @@ export default defineConfig({
       entry: './src/touchstone.ts', // Main library entry point
       name: 'Touchstone', // Global variable name when used in browser
       fileName: (format) => `Touchstone.${format}.js`, // Generate different bundles for each format
-      formats: ['es', 'cjs', 'umd'], // Support ESM, CommonJS, and Universal Module Definition
+      formats: ['umd', 'cjs', 'es'], // Support ESM, CommonJS, and Universal Module Definition
     },
     rollupOptions: {
       treeshake: true, // Enable dead code elimination
