@@ -794,13 +794,13 @@ describe('touchstone.ts', () => {
  * - Network formats (RI/MA/DB)
  * - Number of ports (1,2,3,15)
  */
-describe('writeContent and read by skrf', () => {
+describe('writeContent and readContent, then compare with python skrf', () => {
   for (const format of TouchstoneFormats) {
     for (const nports of [1, 2, 3, 15]) {
       it(`writeContent: ${nports} ports, ${format} format, s-parameter`, async () => {
         // Initialize a new Touchstone instance with test configuration
         const touchstone = new Touchstone()
-        touchstone.format = format as TouchstoneFormat // Decibel-Angle format
+        touchstone.format = format as TouchstoneFormat
         touchstone.parameter = 'S' // S-parameters
         touchstone.impedance = round(random(1, 50), 3) // Random impedance between 1-50Ω
         touchstone.nports = nports // 3-port network
@@ -808,38 +808,67 @@ describe('writeContent and read by skrf', () => {
         touchstone.frequency.unit = 'GHz' // Frequency unit
         touchstone.frequency.f_scaled = [1, 3, 5] // Test frequencies: 1, 3, 5 GHz
         touchstone.matrix = createRandomTouchstoneMatrix(touchstone)
-
-        // Generate Touchstone format string and parse with Python
+        // Generate Touchstone format string
         const content = touchstone.writeContent()
+
+        // Parse with Python
         const result = await pythonReadContent(
           content,
           touchstone.nports,
           touchstone.parameter
         )
-        const data = JSON.parse(result)
-
+        const python = JSON.parse(result)
         // Validate basic network properties
-        expect(data.frequency.unit).toBe(touchstone.frequency.unit)
-        expect(data.frequency.f_scaled).toStrictEqual(
+        expect(python.frequency.unit).toBe(touchstone.frequency.unit)
+        expect(python.frequency.f_scaled).toStrictEqual(
           touchstone.frequency.f_scaled
         )
-        expect(data.impedance).toBe(touchstone.impedance)
-
+        expect(python.impedance).toBe(touchstone.impedance)
         // Validate matrix structure and values
-        expect(data.matrix.length).toBe(touchstone.nports)
+        expect(python.matrix.length).toBe(touchstone.nports)
         for (let m = 0; m < touchstone.nports; m++) {
           // Verify port dimensions
-          expect(data.matrix[m].length).toBe(touchstone.nports)
+          expect(python.matrix[m].length).toBe(touchstone.nports)
           for (let n = 0; n < touchstone.nports!; n++) {
             // Verify frequency points dimension
             const points = touchstone.frequency!.f_scaled.length
-            expect(data.matrix[m][n].length).toBe(points)
+            expect(python.matrix[m][n].length).toBe(points)
             for (let p = 0; p < points; p++) {
               // Compare complex values with 5 decimal places tolerance
               const expected = touchstone.matrix![m][n][p]
-              const actual = data.matrix[m][n][p]
-              expect(actual.real).toBeCloseTo(expected.re, 5)
-              expect(actual.imag).toBeCloseTo(expected.im, 5)
+              const actual = python.matrix[m][n][p]
+              expect(actual.re).toBeCloseTo(expected.re, 5)
+              expect(actual.im).toBeCloseTo(expected.im, 5)
+            }
+          }
+        }
+
+        // Parse with Touchstone.ts
+        const ts = new Touchstone()
+        ts.readContent(content, touchstone.nports)
+        expect(ts.format).toBe(touchstone.format)
+        expect(ts.parameter).toBe(touchstone.parameter)
+        expect(ts.impedance).toBe(touchstone.impedance)
+        expect(ts.nports).toBe(touchstone.nports)
+        expect(ts.frequency!.unit).toBe(touchstone.frequency.unit)
+        expect(ts.frequency!.f_scaled).toStrictEqual(
+          touchstone.frequency.f_scaled
+        )
+        // Validate matrix structure and values
+        expect(ts.matrix!.length).toBe(touchstone.nports)
+        for (let m = 0; m < touchstone.nports; m++) {
+          // Verify port dimensions
+          expect(ts.matrix![m].length).toBe(touchstone.nports)
+          for (let n = 0; n < touchstone.nports!; n++) {
+            // Verify frequency points dimension
+            const points = touchstone.frequency!.f_scaled.length
+            expect(ts.matrix![m][n].length).toBe(points)
+            for (let p = 0; p < points; p++) {
+              // Compare complex values with 5 decimal places tolerance
+              const expected = touchstone.matrix![m][n][p]
+              const actual = ts.matrix![m][n][p]
+              expect(actual.re).toBeCloseTo(expected.re, 5)
+              expect(actual.im).toBeCloseTo(expected.im, 5)
             }
           }
         }

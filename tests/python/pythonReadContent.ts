@@ -73,8 +73,8 @@ export const pythonReadContent = async (
                 value = ntwk.${parameter.toLowerCase()}[f_idx, i, j]
                 # Store as complex number with real and imaginary parts
                 data_in.append({
-                    'real': float(value.real),
-                    'imag': float(value.imag)
+                    're': float(value.real),
+                    'im': float(value.imag)
                 })
             data_out.append(data_in)
         data['matrix'].append(data_out)

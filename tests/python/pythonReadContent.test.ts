@@ -100,7 +100,7 @@ describe('pythonReadContent.ts', () => {
  * @param touchstone - Original Touchstone instance
  */
 function validateMatrix(
-  matrix: { real: number; imag: number }[][][],
+  matrix: { re: number; im: number }[][][],
   touchstone: Touchstone
 ) {
   expect(matrix.length).toBe(touchstone.nports)
@@ -115,8 +115,8 @@ function validateMatrix(
         // Compare complex values with 5 decimal places tolerance
         const expected = touchstone.matrix![m][n][p]
         const actual = matrix[m][n][p]
-        expect(actual.real).toBeCloseTo(expected.re, 5)
-        expect(actual.imag).toBeCloseTo(expected.im, 5)
+        expect(actual.re).toBeCloseTo(expected.re, 5)
+        expect(actual.im).toBeCloseTo(expected.im, 5)
       }
     }
   }
