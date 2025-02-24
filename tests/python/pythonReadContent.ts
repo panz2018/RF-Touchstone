@@ -41,7 +41,6 @@ export const pythonReadContent = async (
   const code = `
     import io, json
     import skrf
-    import numpy as np
     from skrf.io.general import to_json_string
 
     # Create a StringIO object with the touchstone content
