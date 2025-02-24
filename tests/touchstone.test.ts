@@ -1,11 +1,25 @@
 import { describe, it, expect } from 'vitest'
-import { abs, arg, complex, Complex, log10, pi, pow, round } from 'mathjs'
+import {
+  abs,
+  arg,
+  complex,
+  Complex,
+  log10,
+  pi,
+  pow,
+  random,
+  round,
+} from 'mathjs'
 import {
   Touchstone,
   TouchstoneFormats,
   TouchstoneParameters,
 } from '@/touchstone'
+import type { TouchstoneFormat } from '@/touchstone'
 import { Frequency } from '@/frequency'
+import { createRandomTouchstoneMatrix } from './python/randomTouchstoneMatrix'
+import { pythonReadContent } from './python/pythonReadContent'
+import { pythonWriteContent } from './python/pythonWriteContent'
 
 describe('touchstone.ts', () => {
   it('Valid class', () => {
@@ -125,6 +139,22 @@ describe('touchstone.ts', () => {
       expect(touchstone.nports).toBe(undefined)
     }
   })
+  it('Touchstone:matrix', () => {
+    const touchstone = new Touchstone()
+    expect(touchstone.matrix).toBe(undefined)
+    touchstone.matrix = null
+    expect(touchstone.matrix).toBe(undefined)
+    touchstone.matrix = [
+      [[complex(1, 0)], [complex(2, 1)]],
+      [[complex(3, 2)], [complex(4, 5)]],
+    ]
+    expect(touchstone.matrix).toStrictEqual([
+      [[complex(1, 0)], [complex(2, 1)]],
+      [[complex(3, 2)], [complex(4, 5)]],
+    ])
+    touchstone.matrix = undefined
+    expect(touchstone.matrix).toBe(undefined)
+  })
   it('readContent error: no option line', () => {
     const string = `
       ! 1-port S-parameter file
@@ -147,6 +177,17 @@ describe('touchstone.ts', () => {
     const touchstone = new Touchstone()
     expect(() => touchstone.readContent(string, 1)).toThrow(
       'Only one option line starting with "#" is supported, but found 3 lines'
+    )
+  })
+  it('readContent error: invalid format', () => {
+    const touchstone = new Touchstone()
+    const invalidContent = `
+      ! Test invalid format
+      # MHz S INVALID R 50
+      100 0.99 -4
+    `
+    expect(() => touchstone.readContent(invalidContent, 1)).toThrow(
+      'Unknown Touchstone format: INVALID'
     )
   })
   it('readContent error: wrong impedance token', () => {
@@ -221,7 +262,7 @@ describe('touchstone.ts', () => {
     // Check frequency
     expect(touchstone.frequency).toBeTruthy()
     expect(touchstone.frequency!.unit).toBe('MHz')
-    expect(touchstone.frequency!.value).toStrictEqual([100, 200, 300])
+    expect(touchstone.frequency!.f_scaled).toStrictEqual([100, 200, 300])
     // Check matrix
     expect(touchstone.matrix).toBeTruthy()
     expect(touchstone.matrix!.length).toBe(1)
@@ -244,7 +285,7 @@ describe('touchstone.ts', () => {
       ! 3-port S-parameter file
       # Hz S MA R 20 35 60
       ! Freq     S11_Mag    S11_Ang     S12_Mag    S12_Ang     S13_Mag    S13_Ang     S21_Mag    S21_Ang     S22_Mag    S22_Ang     S23_Mag    S23_Ang     S31_Mag    S31_Ang     S32_Mag    S32_Ang     S33_Mag    S33_Ang
-      ! ---------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------
+      ! ---------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------|------------
       1.000E+06  0.80       -20.0       0.05        30.0       0.03       -45.0       0.05       -30.0       0.75       -10.0       0.02        15.0       0.02        45.0       0.03        -10.0       0.70       -5.0
       5.000E+06  0.75       -40.0       0.10        45.0       0.06       -60.0       0.10       -45.0       0.70       -20.0       0.04        25.0       0.04        60.0       0.06        -20.0       0.65       -10.0
       1.000E+07  0.70       -60.0       0.15        60.0       0.09       -75.0       0.15       -60.0       0.65       -30.0       0.06        35.0       0.06       -75.0       0.09        -30.0       0.60       -15.0
@@ -261,7 +302,9 @@ describe('touchstone.ts', () => {
     expect(touchstone.nports).toBe(3)
     expect(touchstone.frequency).toBeTruthy()
     expect(touchstone.frequency!.unit).toBe('Hz')
-    expect(touchstone.frequency!.value).toStrictEqual([1e6, 5e6, 1e7, 5e7, 1e8])
+    expect(touchstone.frequency!.f_scaled).toStrictEqual([
+      1e6, 5e6, 1e7, 5e7, 1e8,
+    ])
     expect(touchstone.matrix).toBeTruthy()
     expect(touchstone.matrix!.length).toBe(3)
     touchstone.matrix!.forEach((array) => {
@@ -376,7 +419,7 @@ describe('touchstone.ts', () => {
     expect(touchstone.nports).toBe(4)
     expect(touchstone.frequency).toBeTruthy()
     expect(touchstone.frequency!.unit).toBe('GHz')
-    expect(touchstone.frequency!.value).toStrictEqual([5, 6, 7])
+    expect(touchstone.frequency!.f_scaled).toStrictEqual([5, 6, 7])
     expect(touchstone.matrix).toBeTruthy()
     expect(touchstone.matrix!.length).toBe(4)
     touchstone.matrix!.forEach((array) => {
@@ -442,7 +485,9 @@ describe('touchstone.ts', () => {
     expect(touchstone.nports).toBe(2)
     expect(touchstone.frequency).toBeTruthy()
     expect(touchstone.frequency!.unit).toBe('Hz')
-    expect(touchstone.frequency!.value).toStrictEqual([1e6, 2e6, 3e6, 4e6, 5e6])
+    expect(touchstone.frequency!.f_scaled).toStrictEqual([
+      1e6, 2e6, 3e6, 4e6, 5e6,
+    ])
     expect(touchstone.matrix).toBeTruthy()
     expect(touchstone.matrix!.length).toBe(2)
     touchstone.matrix!.forEach((array) => {
@@ -511,7 +556,7 @@ describe('touchstone.ts', () => {
     expect(() => touchstone.writeContent()).toThrow(
       'Frequency points array is empty'
     )
-    touchstone.frequency.value = [1e6, 2e6, 3e6, 4e6, 5e6]
+    touchstone.frequency.f_scaled = [1e6, 2e6, 3e6, 4e6, 5e6]
     expect(() => touchstone.writeContent()).toThrow(
       'Network parameter type is not defined'
     )
@@ -519,7 +564,10 @@ describe('touchstone.ts', () => {
     expect(() => touchstone.writeContent()).toThrow(
       'Data format (RI/MA/DB) is not defined'
     )
-    touchstone.format = 'RI'
+    Object.defineProperty(touchstone, '_format', {
+      value: 'a' as never,
+      writable: true,
+    })
     expect(() => touchstone.writeContent()).toThrow(
       'Network parameter matrix is not defined'
     )
@@ -572,6 +620,10 @@ describe('touchstone.ts', () => {
         ],
       ],
     ]
+    expect(() => touchstone.writeContent()).toThrow(
+      'Unknown Touchstone format: a'
+    )
+    touchstone.format = 'RI'
     // Default impedance, no comments
     expect(touchstone.writeContent()).toBe(`# Hz S RI R 50
 1000000 0.9 0 0.01 -0.02 -0.02 0.01 0.9 0
@@ -624,7 +676,7 @@ describe('touchstone.ts', () => {
     touchstone.nports = 1
     touchstone.frequency = new Frequency()
     touchstone.frequency.unit = 'MHz'
-    touchstone.frequency.value = [100, 200, 300]
+    touchstone.frequency.f_scaled = [100, 200, 300]
     touchstone.parameter = 'Z'
     touchstone.format = 'MA'
     touchstone.matrix = [
@@ -647,7 +699,7 @@ describe('touchstone.ts', () => {
     touchstone.nports = 3
     touchstone.frequency = new Frequency()
     touchstone.frequency.unit = 'MHz'
-    touchstone.frequency.value = [100, 200, 300]
+    touchstone.frequency.f_scaled = [100, 200, 300]
     touchstone.parameter = 'Y'
     touchstone.format = 'DB'
     touchstone.impedance = [20, 35, 60]
@@ -721,6 +773,7 @@ describe('touchstone.ts', () => {
 `
     expect(touchstone.writeContent()).toBe(expected)
   })
+
   // Generate touchstone string using Scikit-RF, then test readContent
   // for (const format of TouchstoneFormats) {
   //   for (const parameter of TouchstoneParameters) {
@@ -733,4 +786,152 @@ describe('touchstone.ts', () => {
   //     }
   //   }
   // }
+})
+
+/**
+ * Generate random touchstone matrix, and test by python skrf
+ * Test suite for validating Touchstone format compatibility with scikit-rf
+ * Tests all combinations of:
+ * - Network formats (RI/MA/DB)
+ * - Number of ports (1,2,3,15)
+ */
+describe('writeContent and readContent, then compare with python skrf', () => {
+  for (const format of TouchstoneFormats) {
+    for (const nports of [1, 2, 3, 15]) {
+      it(`writeContent: ${nports} ports, ${format} format, s-parameter`, async () => {
+        // Initialize a new Touchstone instance with test configuration
+        const touchstone = new Touchstone()
+        touchstone.format = format as TouchstoneFormat
+        touchstone.parameter = 'S' // S-parameters
+        touchstone.impedance = round(random(1, 50), 3) // Random impedance between 1-50Ω
+        touchstone.nports = nports // 3-port network
+        touchstone.frequency = new Frequency()
+        touchstone.frequency.unit = 'GHz' // Frequency unit
+        touchstone.frequency.f_scaled = [1, 3, 5] // Test frequencies: 1, 3, 5 GHz
+        touchstone.matrix = createRandomTouchstoneMatrix(touchstone)
+        // Generate Touchstone format string
+        const content = touchstone.writeContent()
+
+        // Parse with Python
+        const result = await pythonReadContent(
+          content,
+          touchstone.nports,
+          touchstone.parameter
+        )
+        const python = JSON.parse(result)
+        // Validate basic network properties
+        expect(python.frequency.unit).toBe(touchstone.frequency.unit)
+        expect(python.frequency.f_scaled).toStrictEqual(
+          touchstone.frequency.f_scaled
+        )
+        expect(python.impedance).toBe(touchstone.impedance)
+        // Validate matrix structure and values
+        expect(python.matrix.length).toBe(touchstone.nports)
+        for (let m = 0; m < touchstone.nports; m++) {
+          // Verify port dimensions
+          expect(python.matrix[m].length).toBe(touchstone.nports)
+          for (let n = 0; n < touchstone.nports!; n++) {
+            // Verify frequency points dimension
+            const points = touchstone.frequency!.f_scaled.length
+            expect(python.matrix[m][n].length).toBe(points)
+            for (let p = 0; p < points; p++) {
+              // Compare complex values with 5 decimal places tolerance
+              const expected = touchstone.matrix![m][n][p]
+              const actual = python.matrix[m][n][p]
+              expect(actual.re).toBeCloseTo(expected.re, 5)
+              expect(actual.im).toBeCloseTo(expected.im, 5)
+            }
+          }
+        }
+
+        // Parse with Touchstone.ts
+        const ts = new Touchstone()
+        ts.readContent(content, touchstone.nports)
+        expect(ts.format).toBe(touchstone.format)
+        expect(ts.parameter).toBe(touchstone.parameter)
+        expect(ts.impedance).toBe(touchstone.impedance)
+        expect(ts.nports).toBe(touchstone.nports)
+        expect(ts.frequency!.unit).toBe(touchstone.frequency.unit)
+        expect(ts.frequency!.f_scaled).toStrictEqual(
+          touchstone.frequency.f_scaled
+        )
+        // Validate matrix structure and values
+        expect(ts.matrix!.length).toBe(touchstone.nports)
+        for (let m = 0; m < touchstone.nports; m++) {
+          // Verify port dimensions
+          expect(ts.matrix![m].length).toBe(touchstone.nports)
+          for (let n = 0; n < touchstone.nports!; n++) {
+            // Verify frequency points dimension
+            const points = touchstone.frequency!.f_scaled.length
+            expect(ts.matrix![m][n].length).toBe(points)
+            for (let p = 0; p < points; p++) {
+              // Compare complex values with 5 decimal places tolerance
+              const expected = touchstone.matrix![m][n][p]
+              const actual = ts.matrix![m][n][p]
+              expect(actual.re).toBeCloseTo(expected.re, 5)
+              expect(actual.im).toBeCloseTo(expected.im, 5)
+            }
+          }
+        }
+      })
+    }
+  }
+})
+
+/**
+ * Generate random touchstone matrix, and test by python skrf
+ * Test suite for validating Touchstone format compatibility with scikit-rf
+ * Tests all combinations of:
+ * - Network formats (RI/MA/DB)
+ * - Number of ports (1,2,3,15)
+ */
+describe('Generate touchstone content by python skrf then compare with readContent', () => {
+  for (const format of TouchstoneFormats) {
+    for (const nports of [1, 2, 3, 15]) {
+      it(`readContent: ${nports} ports, ${format} format, s-parameter`, async () => {
+        // Initialize a new Touchstone instance with test configuration
+        const touchstone = new Touchstone()
+        touchstone.format = format as TouchstoneFormat
+        touchstone.parameter = 'S' // S-parameters
+        touchstone.impedance = round(random(1, 50), 3) // Random impedance between 1-50Ω
+        touchstone.nports = nports // 3-port network
+        touchstone.frequency = new Frequency()
+        touchstone.frequency.unit = 'GHz' // Frequency unit
+        touchstone.frequency.f_scaled = [1, 3, 5] // Test frequencies: 1, 3, 5 GHz
+        touchstone.matrix = createRandomTouchstoneMatrix(touchstone)
+        // Generate Touchstone format string
+        const content = await pythonWriteContent(touchstone)
+
+        // Parse with Touchstone.ts
+        const ts = new Touchstone()
+        ts.readContent(content, touchstone.nports)
+        expect(ts.format).toBe(touchstone.format)
+        expect(ts.parameter).toBe(touchstone.parameter)
+        expect(ts.impedance).toBe(touchstone.impedance)
+        expect(ts.nports).toBe(touchstone.nports)
+        expect(ts.frequency!.unit).toBe(touchstone.frequency.unit)
+        expect(ts.frequency!.f_scaled).toStrictEqual(
+          touchstone.frequency.f_scaled
+        )
+        // Validate matrix structure and values
+        expect(ts.matrix!.length).toBe(touchstone.nports)
+        for (let m = 0; m < touchstone.nports; m++) {
+          // Verify port dimensions
+          expect(ts.matrix![m].length).toBe(touchstone.nports)
+          for (let n = 0; n < touchstone.nports!; n++) {
+            // Verify frequency points dimension
+            const points = touchstone.frequency!.f_scaled.length
+            expect(ts.matrix![m][n].length).toBe(points)
+            for (let p = 0; p < points; p++) {
+              // Compare complex values with 5 decimal places tolerance
+              const expected = touchstone.matrix![m][n][p]
+              const actual = ts.matrix![m][n][p]
+              expect(actual.re).toBeCloseTo(expected.re, 5)
+              expect(actual.im).toBeCloseTo(expected.im, 5)
+            }
+          }
+        }
+      })
+    }
+  }
 })

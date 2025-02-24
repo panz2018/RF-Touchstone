@@ -13,12 +13,6 @@ export const FrequencyUnits = ['Hz', 'kHz', 'MHz', 'GHz'] as const
 export type FrequencyUnit = (typeof FrequencyUnits)[number]
 
 /**
- * Type definition for frequency values array
- * Each element represents a frequency point in the specified unit
- */
-export type FrequencyValue = number[]
-
-/**
  * Class representing frequency data in RF and microwave engineering
  *
  * @remarks
@@ -94,8 +88,20 @@ export class Frequency {
   }
 
   /**
-   * Array of frequency points in the current unit
+   * Internal storage for frequency points array
+   * Each element represents a frequency point in the specified unit
+   * @private
+   */
+  private _f_scaled: number[] = []
+
+  /**
+   * Array of frequency points in the current frequency unit
    * Each element represents a discrete frequency point for measurement or analysis
+   *
+   * @param value - Array of frequency points
+   * @throws {Error} If the input is not an array
+   * @throws {Error} If any element in the array is not a number
+   * @throws {Error} If the array contains negative frequencies
    *
    * @example
    * ```typescript
@@ -104,5 +110,30 @@ export class Frequency {
    * freq.value = [1.0, 1.5, 2.0]; // Three frequency points: 1 GHz, 1.5 GHz, and 2 GHz
    * ```
    */
-  public value: FrequencyValue = []
+  set f_scaled(value: number[]) {
+    // Validate input is an array
+    if (!Array.isArray(value)) {
+      throw new Error('Frequency value must be an array')
+    }
+    // Validate all elements are numbers and non-negative
+    for (const val of value) {
+      if (typeof val !== 'number') {
+        throw new Error('Frequency value must be an array of numbers')
+      }
+      if (val < 0) {
+        throw new Error('Frequency values cannot be negative')
+      }
+    }
+
+    // Store the validated frequency points
+    this._f_scaled = value
+  }
+
+  /**
+   * Gets the array of frequency points
+   * @returns Array of frequency points in the current unit
+   */
+  get f_scaled(): number[] {
+    return this._f_scaled
+  }
 }

@@ -254,7 +254,7 @@ export class Touchstone {
   private _impedance: TouchstoneImpedance = 50
 
   /**
-   * Set the Touchstone impedance
+   * Set the Touchstone impedance.
    * Default: 50Ω
    * @param impedance
    * @returns
@@ -277,7 +277,7 @@ export class Touchstone {
   }
 
   /**
-   * Get the Touchstone impedance
+   * Get the Touchstone impedance.
    * Default: 50Ω
    * @returns
    */
@@ -332,7 +332,47 @@ export class Touchstone {
    * - The third dimension is the frequency index
    * For example, data[i][j][k] would be the parameter from j+1 port to i+1 port at frequency index k
    */
-  public matrix: TouchstoneMatrix | undefined
+  private _matrix: TouchstoneMatrix | undefined
+
+  /**
+   * Sets the network parameter matrix.
+   *
+   * @param matrix - The 3D complex matrix to store, or undefined/null to clear
+   * @remarks
+   * This setter provides a way to directly assign the network parameter matrix.
+   * Setting to undefined or null will clear the existing matrix data.
+   */
+  set matrix(matrix: TouchstoneMatrix | undefined | null) {
+    if (matrix === undefined || matrix === null) {
+      this._matrix = undefined
+      return
+    }
+    this._matrix = matrix
+  }
+
+  /**
+   * Gets the current network parameter matrix (3D array).
+   * Represents the S/Y/Z/G/H-parameters of the network.
+   *
+   * @remarks
+   * Matrix Structure:
+   * - First dimension [i]: Output (exit) port number (0 to nports-1)
+   * - Second dimension [j]: Input (enter) port number (0 to nports-1)
+   * - Third dimension [k]: Frequency point index
+   *
+   * Example:
+   * - matrix[i][j][k] represents the parameter from port j+1 to port i+1 at frequency k
+   * - For S-parameters: matrix[1][0][5] is S₂₁ at the 6th frequency point
+   *
+   * Special case for 2-port networks:
+   * - Indices are swapped to match traditional Touchstone format
+   * - matrix[0][1][k] represents S₁₂ (not S₂₁)
+   *
+   * @returns The current network parameter matrix, or undefined if not set
+   */
+  get matrix() {
+    return this._matrix
+  }
 
   /**
    * Reads and parses a Touchstone format string into the internal data structure.
@@ -431,7 +471,7 @@ export class Touchstone {
     }
     const points = data.length / countColumn
     // f[n] = TokenList[n * countColumn]
-    this.frequency.value = subset(
+    this.frequency.f_scaled = subset(
       data,
       index(multiply(range(0, points), countColumn))
     )
@@ -494,6 +534,10 @@ export class Touchstone {
                 phi: (B[n] / 180) * pi,
               })
               break
+            /* v8 ignore start */
+            default:
+              throw new Error(`Unknown Touchstone format: ${this.format}`)
+            /* v8 ignore end */
           }
 
           // Store the value in the matrix
@@ -509,20 +553,30 @@ export class Touchstone {
   }
 
   /**
-   * Generates a Touchstone format string from the internal data structure.
+   * Validates the internal state of the Touchstone instance.
+   * Performs comprehensive checks on all required data and matrix dimensions.
    *
-   * @returns The generated Touchstone format string
-   *
-   * @throws {Error} If any required data is missing
-   * @throws {Error} If the matrix dimensions are invalid
+   * @throws {Error} If any of the following conditions are met:
+   * - Number of ports is undefined
+   * - Frequency object is not initialized
+   * - Frequency points array is empty
+   * - Network parameter type is undefined
+   * - Data format is undefined
+   * - Network parameter matrix is undefined
+   * - Matrix dimensions don't match with nports or frequency points
    *
    * @remarks
-   * The generated string includes:
-   * 1. Comments (if any)
-   * 2. Option line with format, parameter type, and impedance
-   * 3. Network parameter data in the specified format
+   * This method performs two main validation steps:
+   * 1. Essential Data Validation:
+   *    - Checks existence of all required properties
+   *    - Ensures frequency points are available
+   *
+   * 2. Matrix Dimension Validation:
+   *    - Verifies matrix row count matches port number
+   *    - Ensures each row has correct number of columns
+   *    - Validates frequency points count in each matrix element
    */
-  public writeContent(): string {
+  public validate(): void {
     // Check if all required data exists
     if (!this.nports) {
       throw new Error('Number of ports (nports) is not defined')
@@ -530,7 +584,7 @@ export class Touchstone {
     if (!this.frequency) {
       throw new Error('Frequency object is not defined')
     }
-    if (this.frequency.value.length === 0) {
+    if (this.frequency.f_scaled.length === 0) {
       throw new Error('Frequency points array is empty')
     }
     if (!this.parameter) {
@@ -544,7 +598,7 @@ export class Touchstone {
     }
 
     // Calculate points number in the network
-    const points = this.frequency.value.length
+    const points = this.frequency.f_scaled.length
     // Check the matrix size
     if (this.matrix.length !== this.nports) {
       throw new Error(
@@ -565,6 +619,27 @@ export class Touchstone {
         }
       }
     }
+  }
+
+  /**
+   * Generates a Touchstone format string from the internal data structure.
+   *
+   * @returns The generated Touchstone format string
+   *
+   * @throws {Error} If any required data is missing
+   * @throws {Error} If the matrix dimensions are invalid
+   *
+   * @remarks
+   * The generated string includes:
+   * 1. Comments (if any)
+   * 2. Option line with format, parameter type, and impedance
+   * 3. Network parameter data in the specified format
+   */
+  public writeContent(): string {
+    this.validate()
+
+    // Calculate points number in the network
+    const points = this.frequency!.f_scaled.length
 
     // Generate Touchstone content lines
     const lines: string[] = []
@@ -575,7 +650,7 @@ export class Touchstone {
     }
 
     // Add option line
-    let optionLine = `# ${this.frequency.unit} ${this.parameter} ${this.format}`
+    let optionLine = `# ${this.frequency!.unit} ${this.parameter} ${this.format}`
     if (Array.isArray(this.impedance)) {
       optionLine += ` R ${this.impedance.join(' ')}`
     } else {
@@ -585,15 +660,15 @@ export class Touchstone {
 
     // Add network data
     for (let n = 0; n < points; n++) {
-      const dataLine: string[] = [this.frequency.value[n].toString()]
+      const dataLine: string[] = [this.frequency!.f_scaled[n].toString()]
 
       // Add matrix data for this frequency point
-      for (let outPort = 0; outPort < this.nports; outPort++) {
-        for (let inPort = 0; inPort < this.nports; inPort++) {
+      for (let outPort = 0; outPort < this.nports!; outPort++) {
+        for (let inPort = 0; inPort < this.nports!; inPort++) {
           const value =
             this.nports === 2
-              ? this.matrix[inPort][outPort][n]
-              : this.matrix[outPort][inPort][n]
+              ? this.matrix![inPort][outPort][n]
+              : this.matrix![outPort][inPort][n]
 
           let A: number, B: number
           switch (this.format) {
@@ -609,6 +684,8 @@ export class Touchstone {
               A = 20 * log10(abs(value) as unknown as number)
               B = (arg(value) / pi) * 180
               break
+            default:
+              throw new Error(`Unknown Touchstone format: ${this.format}`)
           }
           // Format numbers to avoid scientific notation and limit decimal places
           dataLine.push(round(A, 12).toString(), round(B, 12).toString())

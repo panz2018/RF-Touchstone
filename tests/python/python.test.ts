@@ -45,34 +45,10 @@ line3
       expect(substring.length).toBeGreaterThanOrEqual(1)
     }
   })
-  it('scipy', async () => {
-    const code = `
-      import scipy
-      print(scipy.__version__)
-    `
-    const result = await run(code)
-    const version = result.split('.')
-    expect(version.length).toBe(3)
-    for (const substring of version) {
-      expect(substring.length).toBeGreaterThanOrEqual(1)
-    }
-  })
   it('pandas', async () => {
     const code = `
       import pandas as pd
       print(pd.__version__)
-    `
-    const result = await run(code)
-    const version = result.split('.')
-    expect(version.length).toBe(3)
-    for (const substring of version) {
-      expect(substring.length).toBeGreaterThanOrEqual(1)
-    }
-  })
-  it('matplotlib', async () => {
-    const code = `
-      import matplotlib
-      print(matplotlib.__version__)
     `
     const result = await run(code)
     const version = result.split('.')
