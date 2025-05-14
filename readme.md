@@ -1,153 +1,73 @@
-# Development for RF Touchstone
+# RF-Touchstone
 
-## Setup Node.js environment
+A TypeScript library for reading, manipulating, and writing Touchstone files (.snp files) used in radio frequency (RF) and microwave engineering.
 
-### Download and install [Node.js](https://nodejs.org/en/download/package-manager) from the official website
+[![Tests](https://github.com/panz2018/RF-Touchstone/actions/workflows/Tests.yml/badge.svg)](https://github.com/panz2018/RF-Touchstone/actions/workflows/Tests.yml)
+[![Deploy GitHub Pages](https://github.com/panz2018/RF-Touchstone/actions/workflows/Deploy%20GitHub%20Pages.yml/badge.svg)](https://github.com/panz2018/RF-Touchstone/actions/workflows/Deploy%20GitHub%20Pages.yml)
 
-### Check the current version of Node.js
+## Overview
 
-```sh
-node -v
+RF-Touchstone provides a complete solution for working with S-parameters and other network parameters in JavaScript/TypeScript environments. This library allows you to:
+
+- Read and parse Touchstone files (.s1p, .s2p, .s3p, etc.)
+- Manipulate network parameter data
+- Write data back to Touchstone format
+- Convert between different parameter representations (RI, MA, DB)
+
+## What is a Touchstone File?
+
+Touchstone files are an industry-standard ASCII text format for representing network parameters of electrical circuits. Each file contains:
+
+- Comments (lines starting with !)
+- Option line (starts with #) specifying frequency units, parameter type, and data format
+- Network parameter data organized by frequency points
+
+RF-Touchstone currently supports versions 1.0 and 1.1 of the Touchstone specification.
+
+## Key Features
+
+- Full support for Touchstone file format (v1.0 and v1.1)
+- Parameter type support: S, Y, Z, G, H
+- Format conversions: RI (Real/Imaginary), MA (Magnitude/Angle), DB (Decibel/Angle)
+- TypeScript implementation with strong typing
+- Comprehensive test suite
+
+## Installation
+
+```bash
+npm install rf-touchstone
+# or
+yarn add rf-touchstone
 ```
 
-### Install yarn
+## Quick Start
 
-```sh
-npm install --global yarn
+```typescript
+import { Touchstone } from 'rf-touchstone'
+
+// Read a Touchstone file
+const touchstone = new Touchstone()
+touchstone.readContent(fileContent, 2) // 2-port network
+
+// Access data
+const frequencies = touchstone.getFrequencies()
+const sParameters = touchstone.getParameterMatrix()
+
+// Write back to Touchstone format
+const newContent = touchstone.writeContent()
 ```
 
-### Install packages
+## Documentation
 
-```sh
-yarn install
-```
+For detailed documentation, please visit:
 
-### Check for outdated packages
-
-```sh
-yarn outdated
-```
-
-### Upgrades packages
-
-```
-yarn upgrade --latest
-```
-
-## Setup Python environment
-
-### Create and Use Virtual Environments
-
-#### Create a new virtual environment
-
-```sh
-python -m venv .venv
-```
-
-#### Activate the virtual environment
-
-On Windows:
-
-```sh
-.venv\Scripts\activate
-```
-
-On MacOS/Linux
-
-```sh
-source .venv/bin/activate
-```
-
-#### To confirm the virtual environment is activated, check the location of your Python interpreter:
-
-```sh
-where python
-```
-
-#### Check python version
-
-```sh
-python --version
-```
-
-#### Deactivate a virtual environment
-
-On Windows:
-
-```sh
-.venv\Scripts\deactivate
-```
-
-### Install packages using pip
-
-#### Update pip
-
-```sh
-python -m pip install --upgrade pip
-```
-
-#### Install packages using a requirements file
-
-```sh
-python -m pip install -r requirements.txt
-```
-
-#### Check packages available for update
-
-```sh
-pip list --outdated
-```
+- [Project Website](https://panz2018.github.io/RF-Touchstone/)
+- [DeepWiki Documentation](https://deepwiki.com/panz2018/RF-Touchstone)
 
 ## Development
 
-### Lint with [ESLint](https://eslint.org/)
+For information on setting up a development environment and contributing to the project, see [development.md](development.md).
 
-```sh
-yarn lint
-```
+## License
 
-### Format with [Prettier](https://prettier.io/)
-
-```sh
-yarn format
-```
-
-### Unit test with [Vitest](https://vitest.dev/)
-
-#### Interactive development
-
-```sh
-yarn vitest
-```
-
-#### Command line
-
-```sh
-yarn test:unit
-```
-
-#### Check test coverage
-
-```sh
-yarn test:coverage
-```
-
-### All tests
-
-Convenient command includes: lint, format, unit:test, test:coverage, build, and generate API docs
-
-```sh
-yarn test
-```
-
-### Compile, build and minify for production
-
-```sh
-yarn build
-```
-
-### Generate API docs
-
-```sh
-yarn docs
-```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
