@@ -25,8 +25,14 @@ dist-ssr
 
 # Build the Typescript library
 yarn.lock
-coverage
 *.code-workspace
+
+# Ignore all contents of the coverage directory
+coverage/*
+# But DO NOT ignore the badge itself
+!coverage/coverage-badge.svg
+# And DO NOT ignore the coverage directory itself (so git can see the exception)
+!coverage/
 
 # Python environment
 .venv

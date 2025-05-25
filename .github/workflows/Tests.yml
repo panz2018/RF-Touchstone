@@ -8,6 +8,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
@@ -63,8 +67,32 @@ jobs:
       - name: Run tests
         run: yarn test
 
-      - name: Create public assets directory for badge
-        run: mkdir -p docs/coverage
-
-      - name: Copy coverage badge to public assets
-        run: cp coverage/coverage-badge.svg docs/coverage/coverage-badge.svg
+      - name: Commit and push coverage badge
+        # This step will only run if the event is a pull_request or a push (not workflow_dispatch manually)
+        # and if the branch is not 'main' to avoid direct pushes to main from here.
+        # Adjust the 'if' condition based on your exact needs.
+        if: (github.event_name == 'pull_request' || github.event_name == 'push') && github.ref != 'refs/heads/main'
+        run: |
+          # Configure Git user
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          # Add the coverage badge
+          git add coverage/coverage-badge.svg
+          # Check if there are changes to commit
+          if ! git diff --staged --quiet; then
+            # Commit the changes
+            git commit -m "ci: update coverage badge"
+            # Determine the current branch name
+            BRANCH_NAME=${{ github.head_ref || github.ref_name }}
+            # Pull the latest changes from the remote branch
+            git pull --rebase origin "$BRANCH_NAME" || {
+              echo "Failed to pull latest changes. Aborting."
+              exit 1
+            }
+            # Push the changes
+            git push origin HEAD:"$BRANCH_NAME"
+          else
+            echo "No changes to coverage badge to commit."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GITHUB_TOKEN has push permissions to the repo for PR branches
