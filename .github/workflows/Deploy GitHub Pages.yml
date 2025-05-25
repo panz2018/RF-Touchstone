@@ -49,29 +49,35 @@ jobs:
 
       - name: Download artifact via API
         run: |
+          # 获取最近的 pull_request 运行，明确指定 workflow 文件
           RUN_ID=$(gh api -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/actions/runs \
             -f event=pull_request \
             -f status=success \
             -f branch=main \
+            -f workflow=Test \
             -f per_page=1 \
             --jq '.workflow_runs[0].id' || echo "0")
           if [ "$RUN_ID" != "0" ]; then
+            echo "Found workflow run ID: $RUN_ID"
+            # 获取 artifact ID
             ARTIFACT_ID=$(gh api -H "Accept: application/vnd.github+json" \
               /repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts \
               -f name=coverage-badge \
               -f per_page=1 \
               --jq '.artifacts[0].id' || echo "0")
             if [ "$ARTIFACT_ID" != "0" ]; then
+              echo "Found artifact ID: $ARTIFACT_ID"
+              # 下载 artifact
               gh api -H "Accept: application/vnd.github+json" \
                 /repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID/zip \
                 -o coverage-badge.zip
               unzip coverage-badge.zip -d ./docs/.vitepress/dist/assets
             else
-              echo "No coverage-badge artifact found, skipping download."
+              echo "No coverage-badge artifact found for run ID $RUN_ID, skipping download."
             fi
           else
-            echo "No successful pull_request run found, skipping download."
+            echo "No successful pull_request run found for Test workflow, skipping download."
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
