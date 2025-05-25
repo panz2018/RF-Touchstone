@@ -8,7 +8,7 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
     "test:unit": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage && coverage-badges --source coverage/coverage-summary.json --output coverage/coverage-badge.svg",
     "build": "tsc && vite build",
     "docs:md": "typedoc --tsconfig tsconfig.json",
     "docs:dev": "vitepress dev docs",
@@ -16,29 +16,30 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "mathjs": "^14.2.1"
+    "mathjs": "^14.5.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.20.0",
+    "@eslint/js": "^9.27.0",
     "@types/eslint-config-prettier": "^6.11.3",
-    "@types/node": "^22.13.1",
-    "@vitest/coverage-v8": "^3.0.5",
-    "eslint": "^9.20.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.2.3",
-    "globals": "^15.14.0",
-    "happy-dom": "^17.0.2",
+    "@types/node": "^22.15.21",
+    "@vitest/coverage-v8": "^3.1.4",
+    "coverage-badges-cli": "^2.1.0",
+    "eslint": "^9.27.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.0",
+    "globals": "^16.2.0",
+    "happy-dom": "^17.4.7",
     "markdown-it-mathjax3": "^4.3.2",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.4.2",
+    "prettier": "^3.5.3",
     "rollup-plugin-visualizer": "^5.14.0",
-    "typedoc": "^0.27.7",
-    "typedoc-plugin-markdown": "^4.4.2",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.23.0",
-    "vite": "^6.1.0",
-    "vite-plugin-dts": "^4.5.0",
+    "typedoc": "^0.28.4",
+    "typedoc-plugin-markdown": "^4.6.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1",
+    "vite": "^6.3.5",
+    "vite-plugin-dts": "^4.5.4",
     "vitepress": "^1.6.3",
-    "vitest": "^3.0.5"
+    "vitest": "^3.1.4"
   }
 }

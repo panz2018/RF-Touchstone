@@ -21,7 +21,7 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, '**/docs/**', '**/e2e/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'], // Multiple report formats for different use cases
+      reporter: ['json-summary', 'html'], // Added json-summary format
       thresholds: {
         // Enforce 100% test coverage across all metrics
         lines: 100,
