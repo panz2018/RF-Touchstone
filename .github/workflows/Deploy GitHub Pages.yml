@@ -14,6 +14,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  artifacts: read
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
@@ -48,15 +49,30 @@ jobs:
 
       - name: Download artifact via API
         run: |
-          ARTIFACT_ID=$(gh api -H "Accept: application/vnd.github+json" \
-            /repos/${{ github.repository }}/actions/artifacts \
-            -f name=coverage-badge \
+          RUN_ID=$(gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/actions/runs \
+            -f event=pull_request \
+            -f status=success \
+            -f branch=main \
             -f per_page=1 \
-            --jq '.artifacts[0].id')
-          gh api -H "Accept: application/vnd.github+json" \
-            /repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID/zip \
-            -o coverage-badge.zip
-          unzip coverage-badge.zip -d ./docs/.vitepress/dist/assets
+            --jq '.workflow_runs[0].id' || echo "0")
+          if [ "$RUN_ID" != "0" ]; then
+            ARTIFACT_ID=$(gh api -H "Accept: application/vnd.github+json" \
+              /repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts \
+              -f name=coverage-badge \
+              -f per_page=1 \
+              --jq '.artifacts[0].id' || echo "0")
+            if [ "$ARTIFACT_ID" != "0" ]; then
+              gh api -H "Accept: application/vnd.github+json" \
+                /repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID/zip \
+                -o coverage-badge.zip
+              unzip coverage-badge.zip -d ./docs/.vitepress/dist/assets
+            else
+              echo "No coverage-badge artifact found, skipping download."
+            fi
+          else
+            echo "No successful pull_request run found, skipping download."
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
