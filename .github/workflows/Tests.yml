@@ -34,17 +34,36 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install Python dependencies
+      - name: Cache uv global directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv # Default uv cache path on Linux
+          key: ${{ runner.os }}-uv-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Install uv and Python dependencies
+        shell: bash
         run: |
-          python -m venv .venv # Create a new virtual environment
-          source .venv/bin/activate # Activate the virtual environment
-          python -m pip install --upgrade pip # Update pip
-          pip install -r requirements.txt # Install packages using a requirements file
+          # Install uv
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          # The installer script should add uv to PATH. If not, source the cargo env or add manually.
+          # Example if installed via cargo (common for Rust tools):
+          source "$HOME/.cargo/env"
+
+          # Create virtual environment using uv, explicitly using the Python from setup-python
+          uv venv .venv --python $(which python)
+
+          # Activate virtual environment for this script block
+          source .venv/bin/activate
+
+          # Install packages using uv
+          uv pip install -r requirements.txt --keyring-provider=disabled
 
       - name: Run tests
         run: yarn test
 
-      - name: Upload coverage badge
+      - name: Upload coverage badge artifact
         uses: actions/upload-artifact@v4 # Updated to v4
         with:
           name: coverage-badge
