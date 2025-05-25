@@ -73,17 +73,23 @@ jobs:
         # Adjust the 'if' condition based on your exact needs.
         if: (github.event_name == 'pull_request' || github.event_name == 'push') && github.ref != 'refs/heads/main'
         run: |
+          # Configure Git user
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          # Add the coverage badge
           git add coverage/coverage-badge.svg
-          # Check if there are changes to commit to avoid erroring if the badge hasn't changed
+          # Check if there are changes to commit
           if ! git diff --staged --quiet; then
+            # Commit the changes
             git commit -m "ci: update coverage badge"
             # Determine the current branch name
             BRANCH_NAME=${{ github.head_ref || github.ref_name }}
-            git config pull.ff only
-            git pull origin "$BRANCH_NAME"
-            git rebase
+            # Pull the latest changes from the remote branch
+            git pull --rebase origin "$BRANCH_NAME" || {
+              echo "Failed to pull latest changes. Aborting."
+              exit 1
+            }
+            # Push the changes
             git push origin HEAD:"$BRANCH_NAME"
           else
             echo "No changes to coverage badge to commit."
