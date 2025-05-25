@@ -46,11 +46,19 @@ jobs:
       - name: Create assets directory
         run: mkdir -p ./docs/.vitepress/dist/assets
 
-      - name: Download coverage badge
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-badge
-          path: ./docs/.vitepress/dist/assets
+      - name: Download artifact via API
+        run: |
+          ARTIFACT_ID=$(gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/actions/artifacts \
+            -f name=coverage-badge \
+            -f per_page=1 \
+            --jq '.artifacts[0].id')
+          gh api -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID/zip \
+            -o coverage-badge.zip
+          unzip coverage-badge.zip -d ./docs/.vitepress/dist/assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
