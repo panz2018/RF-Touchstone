@@ -42,12 +42,12 @@ jobs:
 
       - name: Build VitePress docs
         run: yarn docs:md && yarn docs:build
-        
+
       - name: Create assets directory
         run: mkdir -p ./docs/.vitepress/dist/assets
-        
+
       - name: Download coverage badge
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: coverage-badge
           path: ./docs/.vitepress/dist/assets
