@@ -81,6 +81,7 @@ jobs:
             git commit -m "ci: update coverage badge"
             # Determine the current branch name
             BRANCH_NAME=${{ github.head_ref || github.ref_name }}
+            git pull origin "$BRANCH_NAME"
             git push origin HEAD:"$BRANCH_NAME"
           else
             echo "No changes to coverage badge to commit."
