@@ -49,25 +49,32 @@ jobs:
 
       - name: Download artifact via API
         run: |
-          # 获取最近的 pull_request 运行，明确指定 workflow 文件
-          RUN_ID=$(gh api -H "Accept: application/vnd.github+json" \
+          # 调试：打印 API 响应以检查返回的运行
+          RUN_RESPONSE=$(gh api -H "Accept: application/vnd.github+json" \
             /repos/${{ github.repository }}/actions/runs \
             -f event=pull_request \
             -f status=success \
             -f branch=main \
             -f workflow=Test \
-            -f per_page=1 \
-            --jq '.workflow_runs[0].id' || echo "0")
+            -f per_page=1)
+          echo "API response: $RUN_RESPONSE"
+
+          # 获取 RUN_ID
+          RUN_ID=$(echo "$RUN_RESPONSE" | jq -r '.workflow_runs[0].id // "0"')
+          echo "Found workflow run ID: $RUN_ID"
+
           if [ "$RUN_ID" != "0" ]; then
-            echo "Found workflow run ID: $RUN_ID"
-            # 获取 artifact ID
-            ARTIFACT_ID=$(gh api -H "Accept: application/vnd.github+json" \
+            # 获取 artifact 列表并调试
+            ARTIFACT_RESPONSE=$(gh api -H "Accept: application/vnd.github+json" \
               /repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts \
-              -f name=coverage-badge \
-              -f per_page=1 \
-              --jq '.artifacts[0].id' || echo "0")
+              -f per_page=1)
+            echo "Artifact API response: $ARTIFACT_RESPONSE"
+            
+            # 获取 artifact ID
+            ARTIFACT_ID=$(echo "$ARTIFACT_RESPONSE" | jq -r '.artifacts[] | select(.name == "coverage-badge") | .id // "0"')
+            echo "Found artifact ID: $ARTIFACT_ID"
+            
             if [ "$ARTIFACT_ID" != "0" ]; then
-              echo "Found artifact ID: $ARTIFACT_ID"
               # 下载 artifact
               gh api -H "Accept: application/vnd.github+json" \
                 /repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID/zip \
