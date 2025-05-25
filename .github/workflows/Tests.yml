@@ -83,6 +83,7 @@ jobs:
             BRANCH_NAME=${{ github.head_ref || github.ref_name }}
             git config pull.ff only
             git pull origin "$BRANCH_NAME"
+            git rebase
             git push origin HEAD:"$BRANCH_NAME"
           else
             echo "No changes to coverage badge to commit."
