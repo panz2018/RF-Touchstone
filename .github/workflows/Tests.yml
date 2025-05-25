@@ -1,4 +1,4 @@
-name: Test project
+name: Test
 
 on:
   # Runs on pushes targeting the default branch
@@ -43,3 +43,10 @@ jobs:
 
       - name: Run tests
         run: yarn test
+
+      - name: Upload coverage badge
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-badge
+          path: coverage/coverage-badge.svg
+          retention-days: 1
