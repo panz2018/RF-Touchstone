@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitepress'
 import { generateSidebar } from './generateSidebar'
 
+const base = '/RF-Touchstone/' // Define base path once
+
 /**
  * VitePress configuration for RF-Touchstone documentation
  * @see https://vitepress.dev/reference/site-config
@@ -11,7 +13,12 @@ export default defineConfig({
   description:
     'Reading/writing touchstone snp files, similar to SignalIntegrity and scikit-rf in python',
   // Base URL for GitHub Pages deployment
-  base: '/RF-Touchstone/',
+  base: base, // Use the defined base path
+
+  // Add head configuration for favicon
+  head: [
+    ['link', { rel: 'icon', type: 'image/png', href: `${base}favicon.png` }],
+  ],
 
   /**
    * Theme configuration for VitePress default theme
