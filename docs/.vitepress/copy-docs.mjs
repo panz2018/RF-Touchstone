@@ -17,7 +17,7 @@ async function prepareDocs() {
 
     // Copy readme.md to docs/guide.md
     const readmeSource = path.join(rootDir, 'readme.md')
-    const readmeDest = path.join(docsDir, 'guide.md')
+    const readmeDest = path.join(docsDir, 'readme.md')
     try {
       await fs.copyFile(readmeSource, readmeDest)
       console.log(`Successfully copied '${readmeSource}' to '${readmeDest}'`)

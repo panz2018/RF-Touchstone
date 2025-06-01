@@ -44,7 +44,7 @@ docs/api
 docs/.vitepress/dist
 docs/.vitepress/cache
 docs/development.md
-docs/guide.md
+docs/readme.md
 
 # Vite build visualizer
 build

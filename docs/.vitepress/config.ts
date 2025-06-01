@@ -28,6 +28,8 @@ export default defineConfig({
     // Navigation bar configuration
     nav: [
       { text: 'Home', link: '/' },
+      { text: 'Introduction', link: '/readme' },
+      { text: 'Development', link: '/development' },
       { text: 'API Reference', link: '/api/README' },
     ],
 
