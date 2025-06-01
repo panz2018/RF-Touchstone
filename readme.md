@@ -62,7 +62,7 @@ const newContent = touchstone.writeContent()
 For detailed documentation, please visit:
 
 - [Project Website](https://panz2018.github.io/RF-Touchstone/)
-- [DeepWiki Documentation](https://deepwiki.com/panz2018/RF-Touchstone) - AI documentation you can talk and ask about this repo
+- [DeepWiki Documentation](https://deepwiki.com/panz2018/RF-Touchstone) - Interactive AI documentation that allows you to converse and ask questions about this repository
 
 ## Development
 
