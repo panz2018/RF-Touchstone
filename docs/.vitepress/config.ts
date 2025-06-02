@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitepress'
-import { generateSidebar } from './generateSidebar'
+import { generateApiSidebar } from './generateApiSidebar'
 
 const base = '/RF-Touchstone/' // Define base path once
 
@@ -28,13 +28,24 @@ export default defineConfig({
     // Navigation bar configuration
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Introduction', link: '/readme' },
+      { text: 'Introduction', link: '/introduction' },
       { text: 'Development', link: '/development' },
       { text: 'API Reference', link: '/api/README' },
     ],
 
     // Automatically generated sidebar from API documentation
-    sidebar: generateSidebar('api'),
+    sidebar: {
+      '/': [
+        {
+          text: 'General',
+          items: [
+            { text: 'Introduction', link: '/introduction' },
+            { text: 'Development Setup', link: '/development' },
+          ],
+        },
+      ],
+      '/api/': generateApiSidebar('api'),
+    },
 
     // Social media links displayed in the navigation bar
     socialLinks: [

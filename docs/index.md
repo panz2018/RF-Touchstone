@@ -12,7 +12,7 @@ hero:
       link: 'https://deepwiki.com/panz2018/RF-Touchstone'
     - theme: alt
       text: Introduction
-      link: /readme
+      link: /introduction
     - theme: alt
       text: API Reference
       link: /api/README

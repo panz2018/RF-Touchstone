@@ -5,18 +5,19 @@ import type { DefaultTheme } from 'vitepress'
 /**
  * Generates the sidebar configuration for VitePress documentation.
  * Automatically creates a hierarchical sidebar structure based on the directory contents.
- * 
+ *
  * @param basePath - Base directory path (e.g., 'api') relative to the docs folder
  * @returns VitePress sidebar configuration object
  */
-export function generateSidebar(basePath: string): DefaultTheme.Sidebar {
-  const sidebar: DefaultTheme.Sidebar = {}
+export function generateApiSidebar(
+  basePath: string
+): DefaultTheme.SidebarItem[] {
   const apiPath = path.join(process.cwd(), 'docs', basePath)
 
   /**
    * Recursively traverses directories to generate sidebar items.
    * Processes README.md files first, then other markdown files, and finally subdirectories.
-   * 
+   *
    * @param dir - Current directory path to process
    * @param prefix - URL prefix for the current path level
    * @returns Array of sidebar items for the current directory
@@ -73,19 +74,18 @@ export function generateSidebar(basePath: string): DefaultTheme.Sidebar {
   }
 
   // Generate the sidebar configuration
-  sidebar[`/${basePath}/`] = traverse(apiPath, `${basePath}/`)
-  return sidebar
+  return traverse(apiPath, `${basePath}/`)
 }
 
 /**
  * Updates or creates frontmatter in markdown files.
  * Handles navigation links between pages.
- * 
+ *
  * @param filePath - Path to the markdown file
  * @param prev - Previous page link or false if none
  * @param next - Next page link or false if none
  * @throws {Error} If the specified file does not exist
- * 
+ *
  * @example
  * Generated frontmatter format:
  * ```md
