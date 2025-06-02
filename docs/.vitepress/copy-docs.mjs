@@ -1,48 +1,71 @@
-// Node.js script to prepare documentation files
-
-import fs from 'fs/promises'
+import fs from 'fs-extra'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-const __filename = fileURLToPath(import.meta.url) // Convert URL to path
-const __dirname = path.dirname(__filename) // Get directory name
-const rootDir = path.resolve(__dirname, '..', '..') // Adjusted to go up two levels from .vitepress
-const docsDir = path.join(rootDir, 'docs')
-
-async function prepareDocs() {
+// Helper function to copy a file
+async function copyFile(source, destination) {
   try {
-    // Ensure docs directory exists
-    await fs.mkdir(docsDir, { recursive: true })
-    console.log(`Successfully ensured 'docs' directory exists at ${docsDir}`)
-
-    // Copy readme.md to docs/guide.md
-    const readmeSource = path.join(rootDir, 'readme.md')
-    const readmeDest = path.join(docsDir, 'introduction.md')
-    try {
-      await fs.copyFile(readmeSource, readmeDest)
-      console.log(`Successfully copied '${readmeSource}' to '${readmeDest}'`)
-    } catch (copyError) {
-      console.error(
-        `Error copying '${readmeSource}' to '${readmeDest}':`,
-        copyError
-      )
-    }
-
-    // Copy development.md to docs/development.md
-    const devMdSource = path.join(rootDir, 'development.md')
-    const devMdDest = path.join(docsDir, 'development.md')
-    try {
-      await fs.copyFile(devMdSource, devMdDest)
-      console.log(`Successfully copied '${devMdSource}' to '${devMdDest}'`)
-    } catch (copyError) {
-      console.error(
-        `Error copying '${devMdSource}' to '${devMdDest}':`,
-        copyError
-      )
-    }
-  } catch (error) {
-    console.error('Error preparing documents:', error)
+    await fs.copyFile(source, destination)
+    console.log(`Successfully copied '${source}' to '${destination}'`)
+  } catch (copyError) {
+    console.error(`Error copying '${source}' to '${destination}':`, copyError)
   }
 }
 
-prepareDocs()
+async function prepareDocuments() {
+  const __filename = fileURLToPath(import.meta.url)
+  const __dirname = path.dirname(__filename)
+  const rootDir = path.resolve(__dirname, '..', '..') // Adjust if your script is nested deeper
+  const docsDir = path.join(rootDir, 'docs')
+
+  // Ensure the docs directory exists
+  try {
+    await fs.ensureDir(docsDir)
+    console.log(`Ensured directory exists: '${docsDir}'`)
+  } catch (dirError) {
+    console.error(`Error ensuring directory '${docsDir}':`, dirError)
+    return // Stop if we can't create the docs directory
+  }
+
+  // Define files to copy: { source: 'relative/to/rootDir', destination: 'relative/to/docsDir' }
+  const filesToCopy = [
+    {
+      source: 'readme.md',
+      destination: 'introduction.md',
+    },
+    {
+      source: 'development.md',
+      destination: 'development.md',
+    },
+    {
+      source: 'LICENSE',
+      destination: 'LICENSE.md',
+    },
+    {
+      source: path.join('coverage', 'coverage-badge.svg'), // Source relative to rootDir
+      destination: path.join('coverage', 'coverage-badge.svg'), // Destination relative to docsDir
+    },
+  ]
+
+  // Create necessary subdirectories in docsDir before copying
+  // For example, for the coverage badge
+  const coverageDocsDir = path.join(docsDir, 'coverage')
+  try {
+    await fs.ensureDir(coverageDocsDir)
+    console.log(`Ensured directory exists: '${coverageDocsDir}'`)
+  } catch (dirError) {
+    console.error(`Error ensuring directory '${coverageDocsDir}':`, dirError)
+    // Decide if you want to return or continue if a subdirectory can't be created
+  }
+
+  // Loop through the files and copy them
+  for (const file of filesToCopy) {
+    const sourcePath = path.join(rootDir, file.source)
+    const destinationPath = path.join(docsDir, file.destination)
+    await copyFile(sourcePath, destinationPath)
+  }
+}
+
+prepareDocuments().catch((error) => {
+  console.error('Unhandled error in prepareDocuments:', error)
+})

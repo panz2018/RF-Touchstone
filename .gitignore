@@ -40,11 +40,13 @@ coverage/*
 # TypeDocs
 docs/api
 
+# Vite build visualizer
+build
+
 # VitePress
 docs/.vitepress/dist
 docs/.vitepress/cache
 docs/development.md
 docs/introduction.md
-
-# Vite build visualizer
-build
+docs/coverage/*
+docs/LICENSE.md
