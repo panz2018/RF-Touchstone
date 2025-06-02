@@ -30,7 +30,7 @@ yarn outdated
 
 ### Upgrades packages
 
-```
+```sh
 yarn upgrade --latest
 ```
 
@@ -146,8 +146,36 @@ yarn test
 yarn build
 ```
 
-### Generate API docs
+### Documentation (using [VitePress](https://vitepress.dev/) and [TypeDoc](https://typedoc.org/))
+
+#### Generate API documentation from TSDoc comments
+
+This command uses TypeDoc to parse TSDoc comments in the TypeScript source files and generates markdown files in the `docs/api` directory.
 
 ```sh
-yarn docs
+yarn docs:md
+```
+
+#### Start local development server for documentation
+
+This command starts the VitePress development server. You can view your documentation site locally, usually at `http://localhost:5173`.
+
+```sh
+yarn docs:dev
+```
+
+#### Build documentation for deployment
+
+This command builds the static HTML, CSS, and JavaScript files for the documentation site. The output will be in the `docs/.vitepress/dist` directory.
+
+```sh
+yarn docs:build
+```
+
+#### Preview the built documentation locally
+
+After building the documentation, this command allows you to preview the production build locally before deploying it.
+
+```sh
+yarn docs:preview
 ```
