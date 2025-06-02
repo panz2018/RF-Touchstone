@@ -3,22 +3,25 @@
 layout: home
 
 hero:
-  name: 'RF Touchstone'
-  text: 'Reading/writing touchstone snp files, similar to SignalIntegrity and scikit-rf in python'
-  tagline: Written in Javascript/TypeScript
+  name: 'RF-Touchstone'
+  text: 'A Javascript/TypeScript library for electromagnetic engineering'
+  tagline: 'Read, manipulate, and write Touchstone (.snp) files with ease. Supports S, Y, Z, G, H parameters and RI, MA, DB formats.'
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: DeepWiki (Interactive AI)
+      link: 'https://deepwiki.com/panz2018/RF-Touchstone'
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: Introduction
+      link: /readme
+    - theme: alt
+      text: API Reference
+      link: /api/README
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: 'Comprehensive Format Support'
+    details: 'Full support for Touchstone file format (v1.0 and v1.1). Handles S, Y, Z, G, H parameters.'
+  - title: 'Flexible Data Conversions'
+    details: 'Convert between RI (Real/Imaginary), MA (Magnitude/Angle), and DB (Decibel/Angle) formats.'
+  - title: 'Modern TypeScript Implementation'
+    details: 'Built with TypeScript for strong typing and improved developer experience. Includes a comprehensive test suite.'
 ---
