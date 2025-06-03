@@ -41,6 +41,16 @@ describe('frequency.ts', () => {
       frequency.unit = unit
       expect(frequency.unit).toBe(unit)
     }
+    // Test valid units as lower case
+    for (const unit of FrequencyUnits) {
+      frequency.unit = unit.toLowerCase() as never
+      expect(frequency.unit).toBe(unit)
+    }
+    // Test valid units as upper case
+    for (const unit of FrequencyUnits) {
+      frequency.unit = unit.toUpperCase() as never
+      expect(frequency.unit).toBe(unit)
+    }
     // Test lowercase input
     frequency.unit = 'ghz' as FrequencyUnit // casting for test purposes
     expect(frequency.unit).toBe('GHz')
@@ -63,6 +73,20 @@ describe('frequency.ts', () => {
     expect(() => (frequency.unit = '' as never)).toThrowError(
       /Unknown frequency unit: /
     ) // Empty string
+
+    // frequency.f_scaled
+    expect(frequency.unit).toBe('GHz')
+    expect(frequency.f_scaled).toStrictEqual([])
+    frequency.f_scaled = [2, 4, 6]
+    expect(frequency.f_scaled).toStrictEqual([2, 4, 6])
+    frequency.unit = 'Hz'
+    expect(frequency.f_scaled).toStrictEqual([2e9, 4e9, 6e9]) // 2 GHz, 4 GHz, 6 GHz
+    frequency.unit = 'kHz'
+    expect(frequency.f_scaled).toStrictEqual([2e6, 4e6, 6e6]) // 2 MHz, 4 MHz, 6 MHz
+    frequency.unit = 'MHz'
+    expect(frequency.f_scaled).toStrictEqual([2e3, 4e3, 6e3]) // 2 kHz, 4 kHz, 6 kHz
+    frequency.unit = 'GHz'
+    expect(frequency.f_scaled).toStrictEqual([2, 4, 6]) // 2 GHz, 4 GHz, 6 GHz
   })
 
   it('Frequency:f_scaled', () => {
