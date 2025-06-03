@@ -54,6 +54,10 @@ export default defineConfig({
         link: 'https://github.com/panz2018/RF-Touchstone',
       },
     ],
+
+    outline: {
+      level: [2, 3],
+    },
   },
 
   /**

@@ -1,5 +1,6 @@
 /**
  * Frequency units: 'Hz', 'kHz', 'MHz', 'GHz'
+ * Touchstone standard doesn't support THz as the frequency unit in Touchstone file
  */
 export const FrequencyUnits = ['Hz', 'kHz', 'MHz', 'GHz'] as const
 
@@ -9,6 +10,7 @@ export const FrequencyUnits = ['Hz', 'kHz', 'MHz', 'GHz'] as const
  * - kHz: Kilohertz (10³ Hz)
  * - MHz: Megahertz (10⁶ Hz)
  * - GHz: Gigahertz (10⁹ Hz)
+ * Touchstone standard doesn't support THz as the frequency unit in Touchstone file
  */
 export type FrequencyUnit = (typeof FrequencyUnits)[number]
 
@@ -52,11 +54,8 @@ export const WAVELENGTH_MULTIPLIERS_TO_M: Record<string, number> = {
  * ```typescript
  * const freq = new Frequency();
  * freq.unit = 'GHz';
- * freq.value = [1.0, 2.0, 3.0];
+ * freq.f_scale = [1.0, 2.0, 3.0];
  * ```
- *
- * References:
- * - {@link https://github.com/scikit-rf/scikit-rf/blob/master/skrf/frequency.py scikit-rf: Open Source RF Engineering}
  */
 export class Frequency {
   /**
@@ -104,19 +103,19 @@ export class Frequency {
     }
 
     // If the unit is actually changing and f_scaled is populated
-    if (parsedUnit !== oldUnit && this._f_scaled && this._f_scaled.length > 0) {
+    if (parsedUnit !== oldUnit && this.f_scaled && this.f_scaled.length > 0) {
       const oldMultiplier = FREQUENCY_MULTIPLIERS[oldUnit]
       const newMultiplier = FREQUENCY_MULTIPLIERS[parsedUnit]
 
       if (oldMultiplier && newMultiplier) {
         // Ensure multipliers are found
-        this._f_scaled = this._f_scaled.map(
+        this.f_scaled = this.f_scaled.map(
           (freq) => (freq * oldMultiplier) / newMultiplier
         )
       } else {
         // This case should ideally not happen if units are validated correctly
         throw new Error(
-          'Could not find frequency multipliers for unit conversion.'
+          `Could not find frequency multipliers (old: ${oldMultiplier}, new: ${newMultiplier}) for unit conversion`
         )
       }
     }
@@ -170,10 +169,14 @@ export class Frequency {
     // Validate all elements are numbers and non-negative
     for (const val of value) {
       if (typeof val !== 'number') {
-        throw new Error('Frequency value must be an array of numbers')
+        throw new Error(
+          `Frequency value must be an array of numbers, but received: ${val}`
+        )
       }
       if (val < 0) {
-        throw new Error('Frequency values cannot be negative')
+        throw new Error(
+          `Frequency values cannot be negative, but received: ${val}`
+        )
       }
     }
 
@@ -199,11 +202,11 @@ export class Frequency {
 
   /**
    * Private helper method to get frequency values in a target unit.
-   * @param targetUnitKey - The key of the target frequency unit in FREQUENCY_MULTIPLIERS.
+   * @param targetUnit - The key of the target frequency unit in FREQUENCY_MULTIPLIERS.
    * @returns Array of frequency points in the target unit.
    */
   private _getFrequencyInTargetUnit(
-    targetUnitKey: keyof typeof FREQUENCY_MULTIPLIERS
+    targetUnit: keyof typeof FREQUENCY_MULTIPLIERS
   ): number[] {
     if (!this.f_scaled || this.f_scaled.length === 0) {
       return []
@@ -214,9 +217,9 @@ export class Frequency {
       throw new Error(`Multiplier for current unit ${this.unit} not found.`)
     }
 
-    const targetMultiplier = FREQUENCY_MULTIPLIERS[targetUnitKey]
+    const targetMultiplier = FREQUENCY_MULTIPLIERS[targetUnit]
     if (!targetMultiplier) {
-      throw new Error(`Multiplier for target unit ${targetUnitKey} not found.`)
+      throw new Error(`Multiplier for target unit ${targetUnit} not found.`)
     }
 
     return this.f_scaled.map(
@@ -227,11 +230,11 @@ export class Frequency {
   /**
    * Private helper method to set frequency values from a source unit.
    * @param values - Array of frequency points in the source unit.
-   * @param sourceUnitKey - The key of the source frequency unit in FREQUENCY_MULTIPLIERS.
+   * @param sourceUnit - The key of the source frequency unit in FREQUENCY_MULTIPLIERS.
    */
   private _setFrequencyFromTargetUnit(
     values: number[],
-    sourceUnitKey: keyof typeof FREQUENCY_MULTIPLIERS
+    sourceUnit: keyof typeof FREQUENCY_MULTIPLIERS
   ): void {
     if (!values) {
       // Handle null or undefined input array
@@ -243,105 +246,22 @@ export class Frequency {
       return
     }
 
-    const sourceMultiplier = FREQUENCY_MULTIPLIERS[sourceUnitKey]
+    const sourceMultiplier = FREQUENCY_MULTIPLIERS[sourceUnit]
     if (!sourceMultiplier) {
-      throw new Error(`Multiplier for source unit ${sourceUnitKey} not found.`)
+      throw new Error(`Multiplier for source unit ${sourceUnit} not found.`)
     }
 
-    const currentInternalUnitMultiplier = FREQUENCY_MULTIPLIERS[this.unit]
-    if (!currentInternalUnitMultiplier) {
+    const currentFreqMultiplier = FREQUENCY_MULTIPLIERS[this.unit]
+    if (!currentFreqMultiplier) {
       throw new Error(
         `Multiplier for current internal unit ${this.unit} not found.`
       )
     }
 
     const convertedValues = values.map(
-      (val) => (val * sourceMultiplier) / currentInternalUnitMultiplier
+      (val) => (val * sourceMultiplier) / currentFreqMultiplier
     )
     this.f_scaled = convertedValues
-  }
-
-  /**
-   * Private helper method to get wavelength values in a target unit.
-   * @param targetWavelengthUnitKey - The key of the target wavelength unit in WAVELENGTH_MULTIPLIERS_TO_M.
-   * @returns Array of wavelength points in the target unit.
-   */
-  private _getWavelengthInTargetUnit(
-    targetWavelengthUnitKey: keyof typeof WAVELENGTH_MULTIPLIERS_TO_M
-  ): number[] {
-    if (!this.f_scaled || this.f_scaled.length === 0) {
-      return []
-    }
-
-    const currentFreqUnitMultiplier = FREQUENCY_MULTIPLIERS[this.unit]
-    if (!currentFreqUnitMultiplier) {
-      throw new Error(
-        `Frequency multiplier for current unit ${this.unit} not found.`
-      )
-    }
-
-    const targetWavelengthToMMultiplier =
-      WAVELENGTH_MULTIPLIERS_TO_M[targetWavelengthUnitKey]
-    if (!targetWavelengthToMMultiplier) {
-      throw new Error(
-        `Wavelength multiplier to meters for target unit ${targetWavelengthUnitKey} not found.`
-      )
-    }
-
-    return this.f_scaled.map((val) => {
-      const freqInHz = val * currentFreqUnitMultiplier
-      if (freqInHz === 0) {
-        return Infinity
-      }
-      const wavelengthInMeters = SPEED_OF_LIGHT / freqInHz
-      return wavelengthInMeters / targetWavelengthToMMultiplier
-    })
-  }
-
-  /**
-   * Private helper method to set frequency values from wavelength values in a source unit.
-   * @param values - Array of wavelength points in the source unit.
-   * @param sourceWavelengthUnitKey - The key of the source wavelength unit in WAVELENGTH_MULTIPLIERS_TO_M.
-   */
-  private _setWavelengthFromTargetUnit(
-    values: number[],
-    sourceWavelengthUnitKey: keyof typeof WAVELENGTH_MULTIPLIERS_TO_M
-  ): void {
-    if (!values) {
-      // Handle null or undefined input array
-      this.f_scaled = []
-      return
-    }
-    if (values.length === 0) {
-      this.f_scaled = []
-      return
-    }
-
-    const sourceWavelengthToMMultiplier =
-      WAVELENGTH_MULTIPLIERS_TO_M[sourceWavelengthUnitKey]
-    if (!sourceWavelengthToMMultiplier) {
-      throw new Error(
-        `Wavelength multiplier to meters for source unit ${sourceWavelengthUnitKey} not found.`
-      )
-    }
-
-    const currentFreqUnitMultiplier = FREQUENCY_MULTIPLIERS[this.unit]
-    if (!currentFreqUnitMultiplier) {
-      throw new Error(
-        `Frequency multiplier for current unit ${this.unit} not found.`
-      )
-    }
-
-    const convertedFrequencies = values.map((val) => {
-      const wavelengthInMeters = val * sourceWavelengthToMMultiplier
-      if (wavelengthInMeters === 0) {
-        throw new Error('Cannot convert zero wavelength to frequency.')
-      }
-      const freqInHz = SPEED_OF_LIGHT / wavelengthInMeters
-      return freqInHz / currentFreqUnitMultiplier
-    })
-
-    this.f_scaled = convertedFrequencies
   }
 
   /**
@@ -502,6 +422,89 @@ export class Frequency {
    */
   set f_THz(values: number[]) {
     this._setFrequencyFromTargetUnit(values, 'THz')
+  }
+
+  /**
+   * Private helper method to get wavelength values in a target unit.
+   * @param targetWavelengthUnit - The key of the target wavelength unit in WAVELENGTH_MULTIPLIERS_TO_M.
+   * @returns Array of wavelength points in the target unit.
+   */
+  private _getWavelengthInTargetUnit(
+    targetWavelengthUnit: keyof typeof WAVELENGTH_MULTIPLIERS_TO_M
+  ): number[] {
+    if (!this.f_scaled || this.f_scaled.length === 0) {
+      return []
+    }
+
+    const currentFreqUnitMultiplier = FREQUENCY_MULTIPLIERS[this.unit]
+    if (!currentFreqUnitMultiplier) {
+      throw new Error(
+        `Frequency multiplier for current unit ${this.unit} not found.`
+      )
+    }
+
+    const targetWavelengthToMMultiplier =
+      WAVELENGTH_MULTIPLIERS_TO_M[targetWavelengthUnit]
+    if (!targetWavelengthToMMultiplier) {
+      throw new Error(
+        `Wavelength multiplier to meters for target wavelength unit ${targetWavelengthUnit} not found.`
+      )
+    }
+
+    return this.f_scaled.map((val) => {
+      const freqInHz = val * currentFreqUnitMultiplier
+      if (freqInHz === 0) {
+        return Infinity
+      }
+      const wavelengthInMeters = SPEED_OF_LIGHT / freqInHz
+      return wavelengthInMeters / targetWavelengthToMMultiplier
+    })
+  }
+
+  /**
+   * Private helper method to set frequency values from wavelength values in a source unit.
+   * @param values - Array of wavelength points in the source unit.
+   * @param sourceWavelengthUnit - The key of the source wavelength unit in WAVELENGTH_MULTIPLIERS_TO_M.
+   */
+  private _setWavelengthFromTargetUnit(
+    values: number[],
+    sourceWavelengthUnit: keyof typeof WAVELENGTH_MULTIPLIERS_TO_M
+  ): void {
+    if (!values) {
+      // Handle null or undefined input array
+      this.f_scaled = []
+      return
+    }
+    if (values.length === 0) {
+      this.f_scaled = []
+      return
+    }
+
+    const sourceWavelengthToMMultiplier =
+      WAVELENGTH_MULTIPLIERS_TO_M[sourceWavelengthUnit]
+    if (!sourceWavelengthToMMultiplier) {
+      throw new Error(
+        `Wavelength multiplier to meters for source unit ${sourceWavelengthUnit} not found.`
+      )
+    }
+
+    const currentFreqUnitMultiplier = FREQUENCY_MULTIPLIERS[this.unit]
+    if (!currentFreqUnitMultiplier) {
+      throw new Error(
+        `Frequency multiplier for current unit ${this.unit} not found.`
+      )
+    }
+
+    const convertedFrequencies = values.map((val) => {
+      const wavelengthInMeters = val * sourceWavelengthToMMultiplier
+      if (wavelengthInMeters === 0) {
+        throw new Error('Cannot convert zero wavelength to frequency.')
+      }
+      const freqInHz = SPEED_OF_LIGHT / wavelengthInMeters
+      return freqInHz / currentFreqUnitMultiplier
+    })
+
+    this.f_scaled = convertedFrequencies
   }
 
   /**
