@@ -42,7 +42,7 @@ export const pythonWriteContent = async (
     )
 
     # Setup temporary file path
-    folder = pathlib.Path.cwd() / 'tests' / 'python' / 'temp'
+    folder = pathlib.Path.cwd() / 'test' / 'python' / 'temp'
     folder.mkdir(parents=True, exist_ok=True)
     file = folder / f"{str(uuid.uuid4())}.s${touchstone.nports}p"
 

@@ -34,7 +34,7 @@
   },
 
   // Project structure configuration
-  "include": ["src/**/*", "tests/**/*"], // Include source and test files
+  "include": ["src/**/*", "test/**/*"], // Include source and test files
   "exclude": ["node_modules", "dist", "coverage"], // Exclude build and dependency directories
 
   // TypeDoc documentation generator configuration
