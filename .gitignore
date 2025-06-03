@@ -25,6 +25,7 @@ dist-ssr
 
 # Build the Typescript library
 yarn.lock
+package-lock.json
 *.code-workspace
 
 # Ignore all contents of the coverage directory
