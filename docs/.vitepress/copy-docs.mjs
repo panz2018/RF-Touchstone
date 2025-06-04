@@ -2,6 +2,26 @@ import fs from 'fs-extra'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
+// Define files to copy
+const filesToCopy = [
+  {
+    source: 'readme.md',
+    destination: 'introduction.md',
+  },
+  {
+    source: 'development.md',
+    destination: 'development.md',
+  },
+  {
+    source: 'LICENSE',
+    destination: 'LICENSE.md',
+  },
+  {
+    source: path.join('coverage', 'coverage-badge.svg'), // Source relative to rootDir
+    destination: path.join('coverage', 'coverage-badge.svg'), // Destination relative to docsDir
+  },
+]
+
 // Helper function to copy a file
 async function copyFile(source, destination) {
   try {
@@ -27,26 +47,6 @@ async function prepareDocuments() {
     return // Stop if we can't create the docs directory
   }
 
-  // Define files to copy: { source: 'relative/to/rootDir', destination: 'relative/to/docsDir' }
-  const filesToCopy = [
-    {
-      source: 'readme.md',
-      destination: 'introduction.md',
-    },
-    {
-      source: 'development.md',
-      destination: 'development.md',
-    },
-    {
-      source: 'LICENSE',
-      destination: 'LICENSE.md',
-    },
-    {
-      source: path.join('coverage', 'coverage-badge.svg'), // Source relative to rootDir
-      destination: path.join('coverage', 'coverage-badge.svg'), // Destination relative to docsDir
-    },
-  ]
-
   // Create necessary subdirectories in docsDir before copying
   // For example, for the coverage badge
   const coverageDocsDir = path.join(docsDir, 'coverage')
@@ -67,5 +67,6 @@ async function prepareDocuments() {
 }
 
 prepareDocuments().catch((error) => {
+  // More specific type for the final catch
   console.error('Unhandled error in prepareDocuments:', error)
 })

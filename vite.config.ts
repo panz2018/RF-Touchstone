@@ -29,7 +29,7 @@ export default defineConfig({
         branches: 100,
         statements: 100,
       },
-      include: ['src/**/*.ts', 'tests/**/*.ts'],
+      include: ['src/**/*.ts', 'test/**/*.ts'],
     },
   },
   build: {
@@ -45,13 +45,13 @@ export default defineConfig({
       treeshake: true, // Enable dead code elimination
       external: [
         '**/*.test.ts', // Exclude test files from the build
-        '**/tests/**', // Exclude test directory from the build
+        '**/test/**', // Exclude test directory from the build
       ],
     },
   },
   plugins: [
     // Generate TypeScript declaration files
-    dts({ exclude: ['**/*.test.ts', '**/tests/**'] }),
+    dts({ exclude: ['**/*.test.ts', '**/test/**'] }),
     // Generate build visualization report
     visualizer({
       filename: './build/build.html',

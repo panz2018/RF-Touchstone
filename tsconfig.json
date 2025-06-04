@@ -3,7 +3,7 @@
     // Base configuration for module resolution
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]  // Enable '@' alias for src directory imports
+      "@/*": ["src/*"] // Enable '@' alias for src directory imports
     },
 
     // JavaScript output configuration
@@ -14,37 +14,38 @@
     "skipLibCheck": true,
 
     // TypeScript declaration files configuration
-    "declaration": true,          // Generate .d.ts declaration files
-    "emitDeclarationOnly": true,  // Only emit declaration files, no JavaScript output
-    "outDir": "./dist",           // Output directory for compiled files
+    "declaration": true, // Generate .d.ts declaration files
+    "emitDeclarationOnly": true, // Only emit declaration files, no JavaScript output
+    "outDir": "./dist", // Output directory for compiled files
 
     /* Bundler mode configuration */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,  // Allow imports with .ts extensions
-    "isolatedModules": true,             // Ensure each file can be safely transpiled
-    "moduleDetection": "force",          // Force module detection for all files
-    "noEmit": true,                      // Don't emit JS files (handled by build tool)
+    "allowImportingTsExtensions": true, // Allow imports with .ts extensions
+    "isolatedModules": true, // Ensure each file can be safely transpiled
+    "moduleDetection": "force", // Force module detection for all files
+    "noEmit": true, // Don't emit JS files (handled by build tool)
 
     /* Linting and type checking configuration */
-    "strict": true,                          // Enable all strict type checking options
-    "noUnusedLocals": true,                  // Report errors on unused local variables
-    "noUnusedParameters": true,              // Report errors on unused parameters
-    "noFallthroughCasesInSwitch": true,     // Ensure switch cases fall through explicitly
-    "noUncheckedSideEffectImports": true    // Ensure side-effect imports are handled correctly
+    "strict": true, // Enable all strict type checking options
+    "noUnusedLocals": true, // Report errors on unused local variables
+    "noUnusedParameters": true, // Report errors on unused parameters
+    "noFallthroughCasesInSwitch": true, // Ensure switch cases fall through explicitly
+    "noUncheckedSideEffectImports": true // Ensure side-effect imports are handled correctly
   },
 
   // Project structure configuration
-  "include": ["src/**/*", "tests/**/*"],     // Include source and test files
+  "include": ["src/**/*", "test/**/*"], // Include source and test files
   "exclude": ["node_modules", "dist", "coverage"], // Exclude build and dependency directories
 
   // TypeDoc documentation generator configuration
   "typedocOptions": {
     "name": "RF Touchstone",
-    "entryPoints": ["src/**/*"],        // Source files to generate documentation from
-    "out": "docs/api",                  // Output directory for generated documentation
-    "includeVersion": false,            // Don't include package version in docs
-    "excludePrivate": true,             // Don't document private members
-    "excludeProtected": true,           // Don't document protected members
+    "entryPoints": ["src/**/*"], // Source files to generate documentation from
+    "sort": ["source-order"], // Sort documentation entries by source order
+    "out": "docs/api", // Output directory for generated documentation
+    "includeVersion": false, // Don't include package version in docs
+    "excludePrivate": true, // Don't document private members
+    "excludeProtected": true, // Don't document protected members
     "plugin": ["typedoc-plugin-markdown"] // Use markdown plugin for documentation
   }
 }
