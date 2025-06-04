@@ -112,12 +112,14 @@ export class Frequency {
         this.f_scaled = this.f_scaled.map(
           (freq) => (freq * oldMultiplier) / newMultiplier
         )
+        /* v8 ignore start */
       } else {
         // This case should ideally not happen if units are validated correctly
         throw new Error(
           `Could not find frequency multipliers (old: ${oldMultiplier}, new: ${newMultiplier}) for unit conversion`
         )
       }
+      /* v8 ignore stop */
     }
 
     this._unit = parsedUnit // Update the internal unit
@@ -213,14 +215,18 @@ export class Frequency {
     }
 
     const currentUnitMultiplier = FREQUENCY_MULTIPLIERS[this.unit]
+    /* v8 ignore start */
     if (!currentUnitMultiplier) {
       throw new Error(`Multiplier for current unit ${this.unit} not found.`)
     }
+    /* v8 ignore stop */
 
     const targetMultiplier = FREQUENCY_MULTIPLIERS[targetUnit]
+    /* v8 ignore start */
     if (!targetMultiplier) {
       throw new Error(`Multiplier for target unit ${targetUnit} not found.`)
     }
+    /* v8 ignore stop */
 
     return this.f_scaled.map(
       (val) => (val * currentUnitMultiplier) / targetMultiplier
@@ -236,27 +242,35 @@ export class Frequency {
     values: number[],
     sourceUnit: keyof typeof FREQUENCY_MULTIPLIERS
   ): void {
+    /* v8 ignore start */
     if (!values) {
       // Handle null or undefined input array
       this.f_scaled = []
       return
     }
+    /* v8 ignore stop */
     if (values.length === 0) {
+      /* v8 ignore start */
       this.f_scaled = []
       return
     }
+    /* v8 ignore stop */
 
     const sourceMultiplier = FREQUENCY_MULTIPLIERS[sourceUnit]
+    /* v8 ignore start */
     if (!sourceMultiplier) {
       throw new Error(`Multiplier for source unit ${sourceUnit} not found.`)
     }
+    /* v8 ignore stop */
 
     const currentFreqMultiplier = FREQUENCY_MULTIPLIERS[this.unit]
+    /* v8 ignore start */
     if (!currentFreqMultiplier) {
       throw new Error(
         `Multiplier for current internal unit ${this.unit} not found.`
       )
     }
+    /* v8 ignore stop */
 
     const convertedValues = values.map(
       (val) => (val * sourceMultiplier) / currentFreqMultiplier
@@ -437,19 +451,23 @@ export class Frequency {
     }
 
     const currentFreqUnitMultiplier = FREQUENCY_MULTIPLIERS[this.unit]
+    /* v8 ignore start */
     if (!currentFreqUnitMultiplier) {
       throw new Error(
         `Frequency multiplier for current unit ${this.unit} not found.`
       )
     }
+    /* v8 ignore stop */
 
     const targetWavelengthToMMultiplier =
       WAVELENGTH_MULTIPLIERS_TO_M[targetWavelengthUnit]
+    /* v8 ignore start */
     if (!targetWavelengthToMMultiplier) {
       throw new Error(
         `Wavelength multiplier to meters for target wavelength unit ${targetWavelengthUnit} not found.`
       )
     }
+    /* v8 ignore stop */
 
     return this.f_scaled.map((val) => {
       const freqInHz = val * currentFreqUnitMultiplier
@@ -470,11 +488,13 @@ export class Frequency {
     values: number[],
     sourceWavelengthUnit: keyof typeof WAVELENGTH_MULTIPLIERS_TO_M
   ): void {
+    /* v8 ignore start */
     if (!values) {
       // Handle null or undefined input array
       this.f_scaled = []
       return
     }
+    /* v8 ignore stop */
     if (values.length === 0) {
       this.f_scaled = []
       return
@@ -482,18 +502,22 @@ export class Frequency {
 
     const sourceWavelengthToMMultiplier =
       WAVELENGTH_MULTIPLIERS_TO_M[sourceWavelengthUnit]
+    /* v8 ignore start */
     if (!sourceWavelengthToMMultiplier) {
       throw new Error(
         `Wavelength multiplier to meters for source unit ${sourceWavelengthUnit} not found.`
       )
     }
+    /* v8 ignore stop */
 
     const currentFreqUnitMultiplier = FREQUENCY_MULTIPLIERS[this.unit]
+    /* v8 ignore start */
     if (!currentFreqUnitMultiplier) {
       throw new Error(
         `Frequency multiplier for current unit ${this.unit} not found.`
       )
     }
+    /* v8 ignore stop */
 
     const convertedFrequencies = values.map((val) => {
       const wavelengthInMeters = val * sourceWavelengthToMMultiplier

@@ -206,6 +206,17 @@ describe('frequency.ts', () => {
       })
     })
 
+    it(`${gs.name} Setter/Getter: empty`, () => {
+      const freq = new Frequency()
+      freq.unit = 'Hz' // Set a base unit for f_scaled
+      freq.f_scaled = [1, 2, 3] // Initial f_scaled values in Hz
+      expect(freq.f_scaled).toStrictEqual([1, 2, 3])
+
+      freq[gs.prop] = []
+      expect(freq[gs.prop]).toStrictEqual([])
+      expect(freq.f_scaled).toStrictEqual([])
+    })
+
     it(`${gs.name} Setter: Overwrite with different length array`, () => {
       const freq = new Frequency()
       freq.unit = 'Hz' // Set a base unit for f_scaled
@@ -316,6 +327,17 @@ describe('frequency.ts', () => {
           expect(val).toBeCloseTo(valuesToSet[i], 5)
         )
       })
+    })
+
+    it(`${wgs.name} Setter/Getter: empty`, () => {
+      const freq = new Frequency()
+      freq.unit = 'Hz' // Set a base unit for f_scaled
+      freq.f_scaled = [1, 2, 3] // Initial f_scaled values in Hz
+      expect(freq.f_scaled).toStrictEqual([1, 2, 3])
+
+      freq[wgs.prop] = []
+      expect(freq[wgs.prop]).toStrictEqual([])
+      expect(freq.f_scaled).toStrictEqual([])
     })
 
     it(`${wgs.name} Setter: Overwrite with different length array`, () => {

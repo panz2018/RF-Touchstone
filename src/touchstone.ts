@@ -537,7 +537,7 @@ export class Touchstone {
             /* v8 ignore start */
             default:
               throw new Error(`Unknown Touchstone format: ${this.format}`)
-            /* v8 ignore end */
+            /* v8 ignore stop */
           }
 
           // Store the value in the matrix
