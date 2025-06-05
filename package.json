@@ -1,7 +1,32 @@
 {
   "name": "rf-touchstone",
-  "private": true,
+  "private": false,
   "version": "0.0.0",
+  "description": "A Javascript/TypeScript library for reading, manipulating, and writing Touchstone files (.snp files) used in radio frequency (RF) and microwave engineering.",
+  "main": "dist/Touchstone.cjs.js",
+  "module": "dist/Touchstone.es.js",
+  "types": "dist/touchstone.d.ts",
+  "files": [
+    "dist",
+    "readme.md",
+    "LICENSE",
+    "development.md"
+  ],
+  "repository": "https://github.com/panz2018/RF-Touchstone",
+  "keywords": [
+    "rf",
+    "touchstone",
+    "snp",
+    "s1p",
+    "s2p",
+    "s3p",
+    "s4p",
+    "s5p",
+    "s6p",
+    "frequency",
+    "scattering",
+    "matrix"
+  ],
   "type": "module",
   "scripts": {
     "test": "run-p --print-label lint format test:unit test:coverage build docs:md && run-s docs:build",
@@ -15,6 +40,8 @@
     "docs:build": "node docs/.vitepress/copy-docs.mjs && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
+  "license": "MIT",
+  "author": "https://github.com/panz2018",
   "dependencies": {
     "mathjs": "^14.5.0"
   },

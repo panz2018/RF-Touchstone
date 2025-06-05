@@ -51,7 +51,24 @@ export default defineConfig({
   },
   plugins: [
     // Generate TypeScript declaration files
-    dts({ exclude: ['**/*.test.ts', '**/test/**'] }),
+    dts({
+      insertTypesEntry: true, // Insert a 'types' field in package.json
+      outDir: 'dist', // Output directory for declaration files
+      include: ['src'], // Include files from the 'src' directory
+      exclude: ['**/*.test.ts', '**/test/**'],
+      // Specify the main entry file to generate a single .d.ts file
+      entryRoot: 'src',
+      tsconfigPath: 'tsconfig.json', // Path to your tsconfig.json
+      rollupTypes: true, // Rollup all declaration files into a single file
+      beforeWriteFile: (filePath, content) => {
+        // Optional: Modify the file path or content before writing
+        // For example, you can rename the output file
+        return {
+          filePath: filePath.replace('src/', ''), // Remove 'src/' from the path
+          content,
+        }
+      },
+    }),
     // Generate build visualization report
     visualizer({
       filename: './build/build.html',
