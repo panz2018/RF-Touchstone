@@ -13,8 +13,6 @@ dist-ssr
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo
@@ -51,3 +49,6 @@ docs/development.md
 docs/introduction.md
 docs/coverage/*
 docs/LICENSE.md
+
+# npm publish
+*.tgz
