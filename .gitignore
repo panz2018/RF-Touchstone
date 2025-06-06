@@ -49,3 +49,6 @@ docs/development.md
 docs/introduction.md
 docs/coverage/*
 docs/LICENSE.md
+
+# npm publish
+*.tgz

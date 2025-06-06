@@ -10,21 +10,12 @@
     "ms-python.python"
     "ms-python.debugpy"
     "ms-toolsai.jupyter"
-    "flake8rt.flake8"
+    "ms-python.flake8"
+    "yandeu.five-server"
   ];
+
+  # Enable previews and customize configuration
   idx.previews = {
-    previews = {
-      web = {
-        command = [
-          "yarn"
-          "docs:dev"
-          "--port"
-          "$PORT"
-          "--host"
-          "0.0.0.0"
-        ];
-        manager = "web";
-      };
-    };
+    enable = true;
   };
 }
