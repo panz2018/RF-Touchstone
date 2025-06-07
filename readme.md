@@ -4,6 +4,7 @@ A Javascript/TypeScript library for reading, manipulating, and writing Touchston
 
 [![Tests](https://github.com/panz2018/RF-Touchstone/actions/workflows/test.yml/badge.svg)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test.yml)
 [![Coverage](coverage/coverage-badge.svg)](coverage/coverage-badge.svg)
+[![React Example Tests](https://github.com/mjcaprani/rf-touchstone/actions/workflows/test-react-example.yml/badge.svg)](https://github.com/mjcaprani/rf-touchstone/actions/workflows/test-react-example.yml)
 
 ## Overview
 
@@ -56,6 +57,12 @@ const sParameters = touchstone.getParameterMatrix()
 // Write back to Touchstone format
 const newContent = touchstone.writeContent()
 ```
+
+## Examples
+
+This repository includes examples to demonstrate the usage of `rf-touchstone` in different contexts.
+
+- **[React Example](./examples/react/README.md)**: A simple standalone React application (using Vite and TypeScript) that showcases how to import and use `rf-touchstone` from npm to parse and display Touchstone file data. Includes comprehensive tests and a GitHub Action for CI.
 
 ## Documentation
 
