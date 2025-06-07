@@ -690,7 +690,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.28.0, @eslint/js@npm:^9.27.0":
+"@eslint/js@npm:9.28.0, @eslint/js@npm:^9.28.0":
   version: 9.28.0
   resolution: "@eslint/js@npm:9.28.0"
   checksum: 10c0/5a6759542490dd9f778993edfbc8d2f55168fd0f7336ceed20fe3870c65499d72fc0bca8d1ae00ea246b0923ea4cba2e0758a8a5507a3506ddcf41c92282abb8
@@ -1420,7 +1420,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^22.15.21":
+"@types/node@npm:*, @types/node@npm:^22.15.30":
   version: 22.15.30
   resolution: "@types/node@npm:22.15.30"
   dependencies:
@@ -1596,7 +1596,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/coverage-v8@npm:^3.1.4":
+"@vitest/coverage-v8@npm:^3.2.2":
   version: 3.2.2
   resolution: "@vitest/coverage-v8@npm:3.2.2"
   dependencies:
@@ -3208,7 +3208,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-prettier@npm:^5.4.0":
+"eslint-plugin-prettier@npm:^5.4.1":
   version: 5.4.1
   resolution: "eslint-plugin-prettier@npm:5.4.1"
   dependencies:
@@ -3252,7 +3252,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.27.0":
+"eslint@npm:^9.28.0":
   version: 9.28.0
   resolution: "eslint@npm:9.28.0"
   dependencies:
@@ -3741,7 +3741,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^17.4.7":
+"happy-dom@npm:^17.6.3":
   version: 17.6.3
   resolution: "happy-dom@npm:17.6.3"
   dependencies:
@@ -4663,7 +4663,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mathjs@npm:^14.5.0":
+"mathjs@npm:^14.5.2":
   version: 14.5.2
   resolution: "mathjs@npm:14.5.2"
   dependencies:
@@ -5596,29 +5596,29 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rf-touchstone@workspace:."
   dependencies:
-    "@eslint/js": "npm:^9.27.0"
+    "@eslint/js": "npm:^9.28.0"
     "@types/eslint-config-prettier": "npm:^6.11.3"
-    "@types/node": "npm:^22.15.21"
-    "@vitest/coverage-v8": "npm:^3.1.4"
+    "@types/node": "npm:^22.15.30"
+    "@vitest/coverage-v8": "npm:^3.2.2"
     coverage-badges-cli: "npm:^2.1.0"
-    eslint: "npm:^9.27.0"
+    eslint: "npm:^9.28.0"
     eslint-config-prettier: "npm:^10.1.5"
-    eslint-plugin-prettier: "npm:^5.4.0"
+    eslint-plugin-prettier: "npm:^5.4.1"
     globals: "npm:^16.2.0"
-    happy-dom: "npm:^17.4.7"
+    happy-dom: "npm:^17.6.3"
     markdown-it-mathjax3: "npm:^4.3.2"
-    mathjs: "npm:^14.5.0"
+    mathjs: "npm:^14.5.2"
     npm-run-all: "npm:^4.1.5"
     prettier: "npm:^3.5.3"
     rollup-plugin-visualizer: "npm:^5.14.0"
-    typedoc: "npm:^0.28.4"
-    typedoc-plugin-markdown: "npm:^4.6.3"
+    typedoc: "npm:^0.28.5"
+    typedoc-plugin-markdown: "npm:^4.6.4"
     typescript: "npm:^5.8.3"
-    typescript-eslint: "npm:^8.32.1"
+    typescript-eslint: "npm:^8.33.1"
     vite: "npm:^6.3.5"
     vite-plugin-dts: "npm:^4.5.4"
     vitepress: "npm:^1.6.3"
-    vitest: "npm:^3.1.4"
+    vitest: "npm:^3.2.2"
   languageName: unknown
   linkType: soft
 
@@ -6495,7 +6495,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-markdown@npm:^4.6.3":
+"typedoc-plugin-markdown@npm:^4.6.4":
   version: 4.6.4
   resolution: "typedoc-plugin-markdown@npm:4.6.4"
   peerDependencies:
@@ -6504,7 +6504,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc@npm:^0.28.4":
+"typedoc@npm:^0.28.5":
   version: 0.28.5
   resolution: "typedoc@npm:0.28.5"
   dependencies:
@@ -6521,7 +6521,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript-eslint@npm:^8.32.1":
+"typescript-eslint@npm:^8.33.1":
   version: 8.33.1
   resolution: "typescript-eslint@npm:8.33.1"
   dependencies:
@@ -6899,7 +6899,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:^3.1.4":
+"vitest@npm:^3.2.2":
   version: 3.2.2
   resolution: "vitest@npm:3.2.2"
   dependencies:
