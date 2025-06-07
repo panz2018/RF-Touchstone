@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, JSX } from 'react'
 import { Touchstone } from 'rf-touchstone'
 
 // Define a simple type for the complex number structure as expected from the Touchstone object
@@ -161,8 +161,8 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
     )
 
     if (touchstoneData.nports !== undefined) {
-      for (let outPort = 0; outPort < touchstoneData.nports; outPort++) {
-        for (let inPort = 0; inPort < touchstoneData.nports; inPort++) {
+      for (let outPort = 0; outPort < touchstoneData.nports!; outPort++) {
+        for (let inPort = 0; inPort < touchstoneData.nports!; inPort++) {
           let paramName
           if (touchstoneData.nports === 2) {
             paramName = `${touchstoneData.parameter || 'S'}${inPort + 1}${outPort + 1}`
@@ -203,8 +203,8 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
         dataCells.push(<td key={`freq-${freqIndex}`}>{freq.toFixed(4)}</td>)
 
         if (touchstoneData.nports !== undefined) {
-          for (let outPort = 0; outPort < touchstoneData.nports; outPort++) {
-            for (let inPort = 0; inPort < touchstoneData.nports; inPort++) {
+          for (let outPort = 0; outPort < touchstoneData.nports!; outPort++) {
+            for (let inPort = 0; inPort < touchstoneData.nports!; inPort++) {
               const param =
                 touchstoneData.matrix?.[outPort]?.[inPort]?.[freqIndex]
               const formatted = formatParameter(param, touchstoneData.format)

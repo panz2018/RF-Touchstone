@@ -10,6 +10,18 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   ...tseslint.configs.stylistic,
   {
+    name: 'app/files-to-ignore',
+    ignores: [
+      '**/dist/**',
+      '**/dist-ssr/**',
+      '**/.yarn/**',
+      '**/coverage/**',
+      '**/node_modules/**',
+      '**/.venv/**',
+      '**/docs/**'
+    ],
+  },
+  {
     languageOptions: {
       globals: {
         browser: true,
@@ -35,6 +47,6 @@ export default tseslint.config(
       'react-hooks/exhaustive-deps': 'warn',
       // Add any other specific rules here
     },
-    ignores: ['dist', '.yarn', 'coverage', 'node_modules'],
+    ignores: ['dist', '.yarn', 'coverage', 'node_modules', 'eslint.config.js'],
   }
 )
