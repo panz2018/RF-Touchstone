@@ -1,6 +1,5 @@
 {
   "name": "rf-touchstone",
-  "private": false,
   "type": "module",
   "version": "0.0.0",
   "description": "A Javascript/TypeScript library for reading, manipulating, and writing Touchstone files (.snp files) used in radio frequency (RF) and microwave engineering.",
@@ -29,8 +28,10 @@
     "s6p",
     "frequency",
     "scattering",
-    "matrix"
+    "matrix",
+    "impedance"
   ],
+  "packageManager": "yarn@4.9.2",
   "scripts": {
     "test": "run-p --print-label lint format test:unit test:coverage build docs:md && run-s docs:build",
     "lint": "eslint . --fix",
@@ -44,30 +45,30 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "mathjs": "^14.5.0"
+    "mathjs": "^14.5.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.27.0",
+    "@eslint/js": "^9.28.0",
     "@types/eslint-config-prettier": "^6.11.3",
-    "@types/node": "^22.15.21",
-    "@vitest/coverage-v8": "^3.1.4",
+    "@types/node": "^22.15.30",
+    "@vitest/coverage-v8": "^3.2.2",
     "coverage-badges-cli": "^2.1.0",
-    "eslint": "^9.27.0",
+    "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-prettier": "^5.4.0",
+    "eslint-plugin-prettier": "^5.4.1",
     "globals": "^16.2.0",
-    "happy-dom": "^17.4.7",
+    "happy-dom": "^17.6.3",
     "markdown-it-mathjax3": "^4.3.2",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.5.3",
     "rollup-plugin-visualizer": "^5.14.0",
-    "typedoc": "^0.28.4",
-    "typedoc-plugin-markdown": "^4.6.3",
+    "typedoc": "^0.28.5",
+    "typedoc-plugin-markdown": "^4.6.4",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.32.1",
+    "typescript-eslint": "^8.33.1",
     "vite": "^6.3.5",
     "vite-plugin-dts": "^4.5.4",
     "vitepress": "^1.6.3",
-    "vitest": "^3.1.4"
+    "vitest": "^3.2.2"
   }
 }

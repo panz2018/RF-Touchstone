@@ -13,55 +13,76 @@ node -v
 ### Install yarn
 
 ```sh
-npm install --global yarn
+yarn set version stable
+```
+
+### Check the current version of yarn
+
+```sh
+yarn -v
 ```
 
 ### Install packages
 
 ```sh
-yarn install
+yarn
 ```
 
-### Check for outdated packages
+### Check for outdated packages, and upgrade packages
 
 ```sh
-yarn outdated
-```
-
-### Upgrades packages
-
-```sh
-yarn upgrade --latest
+yarn upgrade-interactive
 ```
 
 ## Setup Python environment
 
 ### Create and Use Virtual Environments
 
-#### Create a new virtual environment
+#### Install uv
+
+`uv` is a fast Python package installer and virtual environment manager. You can install `uv` by running the following command:
 
 ```sh
-python -m venv .venv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+#### Add the `uv` executable to your system's PATH
+
+Source the appropriate environment file for your shell:
+
+```sh
+# On Bash, Zsh, or Sh:
+source $HOME/.local/bin/env
+# On Fish:
+source $HOME/.local/bin/env.fish
+```
+
+You may need to restart your shell or open a new terminal session for the changes to take effect.
+
+#### Create and Use Virtual Environments with uv
+
+Create a new virtual environment:
+
+```sh
+uv venv .venv
 ```
 
 #### Activate the virtual environment
 
-On Windows:
-
 ```sh
+# On Windows:
 .venv\Scripts\activate
-```
-
-On MacOS/Linux
-
-```sh
+# On MacOS/Linux:
 source .venv/bin/activate
 ```
 
 #### To confirm the virtual environment is activated, check the location of your Python interpreter:
 
 ```sh
+# On Windows:
 where python
+# On MacOS/Linux:
+which python
 ```
 
 #### Check python version
@@ -70,32 +91,33 @@ where python
 python --version
 ```
 
-#### Deactivate a virtual environment
+#### Install packages using uv
 
-On Windows:
-
-```sh
-.venv\Scripts\deactivate
-```
-
-### Install packages using pip
-
-#### Update pip
+Install packages using a requirements file:
 
 ```sh
-python -m pip install --upgrade pip
-```
-
-#### Install packages using a requirements file
-
-```sh
-python -m pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 #### Check packages available for update
 
 ```sh
-pip list --outdated
+uv pip list --outdated
+```
+
+#### Upgrade packages
+
+```sh
+uv pip install -r requirements.txt --upgrade
+```
+
+#### Deactivate a virtual environment
+
+```sh
+# On Windows:
+.venv\Scripts\deactivate
+# On MacOS/Linux:
+deactivate
 ```
 
 ## Development

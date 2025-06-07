@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# yarn
+.yarn/*
+!.yarn/releases/
+!.yarnrc.yml
+# Ignore specific cache files if needed
+.yarn/install-state.gz
+
 # Editor directories and files
 .idea
 .DS_Store
@@ -22,8 +29,6 @@ dist-ssr
 *.sw?
 
 # Build the Typescript library
-yarn.lock
-package-lock.json
 *.code-workspace
 
 # Ignore all contents of the coverage directory
