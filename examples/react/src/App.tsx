@@ -1,6 +1,6 @@
-import React from 'react';
-import TouchstoneViewer from './TouchstoneViewer';
-import './App.css'; // Optional: for basic styling
+import React from 'react'
+import TouchstoneViewer from './TouchstoneViewer'
+import './App.css' // Optional: for basic styling
 
 function App() {
   return (
@@ -12,7 +12,7 @@ function App() {
         <TouchstoneViewer />
       </main>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

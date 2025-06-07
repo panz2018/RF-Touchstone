@@ -21,10 +21,12 @@ export default [
     ignores: [
       '**/dist/**',
       '**/dist-ssr/**',
+      '**/.yarn/**',
       '**/coverage/**',
       '**/node_modules/**',
       '**/.venv/**',
       '**/docs/**',
+      '**/examples/**',
     ],
   },
   { languageOptions: { globals: { ...globals.browser, ...globals.node } } },

@@ -7,11 +7,11 @@
   "module": "dist/Touchstone.es.js",
   "types": "dist/touchstone.d.ts",
   "files": [
-    "dist",
-    "readme.md",
-    "development.md",
-    "LICENSE",
-    "coverage/coverage-badge.svg"
+    "./dist",
+    "./readme.md",
+    "./development.md",
+    "./LICENSE",
+    "./coverage/coverage-badge.svg"
   ],
   "license": "MIT",
   "author": "https://github.com/panz2018",

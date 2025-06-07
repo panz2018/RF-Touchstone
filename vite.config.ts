@@ -18,7 +18,13 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     testTimeout: 1e5, // Unit: millisecond
-    exclude: [...configDefaults.exclude, '**/docs/**', '**/e2e/**'],
+    exclude: [
+      ...configDefaults.exclude,
+      '**/docs/**',
+      '**/e2e/**',
+      '**/.yarn/**',
+      '**/examples/**',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['json-summary', 'html'], // Added json-summary format

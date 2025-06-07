@@ -1,9 +1,9 @@
 // @ts-check
 
-import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
-import eslintPluginReactRefresh from 'eslint-plugin-react-refresh';
+import eslint from '@eslint/js'
+import tseslint from 'typescript-eslint'
+import eslintPluginReactHooks from 'eslint-plugin-react-hooks'
+import eslintPluginReactRefresh from 'eslint-plugin-react-refresh'
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -13,7 +13,7 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         browser: true,
-        es2020: true
+        es2020: true,
       },
       parserOptions: {
         ecmaVersion: 'latest',
@@ -37,4 +37,4 @@ export default tseslint.config(
     },
     ignores: ['dist', '.yarn', 'coverage', 'node_modules'],
   }
-);
+)
