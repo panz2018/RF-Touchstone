@@ -14,7 +14,8 @@ table {
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: center;
@@ -24,6 +25,6 @@ th {
   background-color: #f2f2f2;
 }
 
-input[type="file"] {
+input[type='file'] {
   margin: 10px;
 }

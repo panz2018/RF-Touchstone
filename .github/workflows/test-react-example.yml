@@ -8,8 +8,8 @@ on:
       - 'examples/react/**'
       - '.github/workflows/test-react-example.yml'
       - 'package.json' # Root package.json
-      - 'yarn.lock'    # Root yarn.lock
-      - '.yarnrc.yml'  # Root yarnrc.yml
+      - 'yarn.lock' # Root yarn.lock
+      - '.yarnrc.yml' # Root yarnrc.yml
   pull_request:
     branches:
       - main
@@ -20,7 +20,7 @@ on:
       - 'yarn.lock'
       - '.yarnrc.yml'
   workflow_run:
-    workflows: ["Publish Package to npm"] # Name of the workflow that publishes to npm
+    workflows: ['Publish Package to npm'] # Name of the workflow that publishes to npm
     types:
       - completed
     branches:

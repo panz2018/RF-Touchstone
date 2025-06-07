@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import { Touchstone } from 'rf-touchstone'
 
-const TouchstoneViewer: React.FC = () => {
-  const [touchstoneData, setTouchstoneData] = useState<Touchstone | null>(null)
+// Define a simple type for the complex number structure as expected from the Touchstone object
+interface SimpleComplex {
+  re: number
+  im: number
+}
+
+interface TouchstoneViewerProps {
+  touchstoneData: Touchstone | null
+}
+
+const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
+  touchstoneData: initialTouchstoneData,
+}) => {
+  const [touchstoneData, setTouchstoneData] = useState<Touchstone | null>(
+    initialTouchstoneData
+  )
   const [error, setError] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string>('sample.s2p') // Default sample file
 
@@ -12,7 +26,7 @@ const TouchstoneViewer: React.FC = () => {
     if (match && match[1]) {
       return parseInt(match[1], 10)
     }
-    return null // Or throw an error if the format is unexpected
+    return null // Or handle other extensions if needed
   }
 
   const loadFileContent = async (fileUrl: string) => {
@@ -32,7 +46,7 @@ const TouchstoneViewer: React.FC = () => {
       }
 
       const ts = new Touchstone() // Create an instance
-      ts.readContent(textContent, nports) // Use readContent
+      ts.readContent(textContent, nports)
       setTouchstoneData(ts)
       setError(null)
     } catch (err) {
@@ -45,10 +59,16 @@ const TouchstoneViewer: React.FC = () => {
   }
 
   useEffect(() => {
-    // Load the default sample file on component mount
-    // Ensure the file name used here is correct for determining ports
-    loadFileContent(`/${fileName}`)
-  }, [fileName]) // Reload if fileName changes (e.g., if we implement file switching)
+    // Only load default file if initialTouchstoneData is not provided
+    if (!initialTouchstoneData) {
+      // Load the default sample file on component mount
+      // Ensure the file name used here is correct for determining ports
+      // You might need to adjust the path based on where sample files are served in your React app
+      loadFileContent(`/${fileName}`)
+    } else {
+      setTouchstoneData(initialTouchstoneData)
+    }
+  }, [fileName, initialTouchstoneData]) // Reload if fileName changes or initial data is provided
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -68,7 +88,7 @@ const TouchstoneViewer: React.FC = () => {
             }
 
             const ts = new Touchstone() // Create an instance
-            ts.readContent(textContent, nports) // Use readContent
+            ts.readContent(textContent, nports)
             setTouchstoneData(ts)
             setError(null)
           } else {
@@ -92,6 +112,122 @@ const TouchstoneViewer: React.FC = () => {
     }
   }
 
+  // Helper function to format parameter data based on Touchstone format
+  const formatParameter = (
+    param: SimpleComplex | undefined,
+    format: string | undefined
+  ): { value1: string; value2: string; unit1: string; unit2: string } => {
+    if (!param || format === undefined) {
+      return { value1: 'N/A', value2: 'N/A', unit1: '', unit2: '' }
+    }
+
+    switch (format) {
+      case 'RI':
+        return {
+          value1: param.re.toFixed(4),
+          value2: param.im.toFixed(4),
+          unit1: 'Real',
+          unit2: 'Imaginary',
+        }
+      case 'MA':
+        const magnitude = Math.sqrt(param.re * param.re + param.im * param.im)
+        const angle = (Math.atan2(param.im, param.re) * 180) / Math.PI
+        return {
+          value1: magnitude.toFixed(4),
+          value2: angle.toFixed(4),
+          unit1: 'Magnitude',
+          unit2: 'Angle (°)',
+        }
+      case 'DB':
+        const db =
+          20 * Math.log10(Math.sqrt(param.re * param.re + param.im * param.im))
+        const dbAngle = (Math.atan2(param.im, param.re) * 180) / Math.PI
+        return {
+          value1: db.toFixed(4),
+          value2: dbAngle.toFixed(4),
+          unit1: 'dB',
+          unit2: 'Angle (°)',
+        }
+      default:
+        return { value1: 'N/A', value2: 'N/A', unit1: '', unit2: '' }
+    }
+  }
+
+  // Helper function to render table headers
+  const renderTableHeaders = (touchstoneData: Touchstone) => {
+    const headers: JSX.Element[] = []
+    headers.push(
+      <th key="frequency">Frequency ({touchstoneData.frequency?.unit})</th>
+    )
+
+    if (touchstoneData.nports !== undefined) {
+      for (let outPort = 0; outPort < touchstoneData.nports; outPort++) {
+        for (let inPort = 0; inPort < touchstoneData.nports; inPort++) {
+          let paramName
+          if (touchstoneData.nports === 2) {
+            paramName = `${touchstoneData.parameter || 'S'}${inPort + 1}${outPort + 1}`
+          } else {
+            paramName = `${touchstoneData.parameter || 'S'}${outPort + 1}${inPort + 1}`
+          }
+
+          const placeholderParam = { re: 0, im: 0 } // Placeholder for unit determination
+          const formattedHeader = formatParameter(
+            placeholderParam,
+            touchstoneData.format
+          )
+
+          headers.push(
+            <th key={`header-${outPort}-${inPort}-1`}>
+              {paramName} ({formattedHeader.unit1})
+            </th>
+          )
+          headers.push(
+            <th key={`header-${outPort}-${inPort}-2`}>
+              {paramName} ({formattedHeader.unit2})
+            </th>
+          )
+        }
+      }
+    }
+
+    return <tr>{headers}</tr>
+  }
+
+  // Helper function to render table data rows
+  const renderTableRows = (touchstoneData: Touchstone) => {
+    const rows: JSX.Element[] = []
+
+    if (touchstoneData.matrix && touchstoneData.frequency?.f_scaled) {
+      touchstoneData.frequency.f_scaled.forEach((freq, freqIndex) => {
+        const dataCells: JSX.Element[] = []
+        dataCells.push(<td key={`freq-${freqIndex}`}>{freq.toFixed(4)}</td>)
+
+        if (touchstoneData.nports !== undefined) {
+          for (let outPort = 0; outPort < touchstoneData.nports; outPort++) {
+            for (let inPort = 0; inPort < touchstoneData.nports; inPort++) {
+              const param =
+                touchstoneData.matrix?.[outPort]?.[inPort]?.[freqIndex]
+              const formatted = formatParameter(param, touchstoneData.format)
+              dataCells.push(
+                <td key={`data-${outPort}-${inPort}-${freqIndex}-1`}>
+                  {formatted.value1}
+                </td>
+              )
+              dataCells.push(
+                <td key={`data-${outPort}-${inPort}-${freqIndex}-2`}>
+                  {formatted.value2}
+                </td>
+              )
+            }
+          }
+        }
+        rows.push(<tr key={freqIndex}>{dataCells}</tr>)
+      })
+    }
+
+    return <>{rows}</>
+  }
+
   return (
     <div>
       <h2>Touchstone File Viewer</h2>
@@ -100,7 +236,7 @@ const TouchstoneViewer: React.FC = () => {
         <input
           type="file"
           id="fileInput"
-          accept=".s1p,.s2p,.s3p,.sNp" // Note: .sNp is not a real extension, it's a placeholder for .s1p, .s2p, etc.
+          accept=".s1p,.s2p,.s3p,.s4p,.s5p,.s6p,.s7p,.s8p,.s9p,.s10p,.s11p,.s12p,.s13p,.s14p,.s15p,.s16p,.s17p,.s18p,.s19p,.s20p" // Added more .sNp extensions
           onChange={handleFileChange}
         />
       </div>
@@ -119,10 +255,10 @@ const TouchstoneViewer: React.FC = () => {
         <div>
           <h3>File Information</h3>
           <p>
-            <strong>Type:</strong> {touchstoneData.type}
+            <strong>Port number:</strong> {touchstoneData.nports}
           </p>
           <p>
-            <strong>Frequency Unit:</strong> {touchstoneData.frequencyUnit}
+            <strong>Frequency Unit:</strong> {touchstoneData.frequency?.unit}
           </p>
           <p>
             <strong>Parameter:</strong> {touchstoneData.parameter}
@@ -131,7 +267,11 @@ const TouchstoneViewer: React.FC = () => {
             <strong>Format:</strong> {touchstoneData.format}
           </p>
           <p>
-            <strong>Resistance:</strong> {touchstoneData.resistance} Ohms
+            <strong>Impedance:</strong>{' '}
+            {Array.isArray(touchstoneData.impedance)
+              ? touchstoneData.impedance.join(', ')
+              : touchstoneData.impedance}{' '}
+            Ohms
           </p>
           {touchstoneData.comments.length > 0 && (
             <div>
@@ -145,84 +285,13 @@ const TouchstoneViewer: React.FC = () => {
           )}
 
           <h3>Network Data</h3>
-          {/* Display network data - this part of the component seems to be mostly correct based on the Touchstone class structure */}
-          {/* You'll need to ensure touchstoneData.networkData and its structure match what you expect */}
-          {touchstoneData.networkData &&
-          touchstoneData.networkData.length > 0 ? (
+          {touchstoneData.matrix &&
+          touchstoneData.matrix.length > 0 &&
+          touchstoneData.frequency?.f_scaled &&
+          touchstoneData.frequency.f_scaled.length > 0 ? (
             <table>
-              <thead>
-                <tr>
-                  <th>Frequency ({touchstoneData.frequencyUnit})</th>
-                  {/* Assuming S-parameters; adjust if other parameters */}
-                  {/* You'll need to update this part to correctly iterate through ports and parameters based on the actual matrix structure */}
-                  {/* The current logic for generating headers might need adjustment */}
-                  {Array.from({ length: touchstoneData.nports || 0 }, (_, i) =>
-                    Array.from(
-                      { length: touchstoneData.nports || 0 },
-                      (_, j) => (
-                        <React.Fragment key={`s${i + 1}${j + 1}`}>
-                          <th>
-                            {touchstoneData.parameter || 'S'}
-                            {i + 1}
-                            {j + 1} (Magnitude)
-                          </th>
-                          <th>
-                            {touchstoneData.parameter || 'S'}
-                            {i + 1}
-                            {j + 1} (Angle)
-                          </th>
-                        </React.Fragment>
-                      )
-                    )
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {/* You'll need to update this part to correctly iterate through the matrix data */}
-                {/* The current logic for rendering data rows might need adjustment */}
-                {touchstoneData.matrix &&
-                  touchstoneData.frequency?.f_scaled.map((freq, freqIndex) => (
-                    <tr key={freqIndex}>
-                      <td>{freq}</td>
-                      {Array.from(
-                        { length: touchstoneData.nports || 0 },
-                        (_, outPort) =>
-                          Array.from(
-                            { length: touchstoneData.nports || 0 },
-                            (_, inPort) => {
-                              const param =
-                                touchstoneData.matrix?.[outPort]?.[inPort]?.[
-                                  freqIndex
-                                ]
-                              // Assuming MA format for display magnitude and angle
-                              const magnitude = param
-                                ? Math.abs(param.re)
-                                : 'N/A' // This is a simplified assumption, needs to handle different formats
-                              const angle = param
-                                ? (Math.arg(param) * 180) / Math.PI
-                                : 'N/A' // This is a simplified assumption, needs to handle different formats
-                              return (
-                                <React.Fragment
-                                  key={`data-${outPort}-${inPort}-${freqIndex}`}
-                                >
-                                  <td>
-                                    {typeof magnitude === 'number'
-                                      ? magnitude.toFixed(4)
-                                      : magnitude}
-                                  </td>
-                                  <td>
-                                    {typeof angle === 'number'
-                                      ? angle.toFixed(4)
-                                      : angle}
-                                  </td>
-                                </React.Fragment>
-                              )
-                            }
-                          )
-                      )}
-                    </tr>
-                  ))}
-              </tbody>
+              <thead>{renderTableHeaders(touchstoneData)}</thead>
+              <tbody>{renderTableRows(touchstoneData)}</tbody>
             </table>
           ) : (
             <p>
