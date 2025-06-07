@@ -30,8 +30,8 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Node.js dependencies
-        run: yarn install
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Set Up Python
         uses: actions/setup-python@v4

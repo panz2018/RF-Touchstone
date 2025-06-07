@@ -1,6 +1,5 @@
 {
   "name": "rf-touchstone",
-  "private": false,
   "type": "module",
   "version": "0.0.0",
   "description": "A Javascript/TypeScript library for reading, manipulating, and writing Touchstone files (.snp files) used in radio frequency (RF) and microwave engineering.",
@@ -29,8 +28,10 @@
     "s6p",
     "frequency",
     "scattering",
-    "matrix"
+    "matrix",
+    "impedance"
   ],
+  "packageManager": "yarn@4.9.2",
   "scripts": {
     "test": "run-p --print-label lint format test:unit test:coverage build docs:md && run-s docs:build",
     "lint": "eslint . --fix",

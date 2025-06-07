@@ -38,8 +38,8 @@ jobs:
         with:
           node-version: 22
 
-      - name: Run install
-        run: yarn install
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Build VitePress docs
         run: yarn docs:md && yarn docs:build
