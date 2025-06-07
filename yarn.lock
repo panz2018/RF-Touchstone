@@ -5126,7 +5126,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"open@npm:^8.4.0":
+"open@npm:^8.0.0":
   version: 8.4.2
   resolution: "open@npm:8.4.2"
   dependencies:
@@ -5610,7 +5610,7 @@ __metadata:
     mathjs: "npm:^14.5.2"
     npm-run-all: "npm:^4.1.5"
     prettier: "npm:^3.5.3"
-    rollup-plugin-visualizer: "npm:^5.14.0"
+    rollup-plugin-visualizer: "npm:^6.0.1"
     typedoc: "npm:^0.28.5"
     typedoc-plugin-markdown: "npm:^4.6.4"
     typescript: "npm:^5.8.3"
@@ -5629,11 +5629,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-visualizer@npm:^5.14.0":
-  version: 5.14.0
-  resolution: "rollup-plugin-visualizer@npm:5.14.0"
+"rollup-plugin-visualizer@npm:^6.0.1":
+  version: 6.0.1
+  resolution: "rollup-plugin-visualizer@npm:6.0.1"
   dependencies:
-    open: "npm:^8.4.0"
+    open: "npm:^8.0.0"
     picomatch: "npm:^4.0.2"
     source-map: "npm:^0.7.4"
     yargs: "npm:^17.5.1"
@@ -5647,7 +5647,7 @@ __metadata:
       optional: true
   bin:
     rollup-plugin-visualizer: dist/bin/cli.js
-  checksum: 10c0/ec6ca9ed125bce9994ba49a340bda730661d8e8dc5c5dc014dc757185182e1eda49c6708f990cb059095e71a3741a5248f1e6ba0ced7056020692888e06b1ddf
+  checksum: 10c0/c938224b2027b3f490569c439d400b8fc80a0ad07b58720771b23623efe1efc7eb61f3de4506fb4520ce95ef4ea3c93153c31130559e017606c046c052690d1c
   languageName: node
   linkType: hard
 
