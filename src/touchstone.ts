@@ -85,28 +85,29 @@ export type TouchstoneMatrix = Complex[][][]
  * Touchstone class for reading and writing network parameter data in Touchstone format.
  * Supports both version 1.0 and 1.1 of the Touchstone specification.
  *
- * ## Overview
+ * @remarks
+ * #### Overview
  *
  * The **Touchstone file format** (also known as `.snp` files) is an industry-standard ASCII text format used to represent the n-port network parameters of electrical circuits. These files are commonly used in RF and microwave engineering to describe the behavior of devices such as filters, amplifiers, and interconnects.
  *
  * A Touchstone file contains data about network parameters (e.g., S-parameters, Y-parameters, Z-parameters) at specific frequencies.
  *
- * ### Key Features:
+ * ##### Key Features:
  * - **File Extensions**: Traditionally, Touchstone files use extensions like `.s1p`, `.s2p`, `.s3p`, etc., where the number indicates the number of ports. For example, `.s2p` represents a 2-port network.
  * - **Case Insensitivity**: Touchstone files are case-insensitive, meaning keywords and values can be written in uppercase or lowercase.
  * - **Versioning**: **Only version 1.0 and 1.1 are supported in this class**
  *
  * ---
  *
- * ## File Structure
+ * #### File Structure
  *
  * A Touchstone file consists of several sections, each serving a specific purpose. Below is a breakdown of the structure:
  *
- * ### 1. Header Section
+ * ##### 1. Header Section
  *
  * - **Comment Lines**: Lines starting with `!` are treated as comments and ignored during parsing.
  * - **Option Line**: Line starting with `#` defines global settings for the file, such as frequency units, parameter type, and data format. Example:
- *   ```
+ *   ```plaintext
  *   # GHz S MA R 50
  *   ```
  *   - `GHz`: Frequency unit (can be `Hz`, `kHz`, `MHz`, or `GHz`).
@@ -114,20 +115,26 @@ export type TouchstoneMatrix = Complex[][][]
  *   - `MA`: Data format (`MA` for magnitude-angle, `DB` for decibel-angle, or `RI` for real-imaginary).
  *   - `R 50`: Reference resistance in ohms (default is 50 ohms if omitted).
  *
- * ### 2. Network Data
+ * ##### 2. Network Data
  *
  * The core of the file contains the network parameter data, organized by frequency. Each frequency point is followed by its corresponding parameter values.
  *
  * - **Single-Ended Networks**: Data is arranged in a matrix format. For example, a 2-port network might look like this:
- *   ```
+ *   ```plaintext
  *   <frequency> <N11> <N21> <N12> <N22>
  *   ```
  *
  * ---
  *
- * ## Examples
+ * #### References:
+ * - {@link https://ibis.org/touchstone_ver2.1/touchstone_ver2_1.pdf Touchstone(R) File Format Specification (Version 2.1)}
+ * - {@link https://books.google.com/books/about/S_Parameters_for_Signal_Integrity.html?id=_dLKDwAAQBAJ S-Parameters for Signal Integrity}
+ * - {@link https://github.com/scikit-rf/scikit-rf/blob/master/skrf/io/touchstone.py scikit-rf: Open Source RF Engineering}
+ * - {@link https://github.com/Nubis-Communications/SignalIntegrity/blob/master/SignalIntegrity/Lib/SParameters/SParameters.py SignalIntegrity: Signal and Power Integrity Tools}
  *
- * ### Example 1: Simple 1-Port S-Parameter File
+ * @example
+ *
+ * #### Example 1: Simple 1-Port S-Parameter File
  * ```plaintext
  * ! 1-port S-parameter file
  * # MHz S MA R 50
@@ -136,13 +143,14 @@ export type TouchstoneMatrix = Complex[][][]
  * 300 0.707 -45
  * ```
  *
- * ---
- *
- * ## References:
- * - {@link https://ibis.org/touchstone_ver2.1/touchstone_ver2_1.pdf Touchstone(R) File Format Specification (Version 2.1)}
- * - {@link https://books.google.com/books/about/S_Parameters_for_Signal_Integrity.html?id=_dLKDwAAQBAJ S-Parameters for Signal Integrity}
- * - {@link https://github.com/scikit-rf/scikit-rf/blob/master/skrf/io/touchstone.py scikit-rf: Open Source RF Engineering}
- * - {@link https://github.com/Nubis-Communications/SignalIntegrity/blob/master/SignalIntegrity/Lib/SParameters/SParameters.py SignalIntegrity: Signal and Power Integrity Tools}
+ * #### Example 2: Simple 2-Port S-Parameter File
+ * ```plaintext
+ * ! Sample S2P File
+ * # HZ S RI R 50
+ * ! Freq S11(real) S11(imag) S21(real) S21(imag) S12(real) S12(imag) S22(real) S22(imag)
+ * 1000000000 0.9 -0.1 0.01 0.02 0.01 0.02 0.8 -0.15
+ * 2000000000 0.8 -0.2 0.02 0.03 0.02 0.03 0.7 -0.25
+ * ```
  */
 export class Touchstone {
   /**
@@ -391,6 +399,30 @@ export class Touchstone {
    * 2. Extracts frequency points
    * 3. Converts raw data into complex numbers based on format
    * 4. Stores the results in the matrix property
+   *
+   * @example
+   * ```typescript
+   * import { Touchstone, Frequency } from 'rf-touchstone';
+   *
+   * const s1pString = `
+   * ! This is a 1-port S-parameter file
+   * # MHz S MA R 50
+   * 100 0.99 -4
+   * 200 0.80 -22
+   * 300 0.707 -45
+   * `;
+   *
+   * const touchstone = new Touchstone();
+   * touchstone.readContent(s1pString, 1);
+   *
+   * console.log(touchstone.comments); // Outputs: [ 'This is a 1-port S-parameter file' ]
+   * console.log(touchstone.format); // Outputs: 'MA'
+   * console.log(touchstone.parameter); // Outputs: 'S'
+   * console.log(touchstone.impedance); // Outputs: 50
+   * console.log(touchstone.nports); // Outputs: 1
+   * console.log(touchstone.frequency?.f_scaled); // Outputs: [ 100, 200, 300 ]
+   * console.log(touchstone.matrix); // Outputs: the parsed matrix data
+   * ```
    */
   public readContent(string: string, nports: number): void {
     // Assign the number of ports
@@ -634,6 +666,37 @@ export class Touchstone {
    * 1. Comments (if any)
    * 2. Option line with format, parameter type, and impedance
    * 3. Network parameter data in the specified format
+   *
+   * @example
+   * ```typescript
+   * import { Touchstone, Frequency } from 'rf-touchstone';
+   * import { complex } from 'mathjs';
+   *
+   * const touchstone = new Touchstone();
+   *
+   * // Set properties and matrix data (using simplified complex number representation for example)
+   * touchstone.comments = ['Generated by rf-touchstone'];
+   * touchstone.nports = 1;
+   * touchstone.frequency = new Frequency();
+   * touchstone.frequency.unit = 'GHz';
+   * touchstone.frequency.f_scaled = [1.0, 2.0];
+   * touchstone.parameter = 'S';
+   * touchstone.format = 'MA';
+   * touchstone.impedance = 50;
+   * touchstone.matrix = [
+   *   [ // Output port 1
+   *     [complex(0.5, 0.1), complex(0.4, 0.2)] // S11 at each frequency
+   *   ]
+   * ];
+   *
+   * const s1pString = touchstone.writeContent();
+   * console.log(s1pString);
+   * // Expected output (approximately, due to floating point precision):
+   * // ! Generated by rf-touchstone
+   * // # GHz S MA R 50
+   * // 1 0.5099 11.3099
+   * // 2 0.4472 26.5651
+   * ```
    */
   public writeContent(): string {
     this.validate()

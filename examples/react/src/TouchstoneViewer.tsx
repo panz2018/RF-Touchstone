@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Touchstone } from 'rf-touchstone' // Assuming rf-touchstone is correctly imported
+import { Touchstone } from 'rf-touchstone'
 
 const TouchstoneViewer: React.FC = () => {
   const [touchstoneData, setTouchstoneData] = useState<Touchstone | null>(null)
