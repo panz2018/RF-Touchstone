@@ -48,11 +48,11 @@ import { Touchstone } from 'rf-touchstone'
 
 // Read a Touchstone file
 const touchstone = new Touchstone()
-touchstone.readContent(fileContent, 2) // 2-port network
+touchstone.readContent(fileContent, 2) // assuming a 2-port network
 
 // Access data
-const frequencies = touchstone.getFrequencies()
-const sParameters = touchstone.getParameterMatrix()
+const frequencies = touchstone.frequency.f_scaled
+const sParameters = touchstone.matrix
 
 // Write back to Touchstone format
 const newContent = touchstone.writeContent()
