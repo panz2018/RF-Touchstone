@@ -8,6 +8,7 @@ This example demonstrates how to use the `rf-touchstone` library in a simple Rea
 ## Overview
 
 The example consists of a single main component, `TouchstoneViewer`, which:
+
 - Fetches and displays a default `sample.s2p` file on initial load.
 - Allows users to upload their own Touchstone files.
 - Uses `rf-touchstone` to parse the file content.
@@ -35,8 +36,9 @@ The example consists of a single main component, `TouchstoneViewer`, which:
 ## Setup and Installation
 
 1.  **Clone the repository (if you haven't already):**
+
     ```bash
-    git clone https://github.com/mjcaprani/rf-touchstone.git
+    git clone https://github.com/panz2018/RF-Touchstone.git
     cd rf-touchstone/examples/react
     ```
 

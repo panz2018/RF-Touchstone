@@ -36,6 +36,7 @@
     "test": "run-p --print-label lint format test:unit test:coverage build docs:md && run-s docs:build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
+    "test:watch": "vitest",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage && coverage-badges --source coverage/coverage-summary.json --output coverage/coverage-badge.svg",
     "build": "tsc && vite build && yarn pack",

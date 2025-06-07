@@ -138,8 +138,10 @@ yarn format
 
 #### Interactive development
 
+Runs the tests in interactive watch mode:
+
 ```sh
-yarn vitest
+yarn test:watch
 ```
 
 #### Command line

@@ -1,0 +1,9 @@
+# Environment
+node_modules
+
+# yarn
+.yarn/*
+!.yarn/releases/
+!.yarnrc.yml
+# Ignore specific cache files if needed
+.yarn/install-state.gz
