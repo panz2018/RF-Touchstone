@@ -2295,7 +2295,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mathjs@npm:^14.5.0":
+"mathjs@npm:^14.5.0, mathjs@npm:^14.5.2":
   version: 14.5.2
   resolution: "mathjs@npm:14.5.2"
   dependencies:
@@ -2737,6 +2737,7 @@ __metadata:
     eslint-plugin-react-hooks: "npm:^5.2.0"
     eslint-plugin-react-refresh: "npm:^0.4.20"
     happy-dom: "npm:^17.6.3"
+    mathjs: "npm:^14.5.2"
     prettier: "npm:^3.5.3"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"

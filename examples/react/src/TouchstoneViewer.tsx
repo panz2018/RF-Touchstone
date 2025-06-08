@@ -1,11 +1,6 @@
 import React, { useState, useEffect, JSX } from 'react'
 import { Touchstone } from 'rf-touchstone'
-
-// Define a simple type for the complex number structure as expected from the Touchstone object
-interface SimpleComplex {
-  re: number
-  im: number
-}
+import { complex, Complex } from 'mathjs'
 
 interface TouchstoneViewerProps {
   touchstoneData: Touchstone | null
@@ -114,7 +109,7 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
 
   // Helper function to format parameter data based on Touchstone format
   const formatParameter = (
-    param: SimpleComplex | undefined,
+    param: Complex | undefined,
     format: string | undefined
   ): { value1: string; value2: string; unit1: string; unit2: string } => {
     if (!param || format === undefined) {
@@ -130,8 +125,8 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
           unit2: 'Imaginary',
         }
       case 'MA':
-        const magnitude = Math.sqrt(param.re * param.re + param.im * param.im)
-        const angle = (Math.atan2(param.im, param.re) * 180) / Math.PI
+        const magnitude = param.abs()
+        const angle = (param.arg() * 180) / Math.PI
         return {
           value1: magnitude.toFixed(4),
           value2: angle.toFixed(4),
@@ -140,8 +135,8 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
         }
       case 'DB':
         const db =
-          20 * Math.log10(Math.sqrt(param.re * param.re + param.im * param.im))
-        const dbAngle = (Math.atan2(param.im, param.re) * 180) / Math.PI
+          20 * Math.log10(param.abs())
+        const dbAngle = (param.arg() * 180) / Math.PI
         return {
           value1: db.toFixed(4),
           value2: dbAngle.toFixed(4),
@@ -170,7 +165,7 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
             paramName = `${touchstoneData.parameter || 'S'}${outPort + 1}${inPort + 1}`
           }
 
-          const placeholderParam = { re: 0, im: 0 } // Placeholder for unit determination
+          const placeholderParam = complex(0, 0) // Placeholder for unit determination
           const formattedHeader = formatParameter(
             placeholderParam,
             touchstoneData.format
