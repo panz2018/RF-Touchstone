@@ -1,6 +1,11 @@
 import React, { useState, useEffect, JSX } from 'react'
-import { Touchstone } from 'rf-touchstone'
-import { complex, Complex } from 'mathjs'
+import {
+  complex,
+  Complex,
+  Frequency,
+  FrequencyUnits,
+  Touchstone,
+} from 'rf-touchstone'
 
 interface TouchstoneViewerProps {
   touchstoneData: Touchstone | null
@@ -12,6 +17,9 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
   const [touchstoneData, setTouchstoneData] = useState<Touchstone | null>(
     initialTouchstoneData
   )
+  const [selectedFrequencyUnit, setSelectedFrequencyUnit] = useState<
+    string | undefined
+  >(touchstoneData?.frequency?.unit)
   const [error, setError] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string>('sample.s2p') // Default sample file
 
@@ -62,8 +70,9 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
       loadFileContent(`/${fileName}`)
     } else {
       setTouchstoneData(initialTouchstoneData)
+      // We no longer set selectedFrequencyUnit here
     }
-  }, [fileName, initialTouchstoneData]) // Reload if fileName changes or initial data is provided
+  }, [fileName, initialTouchstoneData, loadFileContent]) // Remove touchstoneData from dependency array
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -134,8 +143,7 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
           unit2: 'Angle (°)',
         }
       case 'DB':
-        const db =
-          20 * Math.log10(param.abs())
+        const db = 20 * Math.log10(param.abs())
         const dbAngle = (param.arg() * 180) / Math.PI
         return {
           value1: db.toFixed(4),
@@ -145,6 +153,31 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
         }
       default:
         return { value1: 'N/A', value2: 'N/A', unit1: '', unit2: '' }
+    }
+  }
+
+  const handleFrequencyUnitChange = (newUnit: string) => {
+    if (touchstoneData?.frequency) {
+      // Create a copy of the touchstoneData to avoid mutating state directly
+      const updatedTouchstoneData = new Touchstone()
+      // Copy all existing properties except frequency
+      Object.assign(updatedTouchstoneData, touchstoneData)
+
+      // Create a NEW Frequency object
+      const newFrequency = new Frequency()
+      // Copy the scaled frequency data from the original frequency object
+      // Assuming f_scaled contains the original data in the *previous* unit
+      newFrequency.f_scaled = touchstoneData.frequency.f_scaled
+
+      // Set the new unit on the NEW Frequency object
+      // This will trigger the automatic scaling of f_scaled within newFrequency
+      newFrequency.unit = newUnit as any // Use 'as any' temporarily if type mismatch
+
+      // Update the touchstoneData with the NEW Frequency object
+      updatedTouchstoneData.frequency = newFrequency
+
+      setTouchstoneData(updatedTouchstoneData)
+      setSelectedFrequencyUnit(newUnit)
     }
   }
 
@@ -187,13 +220,14 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
 
     return <tr>{headers}</tr>
   }
-
   // Helper function to render table data rows
   const renderTableRows = (touchstoneData: Touchstone) => {
     const rows: JSX.Element[] = []
 
     if (touchstoneData.matrix && touchstoneData.frequency?.f_scaled) {
+      // Use touchstoneData.frequency.f_scaled directly as it's updated by the unit setter
       touchstoneData.frequency.f_scaled.forEach((freq, freqIndex) => {
+        // Use touchstoneData.frequency.f_scaled here
         const dataCells: JSX.Element[] = []
         dataCells.push(<td key={`freq-${freqIndex}`}>{freq.toFixed(4)}</td>)
 
@@ -253,7 +287,25 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
             <strong>Port number:</strong> {touchstoneData.nports}
           </p>
           <p>
-            <strong>Frequency Unit:</strong> {touchstoneData.frequency?.unit}
+            <strong>Frequency Unit:</strong>{' '}
+            {touchstoneData?.frequency?.unit ? (
+              <select
+                value={selectedFrequencyUnit}
+                onChange={(e) => {
+                  setSelectedFrequencyUnit(e.target.value)
+                  // Call a function to handle the frequency unit change
+                  handleFrequencyUnitChange(e.target.value)
+                }}
+              >
+                {FrequencyUnits.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              'N/A'
+            )}
           </p>
           <p>
             <strong>Parameter:</strong> {touchstoneData.parameter}

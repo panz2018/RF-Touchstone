@@ -14,7 +14,24 @@ import {
   subset,
 } from 'mathjs'
 import type { FrequencyUnit } from './frequency'
-import { Frequency } from './frequency'
+import { Frequency, FrequencyUnits, SPEED_OF_LIGHT } from './frequency'
+
+export type { Complex, FrequencyUnit }
+export { Frequency, FrequencyUnits, SPEED_OF_LIGHT }
+export {
+  abs,
+  add,
+  arg,
+  complex,
+  log10,
+  index,
+  multiply,
+  pi,
+  pow,
+  range,
+  round,
+  subset,
+}
 
 /**
  * S-parameter format: MA, DB, and RI

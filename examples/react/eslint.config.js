@@ -18,7 +18,7 @@ export default tseslint.config(
       '**/coverage/**',
       '**/node_modules/**',
       '**/.venv/**',
-      '**/docs/**'
+      '**/docs/**',
     ],
   },
   {
