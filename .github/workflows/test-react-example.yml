@@ -1,68 +1,69 @@
-# name: Test React Example
+name: Test React Example
 
-# on:
-#   push:
-#     branches:
-#       - main
-#     paths:
-#       - 'examples/react/**'
-#       - '.github/workflows/test-react-example.yml'
-#       - 'package.json' # Root package.json
-#       - 'yarn.lock' # Root yarn.lock
-#       - '.yarnrc.yml' # Root yarnrc.yml
-#   pull_request:
-#     branches:
-#       - main
-#     paths:
-#       - 'examples/react/**'
-#       - '.github/workflows/test-react-example.yml'
-#       - 'package.json'
-#       - 'yarn.lock'
-#       - '.yarnrc.yml'
-#   workflow_run:
-#     workflows: ['Publish Package to npm'] # Name of the workflow that publishes to npm
-#     types:
-#       - completed
-#     branches:
-#       - main
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'examples/react/**'
+      - '.github/workflows/test-react-example.yml'
+      - 'package.json' # Root package.json
+      - 'yarn.lock' # Root yarn.lock
+      - '.yarnrc.yml' # Root yarnrc.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'examples/react/**'
+      - '.github/workflows/test-react-example.yml'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.yarnrc.yml'
+  workflow_run:
+    workflows: ['Publish Package to npm'] # Name of the workflow that publishes to npm
+    types:
+      - completed
+    branches:
+      - main
 
-# jobs:
-#   test-react-app:
-#     # Only run on workflow_run if the triggering workflow was successful
-#     if: github.event_name != 'workflow_run' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-#     runs-on: ubuntu-latest
+jobs:
+  test-react-app:
+    # Only run on workflow_run if the triggering workflow was successful
+    if: false # 禁用此 job
+    # if: github.event_name != 'workflow_run' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
 
-#     defaults:
-#       run:
-#         working-directory: ./examples/react
+    defaults:
+      run:
+        working-directory: ./examples/react
 
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-#       - name: Set up Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '22' # Use Node.js 22.x
-#           cache: 'yarn' # Cache Yarn dependencies globally
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # Use Node.js 22.x
+          cache: 'yarn' # Cache Yarn dependencies globally
 
-#       - name: Install Yarn
-#         run: |
-#           corepack enable
-#           corepack prepare yarn@stable --activate # Ensures latest Yarn 4.x is used
-#           yarn --version # Verify Yarn version
-#         working-directory: . # Run this at the root level
+      - name: Install Yarn
+        run: |
+          corepack enable
+          corepack prepare yarn@stable --activate # Ensures latest Yarn 4.x is used
+          yarn --version # Verify Yarn version
+        working-directory: . # Run this at the root level
 
-#       - name: Install Dependencies for React Example
-#         run: yarn install --immutable
-#         # The --immutable flag is good practice for CI to ensure yarn.lock isn't changed.
+      - name: Install Dependencies for React Example
+        run: yarn install --immutable
+        # The --immutable flag is good practice for CI to ensure yarn.lock isn't changed.
 
-#       - name: Run Tests and Generate Coverage
-#         run: yarn test:coverage
+      - name: Run Tests and Generate Coverage
+        run: yarn test:coverage
 
-#       - name: Upload Coverage Report
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: react-example-coverage-report
-#           path: examples/react/coverage/ # Path to the coverage report directory
-#           if-no-files-found: error # Error if coverage report is not found
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: react-example-coverage-report
+          path: examples/react/coverage/ # Path to the coverage report directory
+          if-no-files-found: error # Error if coverage report is not found
