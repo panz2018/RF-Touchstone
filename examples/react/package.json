@@ -1,0 +1,38 @@
+{
+  "name": "rf-touchstone-react-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "yarn@4.9.2",
+  "scripts": {
+    "dev": "vite",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write .",
+    "test:unit": "vitest run --environment happy-dom",
+    "test:watch": "vitest --environment happy-dom",
+    "test:coverage": "vitest run --environment happy-dom --coverage",
+    "build": "tsc && vite build"
+  },
+  "dependencies": {
+    "mathjs": "^14.5.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "rf-touchstone": "^0.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.6",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/parser": "^8.33.1",
+    "@vitejs/plugin-react": "^4.5.1",
+    "eslint": "^9.28.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "happy-dom": "^17.6.3",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.2"
+  }
+}

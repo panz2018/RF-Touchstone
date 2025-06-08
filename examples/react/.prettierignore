@@ -4,4 +4,3 @@ coverage/
 *.log
 .venv/
 .yarn/
-examples/
