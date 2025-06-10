@@ -1,11 +1,13 @@
-import React, { useState, useEffect, JSX } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   complex,
   Complex,
   Frequency,
-  FrequencyUnits,
+  // FrequencyUnits, // No longer needed here, moved to FileInfo
   Touchstone,
 } from 'rf-touchstone'
+import FileInfo from './components/FileInfo'
+import DataTable from './components/DataTable'
 
 interface TouchstoneViewerProps {
   touchstoneData: Touchstone | null
@@ -19,9 +21,11 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
   )
   const [selectedFrequencyUnit, setSelectedFrequencyUnit] = useState<
     string | undefined
-  >(touchstoneData?.frequency?.unit)
+  >()
+  const [selectedFormat, setSelectedFormat] = useState<string | undefined>()
   const [error, setError] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string>('sample.s2p') // Default sample file
+  const [copyStatus, setCopyStatus] = useState<string>('')
 
   // Helper function to determine the number of ports from the file extension
   const getNumberOfPorts = (fileName: string): number | null => {
@@ -32,25 +36,25 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
     return null // Or handle other extensions if needed
   }
 
-  const loadFileContent = async (fileUrl: string) => {
+  // Wrapped loadFileContent in useCallback to stabilize its identity
+  const loadFileContent = React.useCallback(async (fileUrl: string) => {
     try {
       const response = await fetch(fileUrl)
       if (!response.ok) {
         throw new Error(`Failed to fetch file: ${response.statusText}`)
       }
       const textContent = await response.text()
-
-      // Determine the number of ports from the file name
       const nports = getNumberOfPorts(fileUrl)
       if (nports === null) {
         throw new Error(
           `Could not determine number of ports from file name: ${fileUrl}`
         )
       }
-
-      const ts = new Touchstone() // Create an instance
+      const ts = new Touchstone()
       ts.readContent(textContent, nports)
       setTouchstoneData(ts)
+      // setSelectedFrequencyUnit(ts.frequency?.unit); // Handled by useEffect
+      // setSelectedFormat(ts.format); // Handled by useEffect
       setError(null)
     } catch (err) {
       console.error('Error loading or parsing Touchstone file:', err)
@@ -59,39 +63,41 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
       )
       setTouchstoneData(null)
     }
-  }
+  }, []) // Empty dependency array means this function is created once
 
   useEffect(() => {
-    // Only load default file if initialTouchstoneData is not provided
     if (!initialTouchstoneData) {
-      // Load the default sample file on component mount
-      // Ensure the file name used here is correct for determining ports
-      // You might need to adjust the path based on where sample files are served in your React app
       loadFileContent(`/${fileName}`)
     } else {
       setTouchstoneData(initialTouchstoneData)
-      // We no longer set selectedFrequencyUnit here
+      // setSelectedFrequencyUnit(initialTouchstoneData.frequency?.unit); // Handled by another useEffect
+      // setSelectedFormat(initialTouchstoneData.format); // Handled by another useEffect
     }
-  }, [fileName, initialTouchstoneData, loadFileContent]) // Remove touchstoneData from dependency array
+  }, [fileName, initialTouchstoneData, loadFileContent])
+
+  useEffect(() => {
+    if (touchstoneData) {
+      setSelectedFrequencyUnit(touchstoneData.frequency?.unit)
+      setSelectedFormat(touchstoneData.format)
+    }
+  }, [touchstoneData])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      setFileName(file.name) // Keep track of the name for display or other purposes
+      setFileName(file.name)
       const reader = new FileReader()
       reader.onload = async (e) => {
         try {
           const textContent = e.target?.result as string
           if (textContent) {
-            // Determine the number of ports from the uploaded file name
             const nports = getNumberOfPorts(file.name)
             if (nports === null) {
               throw new Error(
                 `Could not determine number of ports from file name: ${file.name}`
               )
             }
-
-            const ts = new Touchstone() // Create an instance
+            const ts = new Touchstone()
             ts.readContent(textContent, nports)
             setTouchstoneData(ts)
             setError(null)
@@ -116,7 +122,6 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
     }
   }
 
-  // Helper function to format parameter data based on Touchstone format
   const formatParameter = (
     param: Complex | undefined,
     format: string | undefined
@@ -124,7 +129,6 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
     if (!param || format === undefined) {
       return { value1: 'N/A', value2: 'N/A', unit1: '', unit2: '' }
     }
-
     switch (format) {
       case 'RI':
         return {
@@ -158,103 +162,76 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
 
   const handleFrequencyUnitChange = (newUnit: string) => {
     if (touchstoneData?.frequency) {
-      // Create a copy of the touchstoneData to avoid mutating state directly
       const updatedTouchstoneData = new Touchstone()
-      // Copy all existing properties except frequency
       Object.assign(updatedTouchstoneData, touchstoneData)
-
-      // Create a NEW Frequency object
       const newFrequency = new Frequency()
-      // Copy the scaled frequency data from the original frequency object
-      // Assuming f_scaled contains the original data in the *previous* unit
       newFrequency.f_scaled = touchstoneData.frequency.f_scaled
-
-      // Set the new unit on the NEW Frequency object
-      // This will trigger the automatic scaling of f_scaled within newFrequency
-      newFrequency.unit = newUnit as any // Use 'as any' temporarily if type mismatch
-
-      // Update the touchstoneData with the NEW Frequency object
+      newFrequency.unit = newUnit as any
       updatedTouchstoneData.frequency = newFrequency
-
       setTouchstoneData(updatedTouchstoneData)
-      setSelectedFrequencyUnit(newUnit)
+      // setSelectedFrequencyUnit(newUnit); // Handled by useEffect
     }
   }
 
-  // Helper function to render table headers
-  const renderTableHeaders = (touchstoneData: Touchstone) => {
-    const headers: JSX.Element[] = []
-    headers.push(
-      <th key="frequency">Frequency ({touchstoneData.frequency?.unit})</th>
-    )
+  const handleFormatChange = (newFormat: string) => {
+    if (touchstoneData) {
+      const updatedTouchstoneData = new Touchstone()
+      Object.assign(updatedTouchstoneData, touchstoneData)
+      updatedTouchstoneData.format = newFormat
+      setTouchstoneData(updatedTouchstoneData)
+      // setSelectedFormat(newFormat); // Handled by useEffect
+    }
+  }
 
-    if (touchstoneData.nports !== undefined) {
-      for (let outPort = 0; outPort < touchstoneData.nports!; outPort++) {
-        for (let inPort = 0; inPort < touchstoneData.nports!; inPort++) {
-          let paramName
-          if (touchstoneData.nports === 2) {
-            paramName = `${touchstoneData.parameter || 'S'}${inPort + 1}${outPort + 1}`
-          } else {
-            paramName = `${touchstoneData.parameter || 'S'}${outPort + 1}${inPort + 1}`
-          }
-
-          const placeholderParam = complex(0, 0) // Placeholder for unit determination
-          const formattedHeader = formatParameter(
-            placeholderParam,
-            touchstoneData.format
-          )
-
-          headers.push(
-            <th key={`header-${outPort}-${inPort}-1`}>
-              {paramName} ({formattedHeader.unit1})
-            </th>
-          )
-          headers.push(
-            <th key={`header-${outPort}-${inPort}-2`}>
-              {paramName} ({formattedHeader.unit2})
-            </th>
-          )
-        }
-      }
+  const handleCopyData = async () => {
+    if (!touchstoneData) {
+      setCopyStatus('No data to copy.')
+      setTimeout(() => setCopyStatus(''), 3000)
+      return
     }
 
-    return <tr>{headers}</tr>
+    try {
+      // Assuming touchstoneData.toString() serializes the data correctly.
+      // This is a critical assumption based on the subtask description.
+      // If rf-touchstone's Touchstone class doesn't have a direct toString()
+      // for file content, this part would need significant rework
+      // to manually reconstruct the file string.
+      const fileContentString = touchstoneData.toString()
+      await navigator.clipboard.writeText(fileContentString)
+      setCopyStatus('Copied to clipboard!')
+    } catch (err) {
+      console.error('Failed to copy data:', err)
+      setCopyStatus('Failed to copy.')
+    } finally {
+      setTimeout(() => setCopyStatus(''), 3000) // Clear status after 3 seconds
+    }
   }
-  // Helper function to render table data rows
-  const renderTableRows = (touchstoneData: Touchstone) => {
-    const rows: JSX.Element[] = []
 
-    if (touchstoneData.matrix && touchstoneData.frequency?.f_scaled) {
-      // Use touchstoneData.frequency.f_scaled directly as it's updated by the unit setter
-      touchstoneData.frequency.f_scaled.forEach((freq, freqIndex) => {
-        // Use touchstoneData.frequency.f_scaled here
-        const dataCells: JSX.Element[] = []
-        dataCells.push(<td key={`freq-${freqIndex}`}>{freq.toFixed(4)}</td>)
+  const handleDownloadFile = () => {
+    if (!touchstoneData) {
+      // Optionally, set a status or log, but button should be disabled
+      console.warn('No data to download.')
+      return
+    }
 
-        if (touchstoneData.nports !== undefined) {
-          for (let outPort = 0; outPort < touchstoneData.nports!; outPort++) {
-            for (let inPort = 0; inPort < touchstoneData.nports!; inPort++) {
-              const param =
-                touchstoneData.matrix?.[outPort]?.[inPort]?.[freqIndex]
-              const formatted = formatParameter(param, touchstoneData.format)
-              dataCells.push(
-                <td key={`data-${outPort}-${inPort}-${freqIndex}-1`}>
-                  {formatted.value1}
-                </td>
-              )
-              dataCells.push(
-                <td key={`data-${outPort}-${inPort}-${freqIndex}-2`}>
-                  {formatted.value2}
-                </td>
-              )
-            }
-          }
-        }
-        rows.push(<tr key={freqIndex}>{dataCells}</tr>)
+    try {
+      // Assuming touchstoneData.toString() serializes the data correctly.
+      const fileContentString = touchstoneData.toString()
+      const blob = new Blob([fileContentString], {
+        type: 'text/plain;charset=utf-8',
       })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName || `data.s${touchstoneData.nports || ''}p` // Use existing fileName or a default
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Failed to download file:', err)
+      // Optionally, set a status message for the user
     }
-
-    return <>{rows}</>
   }
 
   return (
@@ -265,88 +242,48 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
         <input
           type="file"
           id="fileInput"
-          accept=".s1p,.s2p,.s3p,.s4p,.s5p,.s6p,.s7p,.s8p,.s9p,.s10p,.s11p,.s12p,.s13p,.s14p,.s15p,.s16p,.s17p,.s18p,.s19p,.s20p" // Added more .sNp extensions
+          accept=".s1p,.s2p,.s3p,.s4p,.s5p,.s6p,.s7p,.s8p,.s9p,.s10p,.s11p,.s12p,.s13p,.s14p,.s15p,.s16p,.s17p,.s18p,.s19p,.s20p"
           onChange={handleFileChange}
         />
+      </div>
+      <div>
+        <button onClick={handleCopyData} disabled={!touchstoneData}>
+          Copy Data
+        </button>
+        <button
+          onClick={handleDownloadFile}
+          disabled={!touchstoneData}
+          style={{ marginLeft: '10px' }}
+        >
+          Download File
+        </button>
+        {copyStatus && <span style={{ marginLeft: '10px' }}>{copyStatus}</span>}
       </div>
       <p>
         Currently displaying:{' '}
         {touchstoneData
           ? `Data from ${fileName}`
           : error
-            ? `Error with ${fileName}`
-            : `Loading ${fileName}...`}
+          ? `Error with ${fileName}`
+          : `Loading ${fileName}...`}
       </p>
 
       {error && <pre style={{ color: 'red' }}>Error: {error}</pre>}
 
       {touchstoneData && (
-        <div>
-          <h3>File Information</h3>
-          <p>
-            <strong>Port number:</strong> {touchstoneData.nports}
-          </p>
-          <p>
-            <strong>Frequency Unit:</strong>{' '}
-            {touchstoneData?.frequency?.unit ? (
-              <select
-                value={selectedFrequencyUnit}
-                onChange={(e) => {
-                  setSelectedFrequencyUnit(e.target.value)
-                  // Call a function to handle the frequency unit change
-                  handleFrequencyUnitChange(e.target.value)
-                }}
-              >
-                {FrequencyUnits.map((unit) => (
-                  <option key={unit} value={unit}>
-                    {unit}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              'N/A'
-            )}
-          </p>
-          <p>
-            <strong>Parameter:</strong> {touchstoneData.parameter}
-          </p>
-          <p>
-            <strong>Format:</strong> {touchstoneData.format}
-          </p>
-          <p>
-            <strong>Impedance:</strong>{' '}
-            {Array.isArray(touchstoneData.impedance)
-              ? touchstoneData.impedance.join(', ')
-              : touchstoneData.impedance}{' '}
-            Ohms
-          </p>
-          {touchstoneData.comments.length > 0 && (
-            <div>
-              <strong>Comments:</strong>
-              <ul>
-                {touchstoneData.comments.map((comment, index) => (
-                  <li key={index}>{comment}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <h3>Network Data</h3>
-          {touchstoneData.matrix &&
-          touchstoneData.matrix.length > 0 &&
-          touchstoneData.frequency?.f_scaled &&
-          touchstoneData.frequency.f_scaled.length > 0 ? (
-            <table>
-              <thead>{renderTableHeaders(touchstoneData)}</thead>
-              <tbody>{renderTableRows(touchstoneData)}</tbody>
-            </table>
-          ) : (
-            <p>
-              No network data available or data format is not supported for
-              display.
-            </p>
-          )}
-        </div>
+        <>
+          <FileInfo
+            touchstoneData={touchstoneData}
+            selectedFrequencyUnit={selectedFrequencyUnit}
+            handleFrequencyUnitChange={handleFrequencyUnitChange}
+            selectedFormat={selectedFormat}
+            handleFormatChange={handleFormatChange}
+          />
+          <DataTable
+            touchstoneData={touchstoneData}
+            formatParameter={formatParameter}
+          />
+        </>
       )}
     </div>
   )
