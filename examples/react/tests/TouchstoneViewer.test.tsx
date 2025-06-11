@@ -310,6 +310,68 @@ describe('TouchstoneViewer Component', () => {
     });
   });
 
+  describe('Frequency Unit Switching Bug Verification', () => {
+    it('correctly converts frequencies when switching units multiple times', async () => {
+      render(<TouchstoneViewer touchstoneData={null} />);
+      await waitFor(() => {
+        // Wait for the default file (sample.s2p) to load
+        expect(screen.getByText(/Currently displaying: Data from sample.s2p/i)).toBeInTheDocument();
+      });
+
+      // Initial state: Hz. First frequency from mockSampleS2PContent is 1000000000 Hz
+      // Displayed with .toFixed(4) in the table
+      expect(screen.getByText('1000000000.0000')).toBeInTheDocument();
+      let frequencyUnitSelector = screen.getByDisplayValue('Hz');
+
+      // 1. Change to GHz
+      fireEvent.change(frequencyUnitSelector, { target: { value: 'GHz' } });
+      await waitFor(() => {
+        // 1000000000 Hz = 1 GHz
+        expect(screen.getByText('1.0000')).toBeInTheDocument();
+      });
+      frequencyUnitSelector = screen.getByDisplayValue('GHz'); // Re-find selector if its instance changes
+
+      // 2. Change back to Hz
+      fireEvent.change(frequencyUnitSelector, { target: { value: 'Hz' } });
+      await waitFor(() => {
+        // Should be back to 1000000000 Hz
+        expect(screen.getByText('1000000000.0000')).toBeInTheDocument();
+      });
+      frequencyUnitSelector = screen.getByDisplayValue('Hz');
+
+      // 3. Change to MHz
+      fireEvent.change(frequencyUnitSelector, { target: { value: 'MHz' } });
+      await waitFor(() => {
+        // 1000000000 Hz = 1000 MHz
+        expect(screen.getByText('1000.0000')).toBeInTheDocument();
+      });
+      frequencyUnitSelector = screen.getByDisplayValue('MHz');
+
+      // 4. Change back to GHz (from MHz)
+      fireEvent.change(frequencyUnitSelector, { target: { value: 'GHz' } });
+      await waitFor(() => {
+        // 1000 MHz = 1 GHz
+        expect(screen.getByText('1.0000')).toBeInTheDocument();
+      });
+      frequencyUnitSelector = screen.getByDisplayValue('GHz');
+
+      // 5. Change to KHz (from GHz)
+      fireEvent.change(frequencyUnitSelector, { target: { value: 'KHz' } });
+      await waitFor(() => {
+        // 1 GHz = 1,000,000 KHz
+        expect(screen.getByText('1000000.0000')).toBeInTheDocument();
+      });
+      frequencyUnitSelector = screen.getByDisplayValue('KHz');
+
+      // 6. Change back to Hz (from KHz)
+      fireEvent.change(frequencyUnitSelector, { target: { value: 'Hz' } });
+      await waitFor(() => {
+        // 1,000,000 KHz = 1,000,000,000 Hz
+        expect(screen.getByText('1000000000.0000')).toBeInTheDocument();
+      });
+    });
+  });
+
   describe('Copy Data Button', () => {
     let touchstoneToStringSpy: vi.SpyInstance;
 

@@ -162,13 +162,24 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
 
   const handleFrequencyUnitChange = (newUnit: string) => {
     if (touchstoneData?.frequency) {
-      const updatedTouchstoneData = new Touchstone()
-      Object.assign(updatedTouchstoneData, touchstoneData)
-      const newFrequency = new Frequency()
-      newFrequency.f_scaled = touchstoneData.frequency.f_scaled
-      newFrequency.unit = newUnit as any
-      updatedTouchstoneData.frequency = newFrequency
-      setTouchstoneData(updatedTouchstoneData)
+      // Get current frequencies in Hz to serve as a clean baseline
+      const frequenciesInHz = touchstoneData.frequency.f_Hz;
+
+      const updatedTouchstoneData = new Touchstone();
+      Object.assign(updatedTouchstoneData, touchstoneData); // Copy other Touchstone properties
+
+      const newFrequency = new Frequency();
+      // Set the base frequencies using the f_Hz setter from the rf-touchstone library.
+      // This ensures the newFrequency object internally has the values in Hz
+      // before the target unit is applied.
+      newFrequency.f_Hz = frequenciesInHz;
+
+      // Now set the desired unit. The Frequency class's 'unit' setter will scale
+      // the internal Hz values to the newUnit.
+      newFrequency.unit = newUnit as any;
+
+      updatedTouchstoneData.frequency = newFrequency;
+      setTouchstoneData(updatedTouchstoneData);
       // setSelectedFrequencyUnit(newUnit); // Handled by useEffect
     }
   }
