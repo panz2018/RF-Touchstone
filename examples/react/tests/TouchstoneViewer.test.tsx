@@ -88,7 +88,7 @@ describe('TouchstoneViewer Component', () => {
 
 
   it('renders initial state correctly and loads default sample file', async () => {
-    render(<TouchstoneViewer touchstoneData={null} />)
+    render(<TouchstoneViewer />);
     expect(screen.getByText(/Touchstone File Viewer/i)).toBeInTheDocument()
     expect(
       screen.getByLabelText(/Upload a Touchstone file/i)
@@ -111,7 +111,7 @@ describe('TouchstoneViewer Component', () => {
   })
 
   it('displays parsed data from the default sample file', async () => {
-    render(<TouchstoneViewer touchstoneData={null} />)
+    render(<TouchstoneViewer />);
     await waitFor(() => {
       expect(screen.getByText('1000000000')).toBeInTheDocument()
       expect(screen.getAllByText('0.9000').length).toBeGreaterThan(0)
@@ -129,7 +129,7 @@ describe('TouchstoneViewer Component', () => {
     })
     const uploadedTs = createTouchstoneFromString(mockUploadedFileContent)
 
-    render(<TouchstoneViewer touchstoneData={null} />)
+    render(<TouchstoneViewer />);
     await waitFor(() => {
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
@@ -156,7 +156,7 @@ describe('TouchstoneViewer Component', () => {
       type: 'text/plain',
     })
 
-    render(<TouchstoneViewer touchstoneData={null} />)
+    render(<TouchstoneViewer />);
     await waitFor(() => {
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
@@ -178,7 +178,7 @@ describe('TouchstoneViewer Component', () => {
   it('handles and displays error for an empty uploaded file', async () => {
     const emptyFile = new File([''], 'empty.s2p', { type: 'text/plain' })
 
-    render(<TouchstoneViewer touchstoneData={null} />)
+    render(<TouchstoneViewer />);
     await waitFor(() => {
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
@@ -206,7 +206,7 @@ describe('TouchstoneViewer Component', () => {
       })
     )
 
-    render(<TouchstoneViewer touchstoneData={null} />)
+    render(<TouchstoneViewer />);
     await waitFor(() => {
       expect(
         screen.getByText(/Error: Failed to fetch file: Server Error/i)
@@ -233,7 +233,7 @@ describe('TouchstoneViewer Component', () => {
     global.FileReader = vi.fn(() => mockReader as any)
 
 
-    render(<TouchstoneViewer touchstoneData={null} />)
+    render(<TouchstoneViewer />);
     await waitFor(() => {
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
@@ -252,7 +252,7 @@ describe('TouchstoneViewer Component', () => {
   })
 
   it('matches snapshot with loaded data', async () => {
-    const { container } = render(<TouchstoneViewer touchstoneData={null} />)
+    const { container } = render(<TouchstoneViewer />);
     await waitFor(() => {
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
@@ -263,7 +263,7 @@ describe('TouchstoneViewer Component', () => {
 
   describe('Format Switching', () => {
     it('allows switching data format and updates table display', async () => {
-      render(<TouchstoneViewer touchstoneData={null} />);
+      render(<TouchstoneViewer />);
       await waitFor(() => {
         expect(screen.getByText(/Currently displaying: Data from sample.s2p/i)).toBeInTheDocument();
       });
@@ -312,7 +312,7 @@ describe('TouchstoneViewer Component', () => {
 
   describe('Frequency Unit Switching Bug Verification', () => {
     it('correctly converts frequencies when switching units multiple times', async () => {
-      render(<TouchstoneViewer touchstoneData={null} />);
+      render(<TouchstoneViewer />);
       await waitFor(() => {
         // Wait for the default file (sample.s2p) to load
         expect(screen.getByText(/Currently displaying: Data from sample.s2p/i)).toBeInTheDocument();
@@ -386,13 +386,13 @@ describe('TouchstoneViewer Component', () => {
     });
 
     it('is disabled when no data is loaded', () => {
-      render(<TouchstoneViewer touchstoneData={null} />);
+      render(<TouchstoneViewer />);
       const copyButton = screen.getByRole('button', { name: /Copy Data/i });
       expect(copyButton).toBeDisabled();
     });
 
     it('calls Touchstone.toString and navigator.clipboard.writeText with data', async () => {
-      render(<TouchstoneViewer touchstoneData={null} />);
+      render(<TouchstoneViewer />);
       await waitFor(() => {
         expect(screen.getByText(/Currently displaying: Data from sample.s2p/i)).toBeInTheDocument();
       });
@@ -428,7 +428,7 @@ describe('TouchstoneViewer Component', () => {
     });
 
     it('shows error message if copying fails', async () => {
-      render(<TouchstoneViewer touchstoneData={null} />);
+      render(<TouchstoneViewer />);
       await waitFor(() => expect(screen.getByText(/Data from sample.s2p/i)).toBeInTheDocument());
 
       const copyButton = screen.getByRole('button', { name: /Copy Data/i });
@@ -456,13 +456,13 @@ describe('TouchstoneViewer Component', () => {
     });
 
     it('is disabled when no data is loaded', () => {
-      render(<TouchstoneViewer touchstoneData={null} />);
+      render(<TouchstoneViewer />);
       const downloadButton = screen.getByRole('button', { name: /Download File/i });
       expect(downloadButton).toBeDisabled();
     });
 
     it('triggers download with correct data and filename', async () => {
-      render(<TouchstoneViewer touchstoneData={null} />);
+      render(<TouchstoneViewer />);
       await waitFor(() => expect(screen.getByText(/Data from sample.s2p/i)).toBeInTheDocument());
 
       const downloadButton = screen.getByRole('button', { name: /Download File/i });
@@ -496,32 +496,25 @@ describe('TouchstoneViewer Component', () => {
       expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:http://localhost/mock-url');
     });
 
-     it('uses default filename if current filename is not available (e.g. initial prop load)', async () => {
-      // Simulate loading with initial data prop, where fileName might not be from user upload
-      const initialTs = createTouchstoneFromString(mockSampleS2P_MA_Content);
-      render(<TouchstoneViewer touchstoneData={initialTs} />); // Pass initial data directly
+    it('uses the default loaded filename for download when component mounts', async () => {
+      // TouchstoneViewer now always loads 'sample.s2p' on mount.
+      render(<TouchstoneViewer />);
 
-      // Need to wait for the component to process the initialTouchstoneData
       await waitFor(() => {
-        // Check if the component has settled with the initial data
-        // The filename would not be set by file picker in this case
-        // It might be "sample.s2p" by default or based on some other logic
-        // For this test, we want to ensure that if fileName is not "user-picked", a default is used.
-        // The component's default fileName state is 'sample.s2p'.
-        // Let's change the component's default for this test or ensure download uses a generic name.
-        // The current logic is: link.download = fileName || `data.s${touchstoneData.nports || ''}p`
-        // If initialTouchstoneData is set, fileName state remains 'sample.s2p'
+         // Ensure the default file is loaded and component is ready
          expect(screen.getByText(/Currently displaying: Data from sample.s2p/i)).toBeInTheDocument();
       });
 
-
       const downloadButton = screen.getByRole('button', { name: /Download File/i });
+      expect(downloadButton).not.toBeDisabled(); // Should be enabled after default load
+
       fireEvent.click(downloadButton);
 
+      // Check that the download is initiated with 'sample.s2p' as the filename
+      // because that's the fileName state after default load.
       const linkElement = mockAppendChild.mock.calls[0][0] as HTMLAnchorElement;
-      expect(linkElement.download).toBe('sample.s2p'); // It will use the default fileName state
+      expect(linkElement.download).toBe('sample.s2p');
     });
-
 
   });
 })

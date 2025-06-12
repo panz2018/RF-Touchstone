@@ -3,17 +3,17 @@ import { Touchstone, FrequencyUnits } from 'rf-touchstone'
 
 interface FileInfoProps {
   touchstoneData: Touchstone | null
-  selectedFrequencyUnit: string | undefined
+  unit: string | undefined // Renamed from selectedFrequencyUnit
   handleFrequencyUnitChange: (newUnit: string) => void
-  selectedFormat: string | undefined
+  format: string | undefined // Renamed from selectedFormat
   handleFormatChange: (newFormat: string) => void
 }
 
 const FileInfo: React.FC<FileInfoProps> = ({
   touchstoneData,
-  selectedFrequencyUnit,
+  unit, // Renamed from selectedFrequencyUnit
   handleFrequencyUnitChange,
-  selectedFormat,
+  format, // Renamed from selectedFormat
   handleFormatChange,
 }) => {
   if (!touchstoneData) {
@@ -30,12 +30,12 @@ const FileInfo: React.FC<FileInfoProps> = ({
         <strong>Frequency Unit:</strong>{' '}
         {touchstoneData.frequency?.unit ? (
           <select
-            value={selectedFrequencyUnit || ''}
+            value={unit || ''} // Use renamed prop
             onChange={(e) => handleFrequencyUnitChange(e.target.value)}
           >
-            {FrequencyUnits.map((unit) => (
-              <option key={unit} value={unit}>
-                {unit}
+            {FrequencyUnits.map((u) => ( // Renamed inner variable to avoid conflict
+              <option key={u} value={u}>
+                {u}
               </option>
             ))}
           </select>
@@ -50,7 +50,7 @@ const FileInfo: React.FC<FileInfoProps> = ({
         <strong>Format:</strong>{' '}
         {touchstoneData.format ? (
           <select
-            value={selectedFormat || ''}
+            value={format || ''} // Use renamed prop
             onChange={(e) => handleFormatChange(e.target.value)}
           >
             <option value="RI">RI (Real/Imaginary)</option>

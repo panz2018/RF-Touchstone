@@ -10,19 +10,13 @@ import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
 
 interface TouchstoneViewerProps {
-  touchstoneData: Touchstone | null
+  // No props are passed to this component from App.tsx currently
 }
 
-const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
-  touchstoneData: initialTouchstoneData,
-}) => {
-  const [touchstoneData, setTouchstoneData] = useState<Touchstone | null>(
-    initialTouchstoneData
-  )
-  const [selectedFrequencyUnit, setSelectedFrequencyUnit] = useState<
-    string | undefined
-  >()
-  const [selectedFormat, setSelectedFormat] = useState<string | undefined>()
+const TouchstoneViewer: React.FC<TouchstoneViewerProps> = () => {
+  const [touchstoneData, setTouchstoneData] = useState<Touchstone | null>(null);
+  const [unit, setUnit] = useState<string | undefined>();
+  const [format, setFormat] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string>('sample.s2p') // Default sample file
   const [copyStatus, setCopyStatus] = useState<string>('')
@@ -66,19 +60,19 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
   }, []) // Empty dependency array means this function is created once
 
   useEffect(() => {
-    if (!initialTouchstoneData) {
-      loadFileContent(`/${fileName}`)
-    } else {
-      setTouchstoneData(initialTouchstoneData)
-      // setSelectedFrequencyUnit(initialTouchstoneData.frequency?.unit); // Handled by another useEffect
-      // setSelectedFormat(initialTouchstoneData.format); // Handled by another useEffect
+    // Load default file on initial mount if fileName is set (which it is by default)
+    // This replaces the logic that depended on initialTouchstoneData
+    if (fileName) { // Check if fileName is set to avoid issues if it were dynamic
+        loadFileContent(`/${fileName}`);
     }
-  }, [fileName, initialTouchstoneData, loadFileContent])
+    // loadFileContent is memoized with useCallback, safe for deps array
+    // fileName is also in deps array, so if it changes (e.g. programmatically, though not current use case for default load), it re-runs
+  }, [fileName, loadFileContent]);
 
   useEffect(() => {
     if (touchstoneData) {
-      setSelectedFrequencyUnit(touchstoneData.frequency?.unit)
-      setSelectedFormat(touchstoneData.format)
+      setUnit(touchstoneData.frequency?.unit);
+      setFormat(touchstoneData.format);
     }
   }, [touchstoneData])
 
@@ -285,9 +279,9 @@ const TouchstoneViewer: React.FC<TouchstoneViewerProps> = ({
         <>
           <FileInfo
             touchstoneData={touchstoneData}
-            selectedFrequencyUnit={selectedFrequencyUnit}
+            unit={unit}
             handleFrequencyUnitChange={handleFrequencyUnitChange}
-            selectedFormat={selectedFormat}
+            format={format}
             handleFormatChange={handleFormatChange}
           />
           <DataTable
