@@ -1,4 +1,3 @@
-import React from 'react'
 import TouchstoneViewer from './TouchstoneViewer'
 import './App.css' // Optional: for basic styling
 
