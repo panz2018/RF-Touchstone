@@ -9,11 +9,9 @@ import {
 import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
 
-interface TouchstoneViewerProps {
-  // No props are passed to this component from App.tsx currently
-}
+// TouchstoneViewerProps interface removed
 
-const TouchstoneViewer: React.FC<TouchstoneViewerProps> = () => {
+const TouchstoneViewer: React.FC = () => {
   const [touchstoneData, setTouchstoneData] = useState<Touchstone | null>(null);
   const [unit, setUnit] = useState<string | undefined>();
   const [format, setFormat] = useState<string | undefined>();
