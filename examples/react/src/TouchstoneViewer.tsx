@@ -3,13 +3,13 @@ import {
   complex,
   Complex,
   Frequency,
-  // FrequencyUnits, // No longer needed here, moved to FileInfo
   Touchstone,
+  abs, // Add this
+  arg, // Add this
+  type TouchstoneFormat, // Add this
 } from 'rf-touchstone'
 import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
-
-// TouchstoneViewerProps interface removed
 
 const TouchstoneViewer: React.FC = () => {
   const [touchstoneData, setTouchstoneData] = useState<Touchstone | null>(null);
@@ -130,8 +130,8 @@ const TouchstoneViewer: React.FC = () => {
           unit2: 'Imaginary',
         }
       case 'MA':
-        const magnitude = param.abs()
-        const angle = (param.arg() * 180) / Math.PI
+        const magnitude = abs(param);
+        const angle = (arg(param) * 180) / Math.PI;
         return {
           value1: magnitude.toFixed(4),
           value2: angle.toFixed(4),
@@ -139,8 +139,8 @@ const TouchstoneViewer: React.FC = () => {
           unit2: 'Angle (°)',
         }
       case 'DB':
-        const db = 20 * Math.log10(param.abs())
-        const dbAngle = (param.arg() * 180) / Math.PI
+        const db = 20 * Math.log10(abs(param));
+        const dbAngle = (arg(param) * 180) / Math.PI;
         return {
           value1: db.toFixed(4),
           value2: dbAngle.toFixed(4),
@@ -180,7 +180,7 @@ const TouchstoneViewer: React.FC = () => {
     if (touchstoneData) {
       const updatedTouchstoneData = new Touchstone()
       Object.assign(updatedTouchstoneData, touchstoneData)
-      updatedTouchstoneData.format = newFormat
+      updatedTouchstoneData.format = newFormat as TouchstoneFormat;
       setTouchstoneData(updatedTouchstoneData)
       // setSelectedFormat(newFormat); // Handled by useEffect
     }
