@@ -1,5 +1,5 @@
 import React, { JSX } from 'react'
-import { Touchstone, Complex, abs, arg } from 'rf-touchstone' // Removed 'complex' import
+import { Touchstone, Complex, abs, arg } from 'rf-touchstone'
 
 /**
  * Props for the DataTable component.
@@ -14,13 +14,13 @@ interface DataTableProps {
 }
 
 /**
- * Determines the unit names for the two parts of an S-parameter based on the display format.
- * @param currentFormat The current S-parameter display format ('RI', 'MA', 'DB').
+ * Determines the unit names for the two parts of a formatted data value based on the display format.
+ * @param currentFormat The current display format string (e.g., 'RI', 'MA', 'DB').
  * @returns An object with `unit1` and `unit2` string properties.
  */
-const getSParameterUnitNames = (currentFormat: string | undefined): { unit1: string; unit2: string } => {
+const getUnitNames = (currentFormat: string | undefined): { unit1: string; unit2: string } => {
   if (currentFormat === undefined) {
-    return { unit1: '', unit2: '' };
+    return { unit1: 'N/A', unit2: 'N/A' };
   }
   switch (currentFormat) {
     case 'RI':
@@ -30,17 +30,17 @@ const getSParameterUnitNames = (currentFormat: string | undefined): { unit1: str
     case 'DB':
       return { unit1: 'dB', unit2: 'Angle (°)' };
     default:
-      return { unit1: '', unit2: '' };
+      return { unit1: 'N/A', unit2: 'N/A' };
   }
 };
 
 /**
- * Formats the numerical values of a complex S-parameter based on the display format.
- * @param param The complex S-parameter value (or undefined).
- * @param currentFormat The current S-parameter display format ('RI', 'MA', 'DB').
+ * Formats the numerical values of a complex data parameter based on the display format.
+ * @param param The complex data parameter value (or undefined).
+ * @param currentFormat The current display format string (e.g., 'RI', 'MA', 'DB').
  * @returns An object with `value1` and `value2` string properties (formatted numbers).
  */
-const formatSParameterValues = (param: Complex | undefined, currentFormat: string | undefined): { value1: string; value2: string } => {
+const formatDataValues = (param: Complex | undefined, currentFormat: string | undefined): { value1: string; value2: string } => {
   if (!param || currentFormat === undefined) {
     return { value1: 'N/A', value2: 'N/A' };
   }
@@ -115,7 +115,7 @@ const DataTable: React.FC<DataTableProps> = ({
 
     // Dynamically generate headers for each S-parameter based on the number of ports.
     if (currentTouchstoneData.nports !== undefined) {
-      const units = getSParameterUnitNames(format); // Get unit names based on the format prop
+      const units = getUnitNames(format); // Get unit names based on the format prop
       for (
         let outPort = 0;
         outPort < currentTouchstoneData.nports!;
@@ -154,7 +154,7 @@ const DataTable: React.FC<DataTableProps> = ({
   /**
    * Generates the table body rows (<tbody>).
    * Each row corresponds to a frequency point from the Touchstone data.
-   * S-parameter values are formatted using the internal `formatSParameterValues` function
+   * Parameter values are formatted using the internal `formatDataValues` function
    * based on the current `format` prop.
    * @param currentTouchstoneData The active Touchstone object.
    * @returns A React.Fragment containing all table data rows (<tr> elements).
@@ -189,7 +189,7 @@ const DataTable: React.FC<DataTableProps> = ({
               const param =
                 currentTouchstoneData.matrix?.[outPort]?.[inPort]?.[freqIndex]
               // Format the S-parameter using the selected display format.
-              const values = formatSParameterValues(param, format)
+              const values = formatDataValues(param, format)
 
               // Add two cells for the formatted S-parameter (e.g., Real and Imaginary parts).
               dataCells.push(
