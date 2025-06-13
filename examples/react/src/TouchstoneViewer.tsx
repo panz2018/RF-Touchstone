@@ -124,8 +124,8 @@ const TouchstoneViewer: React.FC = () => {
     switch (format) {
       case 'RI':
         return {
-          value1: (param.re as number).toFixed(4),
-          value2: (param.im as number).toFixed(4),
+          value1: ((param as any).re as number).toFixed(4),
+          value2: ((param as any).im as number).toFixed(4),
           unit1: 'Real',
           unit2: 'Imaginary',
         }
@@ -139,7 +139,7 @@ const TouchstoneViewer: React.FC = () => {
           unit2: 'Angle (°)',
         }
       case 'DB':
-        const db = 20 * Math.log10(abs(param) as number);
+        const db = 20 * Math.log10(abs(param) as unknown as number);
         const dbAngle = (arg(param) * 180) / Math.PI;
         return {
           value1: db.toFixed(4),
