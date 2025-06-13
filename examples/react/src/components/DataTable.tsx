@@ -15,14 +15,14 @@ interface DataTableProps {
 
 /**
  * Determines the unit names for the two parts of a formatted data value based on the display format.
- * @param currentFormat The current display format string (e.g., 'RI', 'MA', 'DB').
+ * @param format The current display format string (e.g., 'RI', 'MA', 'DB').
  * @returns An object with `unit1` and `unit2` string properties.
  */
-const getUnitNames = (currentFormat: string | undefined): { unit1: string; unit2: string } => {
-  if (currentFormat === undefined) {
+const getUnitNames = (format: string | undefined): { unit1: string; unit2: string } => {
+  if (format === undefined) {
     return { unit1: 'N/A', unit2: 'N/A' };
   }
-  switch (currentFormat) {
+  switch (format) {
     case 'RI':
       return { unit1: 'Real', unit2: 'Imaginary' };
     case 'MA':
@@ -37,14 +37,14 @@ const getUnitNames = (currentFormat: string | undefined): { unit1: string; unit2
 /**
  * Formats the numerical values of a complex data parameter based on the display format.
  * @param param The complex data parameter value (or undefined).
- * @param currentFormat The current display format string (e.g., 'RI', 'MA', 'DB').
+ * @param format The current display format string (e.g., 'RI', 'MA', 'DB').
  * @returns An object with `value1` and `value2` string properties (formatted numbers).
  */
-const formatDataValues = (param: Complex | undefined, currentFormat: string | undefined): { value1: string; value2: string } => {
-  if (!param || currentFormat === undefined) {
+const formatDataValues = (param: Complex | undefined, format: string | undefined): { value1: string; value2: string } => {
+  if (!param || format === undefined) {
     return { value1: 'N/A', value2: 'N/A' };
   }
-  switch (currentFormat) {
+  switch (format) {
     case 'RI':
       return {
         value1: (param.re as unknown as number).toFixed(4),
