@@ -124,8 +124,8 @@ const TouchstoneViewer: React.FC = () => {
     switch (format) {
       case 'RI':
         return {
-          value1: ((param as any).re as number).toFixed(4),
-          value2: ((param as any).im as number).toFixed(4),
+          value1: (param.re as unknown as number).toFixed(4),
+          value2: (param.im as unknown as number).toFixed(4),
           unit1: 'Real',
           unit2: 'Imaginary',
         }
