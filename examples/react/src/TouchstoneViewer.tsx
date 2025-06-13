@@ -145,51 +145,6 @@ const TouchstoneViewer: React.FC = () => {
   }
 
   /**
-   * Formats a complex S-parameter value into a displayable string object.
-   * Based on the selected format (RI, MA, DB), it returns two string values and their units.
-   * @param param The complex S-parameter (or undefined).
-   * @param currentFormat The currently selected display format ('RI', 'MA', 'DB').
-   * @returns An object with `value1`, `value2`, `unit1`, `unit2`.
-   */
-  const formatParameter = (
-    param: Complex | undefined,
-    currentFormat: string | undefined
-  ): { value1: string; value2: string; unit1: string; unit2: string } => {
-    if (!param || currentFormat === undefined) {
-      return { value1: 'N/A', value2: 'N/A', unit1: '', unit2: '' }
-    }
-    switch (currentFormat) {
-      case 'RI':
-        return {
-          value1: (param.re as unknown as number).toFixed(4),
-          value2: (param.im as unknown as number).toFixed(4),
-          unit1: 'Real',
-          unit2: 'Imaginary',
-        }
-      case 'MA':
-        const magnitude = abs(param) as unknown as number;
-        const angle = (arg(param) * 180) / Math.PI;
-        return {
-          value1: magnitude.toFixed(4),
-          value2: angle.toFixed(4),
-          unit1: 'Magnitude',
-          unit2: 'Angle (°)',
-        }
-      case 'DB':
-        const db = 20 * Math.log10(abs(param) as unknown as number);
-        const dbAngle = (arg(param) * 180) / Math.PI;
-        return {
-          value1: db.toFixed(4),
-          value2: dbAngle.toFixed(4),
-          unit1: 'dB',
-          unit2: 'Angle (°)',
-        }
-      default:
-        return { value1: 'N/A', value2: 'N/A', unit1: '', unit2: '' }
-    }
-  }
-
-  /**
    * Handles changes to the selected frequency unit.
    * It creates a new Touchstone object with frequencies scaled to the new unit.
    * @param newUnit The new frequency unit string (e.g., "GHz", "MHz").
@@ -328,7 +283,8 @@ const TouchstoneViewer: React.FC = () => {
           {/* Data Table Component */}
           <DataTable
             touchstone={touchstone}
-            formatParameter={formatParameter}
+            unit={unit}
+            format={format}
           />
         </>
       )}
