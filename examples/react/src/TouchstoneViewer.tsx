@@ -130,7 +130,7 @@ const TouchstoneViewer: React.FC = () => {
           unit2: 'Imaginary',
         }
       case 'MA':
-        const magnitude = abs(param);
+        const magnitude = abs(param) as unknown as number;
         const angle = (arg(param) * 180) / Math.PI;
         return {
           value1: magnitude.toFixed(4),
