@@ -12,7 +12,7 @@ import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
 
 const TouchstoneViewer: React.FC = () => {
-  const [touchstoneData, setTouchstoneData] = useState<Touchstone | null>(null);
+  const [touchstone, setTouchstone] = useState<Touchstone | null>(null);
   const [unit, setUnit] = useState<string | undefined>();
   const [format, setFormat] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null)
@@ -44,7 +44,7 @@ const TouchstoneViewer: React.FC = () => {
       }
       const ts = new Touchstone()
       ts.readContent(textContent, nports)
-      setTouchstoneData(ts)
+      setTouchstone(ts)
       // setSelectedFrequencyUnit(ts.frequency?.unit); // Handled by useEffect
       // setSelectedFormat(ts.format); // Handled by useEffect
       setError(null)
@@ -53,7 +53,7 @@ const TouchstoneViewer: React.FC = () => {
       setError(
         err instanceof Error ? err.message : 'An unknown error occurred.'
       )
-      setTouchstoneData(null)
+      setTouchstone(null)
     }
   }, []) // Empty dependency array means this function is created once
 
@@ -68,11 +68,11 @@ const TouchstoneViewer: React.FC = () => {
   }, [fileName, loadFileContent]);
 
   useEffect(() => {
-    if (touchstoneData) {
-      setUnit(touchstoneData.frequency?.unit);
-      setFormat(touchstoneData.format);
+    if (touchstone) {
+      setUnit(touchstone.frequency?.unit);
+      setFormat(touchstone.format);
     }
-  }, [touchstoneData])
+  }, [touchstone])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -91,7 +91,7 @@ const TouchstoneViewer: React.FC = () => {
             }
             const ts = new Touchstone()
             ts.readContent(textContent, nports)
-            setTouchstoneData(ts)
+            setTouchstone(ts)
             setError(null)
           } else {
             throw new Error('File content is empty.')
@@ -103,12 +103,12 @@ const TouchstoneViewer: React.FC = () => {
               ? err.message
               : 'Failed to parse uploaded file.'
           )
-          setTouchstoneData(null)
+          setTouchstone(null)
         }
       }
       reader.onerror = () => {
         setError('Error reading file.')
-        setTouchstoneData(null)
+        setTouchstone(null)
       }
       reader.readAsText(file)
     }
@@ -153,12 +153,12 @@ const TouchstoneViewer: React.FC = () => {
   }
 
   const handleUnitChange = (newUnit: string) => {
-    if (touchstoneData?.frequency) {
+    if (touchstone?.frequency) {
       // Get current frequencies in Hz to serve as a clean baseline
-      const frequenciesInHz = touchstoneData.frequency.f_Hz;
+      const frequenciesInHz = touchstone.frequency.f_Hz;
 
-      const updatedTouchstoneData = new Touchstone();
-      Object.assign(updatedTouchstoneData, touchstoneData); // Copy other Touchstone properties
+      const updatedTouchstone = new Touchstone();
+      Object.assign(updatedTouchstone, touchstone); // Copy other Touchstone properties
 
       const newFrequency = new Frequency();
       // Set the base frequencies using the f_Hz setter from the rf-touchstone library.
@@ -170,24 +170,24 @@ const TouchstoneViewer: React.FC = () => {
       // the internal Hz values to the newUnit.
       newFrequency.unit = newUnit as any;
 
-      updatedTouchstoneData.frequency = newFrequency;
-      setTouchstoneData(updatedTouchstoneData);
+      updatedTouchstone.frequency = newFrequency;
+      setTouchstone(updatedTouchstone);
       // setSelectedFrequencyUnit(newUnit); // Handled by useEffect
     }
   }
 
   const handleFormatChange = (newFormat: string) => {
-    if (touchstoneData) {
-      const updatedTouchstoneData = new Touchstone()
-      Object.assign(updatedTouchstoneData, touchstoneData)
-      updatedTouchstoneData.format = newFormat as TouchstoneFormat;
-      setTouchstoneData(updatedTouchstoneData)
+    if (touchstone) {
+      const updatedTouchstone = new Touchstone()
+      Object.assign(updatedTouchstone, touchstone)
+      updatedTouchstone.format = newFormat as TouchstoneFormat;
+      setTouchstone(updatedTouchstone)
       // setSelectedFormat(newFormat); // Handled by useEffect
     }
   }
 
   const handleCopyData = async () => {
-    if (!touchstoneData) {
+    if (!touchstone) {
       setCopyStatus('No data to copy.')
       setTimeout(() => setCopyStatus(''), 3000)
       return
@@ -199,7 +199,7 @@ const TouchstoneViewer: React.FC = () => {
       // If rf-touchstone's Touchstone class doesn't have a direct toString()
       // for file content, this part would need significant rework
       // to manually reconstruct the file string.
-      const fileContentString = touchstoneData.toString()
+      const fileContentString = touchstone.toString()
       await navigator.clipboard.writeText(fileContentString)
       setCopyStatus('Copied to clipboard!')
     } catch (err) {
@@ -211,22 +211,22 @@ const TouchstoneViewer: React.FC = () => {
   }
 
   const handleDownloadFile = () => {
-    if (!touchstoneData) {
+    if (!touchstone) {
       // Optionally, set a status or log, but button should be disabled
       console.warn('No data to download.')
       return
     }
 
     try {
-      // Assuming touchstoneData.toString() serializes the data correctly.
-      const fileContentString = touchstoneData.toString()
+      // Assuming touchstone.toString() serializes the data correctly.
+      const fileContentString = touchstone.toString()
       const blob = new Blob([fileContentString], {
         type: 'text/plain;charset=utf-8',
       })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = fileName || `data.s${touchstoneData.nports || ''}p` // Use existing fileName or a default
+      link.download = fileName || `data.s${touchstone.nports || ''}p` // Use existing fileName or a default
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -250,12 +250,12 @@ const TouchstoneViewer: React.FC = () => {
         />
       </div>
       <div>
-        <button onClick={handleCopyData} disabled={!touchstoneData}>
+        <button onClick={handleCopyData} disabled={!touchstone}>
           Copy Data
         </button>
         <button
           onClick={handleDownloadFile}
-          disabled={!touchstoneData}
+          disabled={!touchstone}
           style={{ marginLeft: '10px' }}
         >
           Download File
@@ -264,7 +264,7 @@ const TouchstoneViewer: React.FC = () => {
       </div>
       <p>
         Currently displaying:{' '}
-        {touchstoneData
+        {touchstone
           ? `Data from ${fileName}`
           : error
           ? `Error with ${fileName}`
@@ -273,17 +273,17 @@ const TouchstoneViewer: React.FC = () => {
 
       {error && <pre style={{ color: 'red' }}>Error: {error}</pre>}
 
-      {touchstoneData && (
+      {touchstone && (
         <>
           <FileInfo
-            touchstoneData={touchstoneData}
+            touchstone={touchstone}
             unit={unit}
             handleUnitChange={handleUnitChange}
             format={format}
             handleFormatChange={handleFormatChange}
           />
           <DataTable
-            touchstoneData={touchstoneData}
+            touchstone={touchstone}
             formatParameter={formatParameter}
           />
         </>

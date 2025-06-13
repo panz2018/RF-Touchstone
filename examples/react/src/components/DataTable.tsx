@@ -2,7 +2,7 @@ import React, { JSX } from 'react'
 import { Touchstone, Complex, complex } from 'rf-touchstone'
 
 interface DataTableProps {
-  touchstoneData: Touchstone | null
+  touchstone: Touchstone | null // Renamed here
   formatParameter: (
     param: Complex | undefined,
     format: string | undefined
@@ -10,15 +10,15 @@ interface DataTableProps {
 }
 
 const DataTable: React.FC<DataTableProps> = ({
-  touchstoneData,
+  touchstone, // Renamed here
   formatParameter,
 }) => {
   if (
-    !touchstoneData ||
-    !touchstoneData.matrix ||
-    touchstoneData.matrix.length === 0 ||
-    !touchstoneData.frequency?.f_scaled ||
-    touchstoneData.frequency.f_scaled.length === 0
+    !touchstone ||
+    !touchstone.matrix ||
+    touchstone.matrix.length === 0 ||
+    !touchstone.frequency?.f_scaled ||
+    touchstone.frequency.f_scaled.length === 0
   ) {
     return (
       <p>
@@ -126,8 +126,8 @@ const DataTable: React.FC<DataTableProps> = ({
     <div>
       <h3>Network Data</h3>
       <table>
-        <thead>{renderTableHeaders(touchstoneData)}</thead>
-        <tbody>{renderTableRows(touchstoneData)}</tbody>
+        <thead>{renderTableHeaders(touchstone)}</thead>
+        <tbody>{renderTableRows(touchstone)}</tbody>
       </table>
     </div>
   )

@@ -6,7 +6,7 @@ import { Touchstone, FrequencyUnits } from 'rf-touchstone'
  */
 interface FileInfoProps {
   /** The loaded Touchstone data object, or null if no data is loaded. */
-  touchstoneData: Touchstone | null
+  touchstone: Touchstone | null
   /** The currently selected frequency unit (e.g., "GHz", "MHz"). */
   unit: string | undefined
   /** Callback function to handle changes to the frequency unit. */
@@ -23,14 +23,14 @@ interface FileInfoProps {
  * allowing users to change frequency units and data formats.
  */
 const FileInfo: React.FC<FileInfoProps> = ({
-  touchstoneData,
+  touchstone,
   unit,
   handleUnitChange,
   format,
   handleFormatChange,
 }) => {
   // If no Touchstone data is available, render nothing.
-  if (!touchstoneData) {
+  if (!touchstone) {
     return null
   }
 
@@ -40,13 +40,13 @@ const FileInfo: React.FC<FileInfoProps> = ({
 
       {/* Display the number of ports in the Touchstone file. */}
       <p>
-        <strong>Port number:</strong> {touchstoneData.nports}
+        <strong>Port number:</strong> {touchstone.nports}
       </p>
 
       {/* Frequency Unit Selector: Allows changing the unit for displayed frequencies. */}
       <p>
         <strong>Frequency Unit:</strong>{' '}
-        {touchstoneData.frequency?.unit ? (
+        {touchstone.frequency?.unit ? (
           <select
             value={unit || ''}
             onChange={(e) => handleUnitChange(e.target.value)}
@@ -64,13 +64,13 @@ const FileInfo: React.FC<FileInfoProps> = ({
 
       {/* Display the type of network parameter (e.g., S, Y, Z). */}
       <p>
-        <strong>Parameter:</strong> {touchstoneData.parameter}
+        <strong>Parameter:</strong> {touchstone.parameter}
       </p>
 
       {/* Format Selector: Allows changing the format of displayed S-parameter data. */}
       <p>
         <strong>Format:</strong>{' '}
-        {touchstoneData.format ? (
+        {touchstone.format ? (
           <select
             value={format || ''}
             onChange={(e) => handleFormatChange(e.target.value)}
@@ -87,18 +87,18 @@ const FileInfo: React.FC<FileInfoProps> = ({
       {/* Display the reference impedance for the S-parameters. */}
       <p>
         <strong>Impedance:</strong>{' '}
-        {Array.isArray(touchstoneData.impedance)
-          ? touchstoneData.impedance.join(', ')
-          : touchstoneData.impedance}{' '}
+        {Array.isArray(touchstone.impedance)
+          ? touchstone.impedance.join(', ')
+          : touchstone.impedance}{' '}
         Ohms
       </p>
 
       {/* Display any comments found in the Touchstone file. */}
-      {touchstoneData.comments.length > 0 && (
+      {touchstone.comments.length > 0 && (
         <div>
           <strong>Comments:</strong>
           <ul>
-            {touchstoneData.comments.map((comment, index) => (
+            {touchstone.comments.map((comment, index) => (
               <li key={index}>{comment}</li>
             ))}
           </ul>
