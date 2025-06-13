@@ -1,35 +1,56 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   complex,
   Complex,
   Frequency,
   Touchstone,
-  abs, // Add this
-  arg, // Add this
-  type TouchstoneFormat, // Add this
+  abs,
+  arg,
+  type TouchstoneFormat,
 } from 'rf-touchstone'
 import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
 
+/**
+ * TouchstoneViewer component.
+ * Main component for loading, viewing, and interacting with Touchstone (.sNp) files.
+ * It manages the Touchstone data, handles file input, unit/format changes,
+ * and provides copy/download functionality.
+ */
 const TouchstoneViewer: React.FC = () => {
+  // State for the currently loaded Touchstone object.
   const [touchstone, setTouchstone] = useState<Touchstone | null>(null);
+  // State for the selected frequency unit for display.
   const [unit, setUnit] = useState<string | undefined>();
+  // State for the selected S-parameter format for display.
   const [format, setFormat] = useState<string | undefined>();
+  // State for storing any error messages.
   const [error, setError] = useState<string | null>(null)
+  // State for the name of the currently loaded or selected file.
   const [fileName, setFileName] = useState<string>('sample.s2p') // Default sample file
+  // State for providing feedback messages for the copy operation.
   const [copyStatus, setCopyStatus] = useState<string>('')
 
-  // Helper function to determine the number of ports from the file extension
-  const getNumberOfPorts = (fileName: string): number | null => {
-    const match = fileName.match(/\.s(\d+)p$/i)
+  /**
+   * Helper function to determine the number of ports from a Touchstone filename (e.g., .s2p -> 2 ports).
+   * @param currentFileName The filename to parse.
+   * @returns The number of ports, or null if not determinable from the extension.
+   */
+  const getNumberOfPorts = (currentFileName: string): number | null => {
+    const match = currentFileName.match(/\.s(\d+)p$/i)
     if (match && match[1]) {
       return parseInt(match[1], 10)
     }
-    return null // Or handle other extensions if needed
+    return null
   }
 
-  // Wrapped loadFileContent in useCallback to stabilize its identity
-  const loadFileContent = React.useCallback(async (fileUrl: string) => {
+  /**
+   * Loads Touchstone file content from a given URL.
+   * Parses the content and updates the component's state.
+   * Wrapped in useCallback to stabilize its identity for useEffect dependencies.
+   * @param fileUrl The URL of the Touchstone file to load.
+   */
+  const loadFileContent = useCallback(async (fileUrl: string) => {
     try {
       const response = await fetch(fileUrl)
       if (!response.ok) {
@@ -45,28 +66,32 @@ const TouchstoneViewer: React.FC = () => {
       const ts = new Touchstone()
       ts.readContent(textContent, nports)
       setTouchstone(ts)
-      // setSelectedFrequencyUnit(ts.frequency?.unit); // Handled by useEffect
-      // setSelectedFormat(ts.format); // Handled by useEffect
-      setError(null)
+      setError(null) // Clear any previous errors
     } catch (err) {
       console.error('Error loading or parsing Touchstone file:', err)
       setError(
         err instanceof Error ? err.message : 'An unknown error occurred.'
       )
-      setTouchstone(null)
+      setTouchstone(null) // Clear data on error
     }
-  }, []) // Empty dependency array means this function is created once
+  }, []) // Empty dependency array: function created once and doesn't depend on component state/props.
 
+  /**
+   * Effect hook to load the default Touchstone file (sample.s2p) when the component mounts
+   * or when the `fileName` state changes (e.g., if it were to be set programmatically for the default load).
+   * Dependencies: `fileName`, `loadFileContent`.
+   */
   useEffect(() => {
-    // Load default file on initial mount if fileName is set (which it is by default)
-    // This replaces the logic that depended on initialTouchstoneData
-    if (fileName) { // Check if fileName is set to avoid issues if it were dynamic
+    if (fileName) {
         loadFileContent(`/${fileName}`);
     }
-    // loadFileContent is memoized with useCallback, safe for deps array
-    // fileName is also in deps array, so if it changes (e.g. programmatically, though not current use case for default load), it re-runs
   }, [fileName, loadFileContent]);
 
+  /**
+   * Effect hook to update the displayed unit and format when new Touchstone data is loaded.
+   * Runs whenever the `touchstone` state object changes.
+   * Dependencies: `touchstone`.
+   */
   useEffect(() => {
     if (touchstone) {
       setUnit(touchstone.frequency?.unit);
@@ -74,10 +99,15 @@ const TouchstoneViewer: React.FC = () => {
     }
   }, [touchstone])
 
+  /**
+   * Handles the change event when a user selects a new file via the input element.
+   * Reads the file content, parses it, and updates the state.
+   * @param event The React change event from the file input.
+   */
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      setFileName(file.name)
+      setFileName(file.name) // Update displayed filename
       const reader = new FileReader()
       reader.onload = async (e) => {
         try {
@@ -92,7 +122,7 @@ const TouchstoneViewer: React.FC = () => {
             const ts = new Touchstone()
             ts.readContent(textContent, nports)
             setTouchstone(ts)
-            setError(null)
+            setError(null) // Clear previous errors
           } else {
             throw new Error('File content is empty.')
           }
@@ -103,25 +133,32 @@ const TouchstoneViewer: React.FC = () => {
               ? err.message
               : 'Failed to parse uploaded file.'
           )
-          setTouchstone(null)
+          setTouchstone(null) // Clear data on error
         }
       }
       reader.onerror = () => {
         setError('Error reading file.')
-        setTouchstone(null)
+        setTouchstone(null) // Clear data on error
       }
       reader.readAsText(file)
     }
   }
 
+  /**
+   * Formats a complex S-parameter value into a displayable string object.
+   * Based on the selected format (RI, MA, DB), it returns two string values and their units.
+   * @param param The complex S-parameter (or undefined).
+   * @param currentFormat The currently selected display format ('RI', 'MA', 'DB').
+   * @returns An object with `value1`, `value2`, `unit1`, `unit2`.
+   */
   const formatParameter = (
     param: Complex | undefined,
-    format: string | undefined
+    currentFormat: string | undefined
   ): { value1: string; value2: string; unit1: string; unit2: string } => {
-    if (!param || format === undefined) {
+    if (!param || currentFormat === undefined) {
       return { value1: 'N/A', value2: 'N/A', unit1: '', unit2: '' }
     }
-    switch (format) {
+    switch (currentFormat) {
       case 'RI':
         return {
           value1: (param.re as unknown as number).toFixed(4),
@@ -152,94 +189,95 @@ const TouchstoneViewer: React.FC = () => {
     }
   }
 
-  const handleUnitChange = (newUnit: string) => {
+  /**
+   * Handles changes to the selected frequency unit.
+   * It creates a new Touchstone object with frequencies scaled to the new unit.
+   * @param newUnit The new frequency unit string (e.g., "GHz", "MHz").
+   */
+  const handleUnitChange = (newUnitString: string) => {
     if (touchstone?.frequency) {
-      // Get current frequencies in Hz to serve as a clean baseline
       const frequenciesInHz = touchstone.frequency.f_Hz;
-
       const updatedTouchstone = new Touchstone();
-      Object.assign(updatedTouchstone, touchstone); // Copy other Touchstone properties
+      Object.assign(updatedTouchstone, touchstone);
 
       const newFrequency = new Frequency();
-      // Set the base frequencies using the f_Hz setter from the rf-touchstone library.
-      // This ensures the newFrequency object internally has the values in Hz
-      // before the target unit is applied.
       newFrequency.f_Hz = frequenciesInHz;
-
-      // Now set the desired unit. The Frequency class's 'unit' setter will scale
-      // the internal Hz values to the newUnit.
-      newFrequency.unit = newUnit as any;
+      newFrequency.unit = newUnitString as any; // `unit` setter handles scaling
 
       updatedTouchstone.frequency = newFrequency;
       setTouchstone(updatedTouchstone);
-      // setSelectedFrequencyUnit(newUnit); // Handled by useEffect
     }
   }
 
-  const handleFormatChange = (newFormat: string) => {
+  /**
+   * Handles changes to the selected S-parameter display format.
+   * It creates a new Touchstone object with the updated format property.
+   * @param newFormatString The new format string ('RI', 'MA', 'DB').
+   */
+  const handleFormatChange = (newFormatString: string) => {
     if (touchstone) {
       const updatedTouchstone = new Touchstone()
       Object.assign(updatedTouchstone, touchstone)
-      updatedTouchstone.format = newFormat as TouchstoneFormat;
+      updatedTouchstone.format = newFormatString as TouchstoneFormat;
       setTouchstone(updatedTouchstone)
-      // setSelectedFormat(newFormat); // Handled by useEffect
     }
   }
 
+  /**
+   * Handles the "Copy Data" button click.
+   * Converts the current Touchstone data to its string representation and copies it to the clipboard.
+   * Provides user feedback via `copyStatus` state.
+   */
   const handleCopyData = async () => {
     if (!touchstone) {
       setCopyStatus('No data to copy.')
       setTimeout(() => setCopyStatus(''), 3000)
       return
     }
-
     try {
-      // Assuming touchstoneData.toString() serializes the data correctly.
-      // This is a critical assumption based on the subtask description.
-      // If rf-touchstone's Touchstone class doesn't have a direct toString()
-      // for file content, this part would need significant rework
-      // to manually reconstruct the file string.
-      const fileContentString = touchstone.toString()
+      const fileContentString = touchstone.toString() // Assumes Touchstone.toString() exists and is correct
       await navigator.clipboard.writeText(fileContentString)
       setCopyStatus('Copied to clipboard!')
     } catch (err) {
       console.error('Failed to copy data:', err)
       setCopyStatus('Failed to copy.')
     } finally {
-      setTimeout(() => setCopyStatus(''), 3000) // Clear status after 3 seconds
+      setTimeout(() => setCopyStatus(''), 3000)
     }
   }
 
+  /**
+   * Handles the "Download File" button click.
+   * Converts the current Touchstone data to its string representation and initiates a file download.
+   */
   const handleDownloadFile = () => {
     if (!touchstone) {
-      // Optionally, set a status or log, but button should be disabled
       console.warn('No data to download.')
       return
     }
-
     try {
-      // Assuming touchstone.toString() serializes the data correctly.
-      const fileContentString = touchstone.toString()
+      const fileContentString = touchstone.toString() // Assumes Touchstone.toString() exists
       const blob = new Blob([fileContentString], {
         type: 'text/plain;charset=utf-8',
       })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = fileName || `data.s${touchstone.nports || ''}p` // Use existing fileName or a default
+      link.download = fileName || `data.s${touchstone.nports || ''}p`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
     } catch (err) {
       console.error('Failed to download file:', err)
-      // Optionally, set a status message for the user
     }
   }
 
   return (
     <div>
       <h2>Touchstone File Viewer</h2>
+
+      {/* File Input Section */}
       <div>
         <label htmlFor="fileInput">Upload a Touchstone file (.sNp): </label>
         <input
@@ -249,6 +287,8 @@ const TouchstoneViewer: React.FC = () => {
           onChange={handleFileChange}
         />
       </div>
+
+      {/* Action Buttons Section (Copy/Download) */}
       <div>
         <button onClick={handleCopyData} disabled={!touchstone}>
           Copy Data
@@ -262,6 +302,8 @@ const TouchstoneViewer: React.FC = () => {
         </button>
         {copyStatus && <span style={{ marginLeft: '10px' }}>{copyStatus}</span>}
       </div>
+
+      {/* Status/Error Message Display */}
       <p>
         Currently displaying:{' '}
         {touchstone
@@ -270,11 +312,12 @@ const TouchstoneViewer: React.FC = () => {
           ? `Error with ${fileName}`
           : `Loading ${fileName}...`}
       </p>
-
       {error && <pre style={{ color: 'red' }}>Error: {error}</pre>}
 
+      {/* Conditional Rendering for Touchstone Data */}
       {touchstone && (
         <>
+          {/* File Information and Controls Component */}
           <FileInfo
             touchstone={touchstone}
             unit={unit}
@@ -282,6 +325,7 @@ const TouchstoneViewer: React.FC = () => {
             format={format}
             handleFormatChange={handleFormatChange}
           />
+          {/* Data Table Component */}
           <DataTable
             touchstone={touchstone}
             formatParameter={formatParameter}
