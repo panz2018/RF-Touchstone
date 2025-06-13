@@ -101,37 +101,37 @@ const DataTable: React.FC<DataTableProps> = ({
    * The first column is always "Frequency" with its current unit.
    * Subsequent columns are for S-parameters (e.g., S11, S12), with sub-headers
    * indicating the two parts of the complex value (e.g., Real/Imaginary) based on the selected format.
-   * @param currentTouchstoneData The active Touchstone object.
+   * @param touchstone The active Touchstone object.
    * @returns A JSX.Element representing the table header row (<tr>).
    */
-  const renderTableHeaders = (currentTouchstoneData: Touchstone): JSX.Element => {
+  const renderTableHeaders = (touchstone: Touchstone): JSX.Element => {
     const headers: JSX.Element[] = []
     // The first header column displays the frequency and its current unit.
     headers.push(
       <th key="frequency">
-        Frequency ({unit || currentTouchstoneData.frequency?.unit || 'N/A'})
+        Frequency ({unit || touchstone.frequency?.unit || 'N/A'})
       </th>
     )
 
     // Dynamically generate headers for each S-parameter based on the number of ports.
-    if (currentTouchstoneData.nports !== undefined) {
+    if (touchstone.nports !== undefined) {
       const units = getUnitNames(format); // Get unit names based on the format prop
       for (
         let outPort = 0;
-        outPort < currentTouchstoneData.nports!;
+        outPort < touchstone.nports!;
         outPort++
       ) {
         for (
           let inPort = 0;
-          inPort < currentTouchstoneData.nports!;
+          inPort < touchstone.nports!;
           inPort++
         ) {
           let paramName
           // Determine S-parameter name (e.g., S11, S21) based on port count and indexing.
-          if (currentTouchstoneData.nports === 2) {
-            paramName = `${currentTouchstoneData.parameter || 'S'}${inPort + 1}${outPort + 1}`
+          if (touchstone.nports === 2) {
+            paramName = `${touchstone.parameter || 'S'}${inPort + 1}${outPort + 1}`
           } else {
-            paramName = `${currentTouchstoneData.parameter || 'S'}${outPort + 1}${inPort + 1}`
+            paramName = `${touchstone.parameter || 'S'}${outPort + 1}${inPort + 1}`
           }
 
           // Each S-parameter corresponds to two table columns (e.g., one for Real, one for Imaginary).
@@ -156,38 +156,38 @@ const DataTable: React.FC<DataTableProps> = ({
    * Each row corresponds to a frequency point from the Touchstone data.
    * Parameter values are formatted using the internal `formatDataValues` function
    * based on the current `format` prop.
-   * @param currentTouchstoneData The active Touchstone object.
+   * @param touchstone The active Touchstone object.
    * @returns A React.Fragment containing all table data rows (<tr> elements).
    */
-  const renderTableRows = (currentTouchstoneData: Touchstone): JSX.Element => {
+  const renderTableRows = (touchstone: Touchstone): JSX.Element => {
     const rows: JSX.Element[] = []
 
     // Ensure matrix and scaled frequency data are available.
     if (
-      currentTouchstoneData.matrix &&
-      currentTouchstoneData.frequency?.f_scaled
+      touchstone.matrix &&
+      touchstone.frequency?.f_scaled
     ) {
       // Iterate over each frequency point to create a table row.
-      currentTouchstoneData.frequency.f_scaled.forEach((freq, freqIndex) => {
+      touchstone.frequency.f_scaled.forEach((freq, freqIndex) => {
         const dataCells: JSX.Element[] = []
         // The first cell in each row displays the frequency value, formatted to 4 decimal places.
         dataCells.push(<td key={`freq-${freqIndex}`}>{freq.toFixed(4)}</td>)
 
         // Iterate over S-parameters for the current frequency point.
-        if (currentTouchstoneData.nports !== undefined) {
+        if (touchstone.nports !== undefined) {
           for (
             let outPort = 0;
-            outPort < currentTouchstoneData.nports!;
+            outPort < touchstone.nports!;
             outPort++
           ) {
             for (
               let inPort = 0;
-              inPort < currentTouchstoneData.nports!;
+              inPort < touchstone.nports!;
               inPort++
             ) {
               // Retrieve the complex S-parameter value from the matrix.
               const param =
-                currentTouchstoneData.matrix?.[outPort]?.[inPort]?.[freqIndex]
+                touchstone.matrix?.[outPort]?.[inPort]?.[freqIndex]
               // Format the S-parameter using the selected display format.
               const values = formatDataValues(param, format)
 
