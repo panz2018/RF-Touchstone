@@ -152,7 +152,7 @@ const TouchstoneViewer: React.FC = () => {
     }
   }
 
-  const handleFrequencyUnitChange = (newUnit: string) => {
+  const handleUnitChange = (newUnit: string) => {
     if (touchstoneData?.frequency) {
       // Get current frequencies in Hz to serve as a clean baseline
       const frequenciesInHz = touchstoneData.frequency.f_Hz;
@@ -278,7 +278,7 @@ const TouchstoneViewer: React.FC = () => {
           <FileInfo
             touchstoneData={touchstoneData}
             unit={unit}
-            handleFrequencyUnitChange={handleFrequencyUnitChange}
+            handleUnitChange={handleUnitChange}
             format={format}
             handleFormatChange={handleFormatChange}
           />
