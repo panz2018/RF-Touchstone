@@ -1,5 +1,5 @@
 import React, { JSX } from 'react'
-import { Touchstone, Complex, complex, abs, arg } from 'rf-touchstone'
+import { Touchstone, Complex, abs, arg } from 'rf-touchstone' // Removed 'complex' import
 
 /**
  * Props for the DataTable component.
@@ -14,6 +14,62 @@ interface DataTableProps {
 }
 
 /**
+ * Determines the unit names for the two parts of an S-parameter based on the display format.
+ * @param currentFormat The current S-parameter display format ('RI', 'MA', 'DB').
+ * @returns An object with `unit1` and `unit2` string properties.
+ */
+const getSParameterUnitNames = (currentFormat: string | undefined): { unit1: string; unit2: string } => {
+  if (currentFormat === undefined) {
+    return { unit1: '', unit2: '' };
+  }
+  switch (currentFormat) {
+    case 'RI':
+      return { unit1: 'Real', unit2: 'Imaginary' };
+    case 'MA':
+      return { unit1: 'Magnitude', unit2: 'Angle (°)' };
+    case 'DB':
+      return { unit1: 'dB', unit2: 'Angle (°)' };
+    default:
+      return { unit1: '', unit2: '' };
+  }
+};
+
+/**
+ * Formats the numerical values of a complex S-parameter based on the display format.
+ * @param param The complex S-parameter value (or undefined).
+ * @param currentFormat The current S-parameter display format ('RI', 'MA', 'DB').
+ * @returns An object with `value1` and `value2` string properties (formatted numbers).
+ */
+const formatSParameterValues = (param: Complex | undefined, currentFormat: string | undefined): { value1: string; value2: string } => {
+  if (!param || currentFormat === undefined) {
+    return { value1: 'N/A', value2: 'N/A' };
+  }
+  switch (currentFormat) {
+    case 'RI':
+      return {
+        value1: (param.re as unknown as number).toFixed(4),
+        value2: (param.im as unknown as number).toFixed(4),
+      };
+    case 'MA':
+      const magnitude = abs(param) as unknown as number;
+      const angle = (arg(param) * 180) / Math.PI;
+      return {
+        value1: magnitude.toFixed(4),
+        value2: angle.toFixed(4),
+      };
+    case 'DB':
+      const dbValue = 20 * Math.log10(abs(param) as unknown as number);
+      const dbAngle = (arg(param) * 180) / Math.PI;
+      return {
+        value1: dbValue.toFixed(4),
+        value2: dbAngle.toFixed(4),
+      };
+    default:
+      return { value1: 'N/A', value2: 'N/A' };
+  }
+};
+
+/**
  * DataTable component.
  * Renders the main table displaying Touchstone network parameter data (e.g., S-parameters).
  * It handles the generation of table headers and rows based on the provided Touchstone object
@@ -24,52 +80,6 @@ const DataTable: React.FC<DataTableProps> = ({
   unit,
   format,
 }) => {
-  /**
-   * Formats a complex S-parameter value into a displayable string object.
-   * Based on the selected format (RI, MA, DB), it returns two string values (e.g., real/imaginary parts)
-   * and their corresponding units (e.g., "Real", "Imaginary").
-   * @param param The complex S-parameter to format. Can be undefined if data is missing.
-   * @param currentFormat The S-parameter display format string (e.g., 'RI', 'MA', 'DB').
-   * @returns An object containing `value1`, `value2`, `unit1`, and `unit2` for display.
-   */
-  const formatSParameterForDisplay = (
-    param: Complex | undefined,
-    currentFormat: string | undefined
-  ): { value1: string; value2: string; unit1: string; unit2: string } => {
-    if (!param || currentFormat === undefined) {
-      return { value1: 'N/A', value2: 'N/A', unit1: '', unit2: '' }
-    }
-    switch (currentFormat) {
-      case 'RI':
-        return {
-          value1: (param.re as unknown as number).toFixed(4),
-          value2: (param.im as unknown as number).toFixed(4),
-          unit1: 'Real',
-          unit2: 'Imaginary',
-        }
-      case 'MA':
-        const magnitude = abs(param) as unknown as number;
-        const angle = (arg(param) * 180) / Math.PI;
-        return {
-          value1: magnitude.toFixed(4),
-          value2: angle.toFixed(4),
-          unit1: 'Magnitude',
-          unit2: 'Angle (°)',
-        }
-      case 'DB':
-        const dbVal = 20 * Math.log10(abs(param) as unknown as number);
-        const dbAngle = (arg(param) * 180) / Math.PI;
-        return {
-          value1: dbVal.toFixed(4),
-          value2: dbAngle.toFixed(4),
-          unit1: 'dB',
-          unit2: 'Angle (°)',
-        }
-      default:
-        return { value1: 'N/A', value2: 'N/A', unit1: '', unit2: '' }
-    }
-  }
-
   // If no Touchstone data, or critical parts of it (matrix, scaled frequencies) are missing,
   // display a message indicating data unavailability.
   if (
@@ -105,6 +115,7 @@ const DataTable: React.FC<DataTableProps> = ({
 
     // Dynamically generate headers for each S-parameter based on the number of ports.
     if (currentTouchstoneData.nports !== undefined) {
+      const units = getSParameterUnitNames(format); // Get unit names based on the format prop
       for (
         let outPort = 0;
         outPort < currentTouchstoneData.nports!;
@@ -123,23 +134,15 @@ const DataTable: React.FC<DataTableProps> = ({
             paramName = `${currentTouchstoneData.parameter || 'S'}${outPort + 1}${inPort + 1}`
           }
 
-          // Use a placeholder complex value to extract unit names (e.g., "Real", "Imaginary")
-          // from the formatting function, based on the current format prop.
-          const placeholderParam = complex(0, 0)
-          const formattedHeader = formatSParameterForDisplay(
-            placeholderParam,
-            format
-          )
-
           // Each S-parameter corresponds to two table columns (e.g., one for Real, one for Imaginary).
           headers.push(
             <th key={`header-${outPort}-${inPort}-1`}>
-              {paramName} ({formattedHeader.unit1})
+              {paramName} ({units.unit1})
             </th>
           )
           headers.push(
             <th key={`header-${outPort}-${inPort}-2`}>
-              {paramName} ({formattedHeader.unit2})
+              {paramName} ({units.unit2})
             </th>
           )
         }
@@ -151,7 +154,7 @@ const DataTable: React.FC<DataTableProps> = ({
   /**
    * Generates the table body rows (<tbody>).
    * Each row corresponds to a frequency point from the Touchstone data.
-   * S-parameter values are formatted using the internal `formatSParameterForDisplay` function
+   * S-parameter values are formatted using the internal `formatSParameterValues` function
    * based on the current `format` prop.
    * @param currentTouchstoneData The active Touchstone object.
    * @returns A React.Fragment containing all table data rows (<tr> elements).
@@ -186,17 +189,17 @@ const DataTable: React.FC<DataTableProps> = ({
               const param =
                 currentTouchstoneData.matrix?.[outPort]?.[inPort]?.[freqIndex]
               // Format the S-parameter using the selected display format.
-              const formatted = formatSParameterForDisplay(param, format)
+              const values = formatSParameterValues(param, format)
 
               // Add two cells for the formatted S-parameter (e.g., Real and Imaginary parts).
               dataCells.push(
                 <td key={`data-${outPort}-${inPort}-${freqIndex}-1`}>
-                  {formatted.value1}
+                  {values.value1}
                 </td>
               )
               dataCells.push(
                 <td key={`data-${outPort}-${inPort}-${freqIndex}-2`}>
-                  {formatted.value2}
+                  {values.value2}
                 </td>
               )
             }
