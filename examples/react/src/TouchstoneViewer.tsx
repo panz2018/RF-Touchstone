@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import {
-  complex,
   Complex,
   Frequency,
   Touchstone,
-  abs,
-  arg,
   type TouchstoneFormat,
 } from 'rf-touchstone'
 import FileInfo from './components/FileInfo'
