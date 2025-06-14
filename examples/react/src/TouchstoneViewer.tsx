@@ -8,6 +8,20 @@ import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
 
 /**
+ * Helper function to determine the number of ports from a Touchstone filename (e.g., .s2p -> 2 ports).
+ * Moved to module level as it doesn't depend on component state or props.
+ * @param filename The filename to parse.
+ * @returns The number of ports, or null if not determinable from the extension.
+ */
+const getNumberOfPorts = (filename: string): number | null => {
+  const match = filename.match(/\.s(\d+)p$/i)
+  if (match && match[1]) {
+    return parseInt(match[1], 10)
+  }
+  return null
+}
+
+/**
  * TouchstoneViewer component.
  * Main component for loading, viewing, and interacting with Touchstone (.sNp) files.
  * It manages the Touchstone data, handles file input, unit/format changes,
@@ -23,22 +37,9 @@ const TouchstoneViewer: React.FC = () => {
   // State for storing any error messages.
   const [error, setError] = useState<string | null>(null)
   // State for the name of the currently loaded or selected file.
-  const [fileName, setFileName] = useState<string>('sample.s2p') // Default sample file
+  const [filename, setFilename] = useState<string>('sample.s2p') // Default sample file
   // State for providing feedback messages for the copy operation.
   const [copyStatus, setCopyStatus] = useState<string>('')
-
-  /**
-   * Helper function to determine the number of ports from a Touchstone filename (e.g., .s2p -> 2 ports).
-   * @param currentFileName The filename to parse.
-   * @returns The number of ports, or null if not determinable from the extension.
-   */
-  const getNumberOfPorts = (currentFileName: string): number | null => {
-    const match = currentFileName.match(/\.s(\d+)p$/i)
-    if (match && match[1]) {
-      return parseInt(match[1], 10)
-    }
-    return null
-  }
 
   /**
    * Loads Touchstone file content from a given URL.
@@ -53,7 +54,8 @@ const TouchstoneViewer: React.FC = () => {
         throw new Error(`Failed to fetch file: ${response.statusText}`)
       }
       const textContent = await response.text()
-      const nports = getNumberOfPorts(fileUrl)
+      // getNumberOfPorts is now a module-level function
+      const nports = getNumberOfPorts(fileUrl.substring(fileUrl.lastIndexOf('/') + 1)) // Pass only filename part
       if (nports === null) {
         throw new Error(
           `Could not determine number of ports from file name: ${fileUrl}`
@@ -70,18 +72,18 @@ const TouchstoneViewer: React.FC = () => {
       )
       setTouchstone(null) // Clear data on error
     }
-  }, []) // Empty dependency array: function created once and doesn't depend on component state/props.
+  }, []) // Empty dependency array: function created once
 
   /**
    * Effect hook to load the default Touchstone file (sample.s2p) when the component mounts
-   * or when the `fileName` state changes (e.g., if it were to be set programmatically for the default load).
-   * Dependencies: `fileName`, `loadFileContent`.
+   * or when the `filename` state changes.
+   * Dependencies: `filename`, `loadFileContent`.
    */
   useEffect(() => {
-    if (fileName) {
-        loadFileContent(`/${fileName}`);
+    if (filename) {
+        loadFileContent(`/${filename}`); // Use filename state here
     }
-  }, [fileName, loadFileContent]);
+  }, [filename, loadFileContent]);
 
   /**
    * Effect hook to update the displayed unit and format when new Touchstone data is loaded.
@@ -103,13 +105,13 @@ const TouchstoneViewer: React.FC = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      setFileName(file.name) // Update displayed filename
+      setFilename(file.name) // Update filename state
       const reader = new FileReader()
       reader.onload = async (e) => {
         try {
           const textContent = e.target?.result as string
           if (textContent) {
-            const nports = getNumberOfPorts(file.name)
+            const nports = getNumberOfPorts(file.name) // Use module-level function
             if (nports === null) {
               throw new Error(
                 `Could not determine number of ports from file name: ${file.name}`
@@ -143,7 +145,7 @@ const TouchstoneViewer: React.FC = () => {
   /**
    * Handles changes to the selected frequency unit.
    * It creates a new Touchstone object with frequencies scaled to the new unit.
-   * @param newUnit The new frequency unit string (e.g., "GHz", "MHz").
+   * @param newUnitString The new frequency unit string (e.g., "GHz", "MHz").
    */
   const handleUnitChange = (newUnitString: string) => {
     if (touchstone?.frequency) {
@@ -186,7 +188,7 @@ const TouchstoneViewer: React.FC = () => {
       return
     }
     try {
-      const fileContentString = touchstone.toString() // Assumes Touchstone.toString() exists and is correct
+      const fileContentString = touchstone.toString()
       await navigator.clipboard.writeText(fileContentString)
       setCopyStatus('Copied to clipboard!')
     } catch (err) {
@@ -207,14 +209,14 @@ const TouchstoneViewer: React.FC = () => {
       return
     }
     try {
-      const fileContentString = touchstone.toString() // Assumes Touchstone.toString() exists
+      const fileContentString = touchstone.toString()
       const blob = new Blob([fileContentString], {
         type: 'text/plain;charset=utf-8',
       })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = fileName || `data.s${touchstone.nports || ''}p`
+      link.download = filename || `data.s${touchstone.nports || ''}p` // Use filename state
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -258,10 +260,10 @@ const TouchstoneViewer: React.FC = () => {
       <p>
         Currently displaying:{' '}
         {touchstone
-          ? `Data from ${fileName}`
+          ? `Data from ${filename}` // Use filename state
           : error
-          ? `Error with ${fileName}`
-          : `Loading ${fileName}...`}
+          ? `Error with ${filename}` // Use filename state
+          : `Loading ${filename}...`} {/* Use filename state */}
       </p>
       {error && <pre style={{ color: 'red' }}>Error: {error}</pre>}
 
