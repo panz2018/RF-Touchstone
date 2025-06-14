@@ -19,6 +19,7 @@
     "rf-touchstone": "^0.0.1"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.0.0",
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
