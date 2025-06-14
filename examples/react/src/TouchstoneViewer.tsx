@@ -138,7 +138,11 @@ const TouchstoneViewer: React.FC = () => {
         setError('Error reading file.')
         setTouchstone(null) // Clear data on error
       }
-      reader.readAsText(file)
+      reader.readAsText(file);
+      // Reset the input value to allow re-uploading the same file name
+      if (event.target) {
+        (event.target as HTMLInputElement).value = '';
+      }
     }
   }
 
