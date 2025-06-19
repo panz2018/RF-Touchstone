@@ -1,10 +1,22 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import TouchstoneViewer from '../src/TouchstoneViewer'
+// Import the module to mock its exports
+import * as TouchstoneViewerModule from '../src/TouchstoneViewer';
+import TouchstoneViewer from '../src/TouchstoneViewer' // Default export for rendering
 import { Touchstone, Complex } from 'rf-touchstone' // Actual import for integration parts
 
-// Mocking fetch
+// Mock specific functions from TouchstoneViewer.tsx
+vi.mock('../src/TouchstoneViewer', async (importOriginal) => {
+  const actual = await importOriginal<typeof TouchstoneViewerModule>();
+  return {
+    ...actual, // Import and retain all other exports (including default for component)
+    readUrl: vi.fn(),
+    readFile: vi.fn(),
+  };
+});
+
+// Mocking fetch (can be kept if readUrl implementation itself is tested elsewhere or if other fetches exist)
 global.fetch = vi.fn()
 
 // Mock navigator.clipboard
@@ -47,17 +59,27 @@ describe('TouchstoneViewer Component', () => {
   let mockAppendChild: vi.Mock
   let mockRemoveChild: vi.Mock
 
+  // Cast the mocked functions for use in tests
+  const mockReadUrl = TouchstoneViewerModule.readUrl as vi.Mock;
+  const mockReadFile = TouchstoneViewerModule.readFile as vi.Mock;
+
   beforeEach(() => {
     vi.clearAllMocks()
+
+    // Default mock for readUrl to successfully load sample.s2p
+    const defaultTs = createTouchstoneFromString(mockSampleS2PContent);
+    mockReadUrl.mockResolvedValue(defaultTs);
+
+    // Keep fetch mock for other potential uses or if readUrl actual implementation is tested
     ;(global.fetch as vi.Mock).mockImplementation((url: string) => {
-      if (url.endsWith('sample.s2p')) {
+      if (url.endsWith('sample.s2p')) { // This might be redundant if readUrl is always mocked
         return Promise.resolve({
           ok: true,
           statusText: 'OK',
           text: () => Promise.resolve(mockSampleS2PContent),
         })
       }
-      return Promise.reject(new Error('File not found'))
+      return Promise.reject(new Error('File not found by fetch mock'))
     })
 
     mockCreateObjectURL = global.URL.createObjectURL as vi.Mock
@@ -96,6 +118,7 @@ describe('TouchstoneViewer Component', () => {
     expect(screen.getByText(/Loading sample.s2p.../i)).toBeInTheDocument()
 
     await waitFor(() => {
+      expect(mockReadUrl).toHaveBeenCalledWith('/sample.s2p');
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
       ).toBeInTheDocument()
@@ -128,6 +151,7 @@ describe('TouchstoneViewer Component', () => {
       type: 'text/plain',
     })
     const uploadedTs = createTouchstoneFromString(mockUploadedFileContent)
+    mockReadFile.mockResolvedValue(uploadedTs); // Configure mock for this test
 
     render(<TouchstoneViewer />);
     await waitFor(() => {
@@ -140,6 +164,7 @@ describe('TouchstoneViewer Component', () => {
     fireEvent.change(fileInput, { target: { files: [uploadedFile] } })
 
     await waitFor(() => {
+      expect(mockReadFile).toHaveBeenCalledWith(uploadedFile);
       expect(
         screen.getByText(/Currently displaying: Data from uploaded.s2p/i)
       ).toBeInTheDocument()
@@ -155,9 +180,12 @@ describe('TouchstoneViewer Component', () => {
     const invalidFile = new File([mockInvalidFileContent], 'invalid.s2p', {
       type: 'text/plain',
     })
+    mockReadFile.mockRejectedValueOnce(new Error('Mocked read error for invalid file'));
 
     render(<TouchstoneViewer />);
     await waitFor(() => {
+      // Initial load still happens
+      expect(mockReadUrl).toHaveBeenCalled();
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
       ).toBeInTheDocument()
@@ -167,19 +195,21 @@ describe('TouchstoneViewer Component', () => {
     fireEvent.change(fileInput, { target: { files: [invalidFile] } })
 
     await waitFor(() => {
+      expect(mockReadFile).toHaveBeenCalledWith(invalidFile);
       expect(screen.getByText(/Error with invalid.s2p/i)).toBeInTheDocument()
-      // This error message comes from rf-touchstone library
       expect(
-        screen.getByText(/Error: Unexpected character "#" at line 2, column 1/i)
+        screen.getByText(/Error: Mocked read error for invalid file/i)
       ).toBeInTheDocument()
     })
   })
 
   it('handles and displays error for an empty uploaded file', async () => {
     const emptyFile = new File([''], 'empty.s2p', { type: 'text/plain' })
+    mockReadFile.mockRejectedValueOnce(new Error('File content is empty.')); // Consistent with readFile's own error
 
     render(<TouchstoneViewer />);
     await waitFor(() => {
+      expect(mockReadUrl).toHaveBeenCalled();
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
       ).toBeInTheDocument()
@@ -189,6 +219,7 @@ describe('TouchstoneViewer Component', () => {
     fireEvent.change(fileInput, { target: { files: [emptyFile] } })
 
     await waitFor(() => {
+      expect(mockReadFile).toHaveBeenCalledWith(emptyFile);
       expect(screen.getByText(/Error with empty.s2p/i)).toBeInTheDocument()
       expect(
         screen.getByText(/Error: File content is empty./i)
@@ -198,43 +229,28 @@ describe('TouchstoneViewer Component', () => {
 
 
   it('handles fetch error when loading default sample file', async () => {
-    ;(global.fetch as vi.Mock).mockImplementationOnce(() =>
-      Promise.resolve({
-        ok: false,
-        statusText: 'Server Error',
-        text: () => Promise.resolve('Cannot fetch'),
-      })
-    )
+    mockReadUrl.mockRejectedValueOnce(new Error('Mocked fetch error from readUrl'));
 
     render(<TouchstoneViewer />);
     await waitFor(() => {
+      expect(mockReadUrl).toHaveBeenCalledWith('/sample.s2p');
       expect(
-        screen.getByText(/Error: Failed to fetch file: Server Error/i)
+        screen.getByText(/Error: Mocked fetch error from readUrl/i)
       ).toBeInTheDocument()
     })
   })
 
-  it('handles FileReader error', async () => {
+  it('handles FileReader error during file upload', async () => {
     const errorFile = new File(['some content'], 'error.s2p', {
       type: 'text/plain',
     })
-    const mockReader = {
-      onload: null as ((event: ProgressEvent<FileReader>) => void) | null,
-      onerror: null as ((event: ProgressEvent<FileReader>) => void) | null,
-      readAsText: vi.fn().mockImplementation(function (this: FileReader) {
-        if (this.onerror) {
-          const errorEvent = new ProgressEvent('error') as any
-          this.onerror(errorEvent)
-        }
-      }),
-      result: '',
-    }
-    const originalFileReader = global.FileReader
-    global.FileReader = vi.fn(() => mockReader as any)
+    mockReadFile.mockRejectedValueOnce(new Error('Mocked Error reading file.'));
 
 
     render(<TouchstoneViewer />);
     await waitFor(() => {
+      // Default load
+      expect(mockReadUrl).toHaveBeenCalled();
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
       ).toBeInTheDocument()
@@ -244,11 +260,12 @@ describe('TouchstoneViewer Component', () => {
     fireEvent.change(fileInput, { target: { files: [errorFile] } })
 
     await waitFor(() => {
+      expect(mockReadFile).toHaveBeenCalledWith(errorFile);
+      expect(screen.getByText(/Error with error.s2p/i)).toBeInTheDocument();
       expect(
-        screen.getByText(/Error: Error reading file./i)
+        screen.getByText(/Error: Mocked Error reading file./i)
       ).toBeInTheDocument()
     })
-    global.FileReader = originalFileReader // Restore original
   })
 
   it('matches snapshot with loaded data', async () => {

@@ -22,6 +22,77 @@ const getNumberOfPorts = (filename: string): number | null => {
 }
 
 /**
+ * Reads a Touchstone file from a given URL, parses it, and returns a Touchstone object.
+ * @param fileUrl The URL of the Touchstone file to load.
+ * @returns A Promise that resolves to a Touchstone object.
+ * @throws An error if fetching or parsing fails.
+ */
+const readUrl = async (fileUrl: string): Promise<Touchstone> => {
+  try {
+    const response = await fetch(fileUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file: ${response.statusText}`)
+    }
+    const textContent = await response.text()
+    // getNumberOfPorts is now a module-level function
+    const nports = getNumberOfPorts(fileUrl.substring(fileUrl.lastIndexOf('/') + 1)) // Pass only filename part
+    if (nports === null) {
+      throw new Error(
+        `Could not determine number of ports from file name: ${fileUrl}`
+      )
+    }
+    const ts = new Touchstone()
+    ts.readContent(textContent, nports)
+    return ts
+  } catch (err) {
+    // Re-throw the error to be handled by the caller
+    throw err
+  }
+}
+
+/**
+ * Reads a File object, parses its content as Touchstone data, and returns a Touchstone object.
+ * @param file The File object to read.
+ * @returns A Promise that resolves to a Touchstone object.
+ * @throws An error if reading or parsing fails.
+ */
+const readFile = (file: File): Promise<Touchstone> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = (e) => {
+      try {
+        const textContent = e.target?.result as string
+        if (!textContent) {
+          reject(new Error('File content is empty.'))
+          return
+        }
+        const nports = getNumberOfPorts(file.name) // Use module-level function
+        if (nports === null) {
+          reject(
+            new Error(
+              `Could not determine number of ports from file name: ${file.name}`
+            )
+          )
+          return
+        }
+        const ts = new Touchstone()
+        ts.readContent(textContent, nports)
+        resolve(ts)
+      } catch (err) {
+        reject(err) // Catch errors from Touchstone parsing or nports
+      }
+    }
+
+    reader.onerror = () => {
+      reject(new Error('Error reading file.'))
+    }
+
+    reader.readAsText(file)
+  })
+}
+
+/**
  * TouchstoneViewer component.
  * Main component for loading, viewing, and interacting with Touchstone (.sNp) files.
  * It manages the Touchstone data, handles file input, unit/format changes,
@@ -49,21 +120,10 @@ const TouchstoneViewer: React.FC = () => {
    */
   const loadFileContent = useCallback(async (fileUrl: string) => {
     try {
-      const response = await fetch(fileUrl)
-      if (!response.ok) {
-        throw new Error(`Failed to fetch file: ${response.statusText}`)
-      }
-      const textContent = await response.text()
-      // getNumberOfPorts is now a module-level function
-      const nports = getNumberOfPorts(fileUrl.substring(fileUrl.lastIndexOf('/') + 1)) // Pass only filename part
-      if (nports === null) {
-        throw new Error(
-          `Could not determine number of ports from file name: ${fileUrl}`
-        )
-      }
-      const ts = new Touchstone()
-      ts.readContent(textContent, nports)
+      const ts = await readUrl(fileUrl) // Use the new readUrl function
       setTouchstone(ts)
+      setUnit(ts.frequency?.unit);
+      setFormat(ts.format);
       setError(null) // Clear any previous errors
     } catch (err) {
       console.error('Error loading or parsing Touchstone file:', err)
@@ -86,59 +146,29 @@ const TouchstoneViewer: React.FC = () => {
   }, [filename, loadFileContent]);
 
   /**
-   * Effect hook to update the displayed unit and format when new Touchstone data is loaded.
-   * Runs whenever the `touchstone` state object changes.
-   * Dependencies: `touchstone`.
-   */
-  useEffect(() => {
-    if (touchstone) {
-      setUnit(touchstone.frequency?.unit);
-      setFormat(touchstone.format);
-    }
-  }, [touchstone])
-
-  /**
    * Handles the change event when a user selects a new file via the input element.
    * Reads the file content, parses it, and updates the state.
    * @param event The React change event from the file input.
    */
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       setFilename(file.name) // Update filename state
-      const reader = new FileReader()
-      reader.onload = async (e) => {
-        try {
-          const textContent = e.target?.result as string
-          if (textContent) {
-            const nports = getNumberOfPorts(file.name) // Use module-level function
-            if (nports === null) {
-              throw new Error(
-                `Could not determine number of ports from file name: ${file.name}`
-              )
-            }
-            const ts = new Touchstone()
-            ts.readContent(textContent, nports)
-            setTouchstone(ts)
-            setError(null) // Clear previous errors
-          } else {
-            throw new Error('File content is empty.')
-          }
-        } catch (err) {
-          console.error('Error parsing uploaded Touchstone file:', err)
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Failed to parse uploaded file.'
-          )
-          setTouchstone(null) // Clear data on error
-        }
-      }
-      reader.onerror = () => {
-        setError('Error reading file.')
+      try {
+        const ts = await readFile(file) // Use the new readFile function
+        setTouchstone(ts)
+        setUnit(ts.frequency?.unit);
+        setFormat(ts.format);
+        setError(null) // Clear previous errors
+      } catch (err) {
+        console.error('Error processing uploaded Touchstone file:', err)
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Failed to process uploaded file.'
+        )
         setTouchstone(null) // Clear data on error
       }
-      reader.readAsText(file);
       // Reset the input value to allow re-uploading the same file name
       if (event.target) {
         (event.target as HTMLInputElement).value = '';
