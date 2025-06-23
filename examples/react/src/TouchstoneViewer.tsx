@@ -109,42 +109,53 @@ const TouchstoneViewer: React.FC = () => {
   // State for storing any error messages.
   const [error, setError] = useState<string | null>(null)
   // State for the name of the currently loaded or selected file.
-  const [filename, setFilename] = useState<string>('sample.s2p') // Default sample file
+  const [filename, setFilename] = useState<string>('') // Initialize empty, set on load
   // State for providing feedback messages for the copy operation.
   const [copyStatus, setCopyStatus] = useState<string>('')
 
   /**
-   * Loads Touchstone file content from a given URL.
+   * Loads Touchstone file content from a given URL (typically for remote files or the initial default file).
    * Parses the content and updates the component's state.
-   * Wrapped in useCallback to stabilize its identity for useEffect dependencies.
+   * Also sets the filename based on the URL.
    * @param fileUrl The URL of the Touchstone file to load.
    */
-  const loadFileContent = useCallback(async (fileUrl: string) => {
+  const loadFileContent = async (fileUrl: string) => {
+    // Extract filename from URL for display purposes
+    // This logic is similar to what's in handleUrlSubmit, good to consolidate or ensure consistency
+    let nameOnly = 'file_from_url.sNp';
     try {
-      const ts = await readUrl(fileUrl) // Use the new readUrl function
+      const urlObject = new URL(fileUrl, window.location.origin); // Add base for relative URLs like '/sample.s2p'
+      const pathSegments = urlObject.pathname.split('/');
+      nameOnly = pathSegments.pop() || nameOnly;
+    } catch (e) {
+      nameOnly = fileUrl.substring(fileUrl.lastIndexOf('/') + 1) || nameOnly;
+    }
+    setFilename(nameOnly);
+    setError(null); // Clear previous errors before attempting to load
+
+    try {
+      const ts = await readUrl(fileUrl) // Use the module-level readUrl function
       setTouchstone(ts)
       setUnit(ts.frequency?.unit);
       setFormat(ts.format);
-      setError(null) // Clear any previous errors
+      // setError(null) // Already cleared above
     } catch (err) {
-      console.error('Error loading or parsing Touchstone file:', err)
+      console.error(`Error loading or parsing Touchstone file from URL ${fileUrl}:`, err)
       setError(
         err instanceof Error ? err.message : 'An unknown error occurred.'
       )
       setTouchstone(null) // Clear data on error
     }
-  }, []) // Empty dependency array: function created once
+  }
 
   /**
-   * Effect hook to load the default Touchstone file (sample.s2p) when the component mounts
-   * or when the `filename` state changes.
-   * Dependencies: `filename`, `loadFileContent`.
+   * Effect hook to load the default Touchstone file (sample.s2p) when the component mounts.
    */
   useEffect(() => {
-    if (filename) {
-        loadFileContent(`/${filename}`); // Use filename state here
-    }
-  }, [filename, loadFileContent]);
+    // Set initial filename and load content for the default file
+    // setFilename('sample.s2p'); // Set filename before loading
+    loadFileContent('/sample.s2p'); // loadFileContent will now also set the filename
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   /**
    * Handles the change event when a user selects a new file via the input element.
@@ -154,13 +165,15 @@ const TouchstoneViewer: React.FC = () => {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      setFilename(file.name) // Update filename state
+      setFilename(file.name); // Update filename state for display
+      setError(null);       // Clear previous errors
+
       try {
-        const ts = await readFile(file) // Use the new readFile function
+        const ts = await readFile(file) // Use the module-level readFile function
         setTouchstone(ts)
         setUnit(ts.frequency?.unit);
         setFormat(ts.format);
-        setError(null) // Clear previous errors
+        // setError(null) // Already cleared
       } catch (err) {
         console.error('Error processing uploaded Touchstone file:', err)
         setError(
@@ -217,20 +230,9 @@ const TouchstoneViewer: React.FC = () => {
    * @param url The URL string of the Touchstone file.
    */
   const handleUrlSubmit = async (url: string) => {
-    setError(null); // Clear previous main errors
-    // Extract filename from URL for display purposes
-    try {
-      const urlObject = new URL(url);
-      const pathSegments = urlObject.pathname.split('/');
-      setFilename(pathSegments.pop() || 'file_from_url.sNp'); // Use last segment or a default
-    } catch (e) {
-      // If URL parsing for filename fails, use a generic name or part of the URL
-      setFilename(url.substring(url.lastIndexOf('/') + 1) || 'file_from_url.sNp');
-    }
-
-    // loadFileContent will handle the actual fetching and parsing
-    // It also sets the touchstone, unit, format, and error states.
-    await loadFileContent(url);
+    // setError(null); // loadFileContent will handle clearing errors and setting filename
+    // No need to extract filename here, loadFileContent does it.
+    await loadFileContent(url); // loadFileContent handles fetching, parsing, and state updates including filename
   };
 
   /**

@@ -91,21 +91,33 @@ describe('TouchstoneViewer Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // Default mock for readUrl to successfully load sample.s2p
+    // Mock for the initial /sample.s2p load by readUrl
     const defaultTs = createTouchstoneFromString(mockSampleS2PContent);
-    mockReadUrl.mockResolvedValue(defaultTs);
+    mockReadUrl.mockImplementation(async (url: string) => {
+      if (url === '/sample.s2p') {
+        return defaultTs;
+      }
+      // For other URLs, tests should provide their own specific mock implementation
+      // or this mock will throw, indicating a missing specific mock.
+      throw new Error(`mockReadUrl called with unexpected URL: ${url}. Specific mock needed for this test case.`);
+    });
 
-    // Keep fetch mock for other potential uses or if readUrl actual implementation is tested
-    ;(global.fetch as vi.Mock).mockImplementation((url: string) => {
-      if (url.endsWith('sample.s2p')) { // This might be redundant if readUrl is always mocked
-        return Promise.resolve({
+    // The global.fetch mock is less critical if TouchstoneViewer's readUrl is directly mocked,
+    // but kept for completeness or if any passthrough to actual fetch were intended.
+    ;(global.fetch as vi.Mock).mockImplementation(async (url: string) => {
+      if (url.toString().endsWith('sample.s2p')) {
+        return ({
           ok: true,
           statusText: 'OK',
-          text: () => Promise.resolve(mockSampleS2PContent),
-        })
+          text: async () => mockSampleS2PContent,
+        });
       }
-      return Promise.reject(new Error('File not found by fetch mock'))
-    })
+      return ({
+        ok: false,
+        statusText: 'Not Found by global.fetch mock',
+        text: async () => 'File not found by global.fetch mock',
+      });
+    });
 
     mockCreateObjectURL = global.URL.createObjectURL as vi.Mock
     mockRevokeObjectURL = global.URL.revokeObjectURL as vi.Mock
@@ -140,10 +152,15 @@ describe('TouchstoneViewer Component', () => {
     expect(
       screen.getByLabelText(/Upload a Touchstone file/i)
     ).toBeInTheDocument()
-    expect(screen.getByText(/Loading sample.s2p.../i)).toBeInTheDocument()
+    // The filename is initially empty, then set by loadFileContent.
+    // The "Loading..." message might briefly show without a filename or with a default.
+    // Given loadFileContent now sets the filename, the "Loading <filename>..."
+    // message will appear once loadFileContent starts for '/sample.s2p'.
+    expect(screen.getByText(/Loading sample.s2p.../i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(mockReadUrl).toHaveBeenCalledWith('/sample.s2p');
+      // Filename is set by loadFileContent
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
       ).toBeInTheDocument()
@@ -179,26 +196,28 @@ describe('TouchstoneViewer Component', () => {
     mockReadFile.mockResolvedValue(uploadedTs); // Configure mock for this test
 
     render(<TouchstoneViewer />);
+    // Wait for initial load of sample.s2p to complete
     await waitFor(() => {
-      expect(
-        screen.getByText(/Currently displaying: Data from sample.s2p/i)
-      ).toBeInTheDocument()
-    })
+      expect(mockReadUrl).toHaveBeenCalledWith('/sample.s2p');
+      expect(screen.getByText(/Currently displaying: Data from sample.s2p/i)).toBeInTheDocument();
+    });
+    mockReadUrl.mockClear(); // Clear mock after initial load to ensure it's not called by file upload
 
-    const fileInput = screen.getByLabelText(/Upload a Touchstone file/i)
-    fireEvent.change(fileInput, { target: { files: [uploadedFile] } })
+    const fileInput = screen.getByLabelText(/Upload a Touchstone file/i);
+    fireEvent.change(fileInput, { target: { files: [uploadedFile] } });
 
     await waitFor(() => {
       expect(mockReadFile).toHaveBeenCalledWith(uploadedFile);
+      expect(mockReadUrl).not.toHaveBeenCalled(); // IMPORTANT: readUrl should not be called
       expect(
         screen.getByText(/Currently displaying: Data from uploaded.s2p/i)
-      ).toBeInTheDocument()
-      expect(screen.getByDisplayValue(uploadedTs.frequency!.unit)).toBeInTheDocument()
-      expect(screen.getByText(uploadedTs.resistance + ' Ohms')).toBeInTheDocument()
-      expect(screen.getByText('1')).toBeInTheDocument() // Frequency
-      expect(screen.getAllByText('0.5000').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('10.0000').length).toBeGreaterThan(0)
-    })
+      ).toBeInTheDocument();
+      expect(screen.getByDisplayValue(uploadedTs.frequency!.unit)).toBeInTheDocument();
+      expect(screen.getByText(uploadedTs.resistance + ' Ohms')).toBeInTheDocument();
+      expect(screen.getByText('1')).toBeInTheDocument(); // Frequency
+      expect(screen.getAllByText('0.5000').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('10.0000').length).toBeGreaterThan(0);
+    });
   })
 
   it('handles and displays error for an invalid uploaded file', async () => {
@@ -210,17 +229,17 @@ describe('TouchstoneViewer Component', () => {
     render(<TouchstoneViewer />);
     await waitFor(() => {
       // Initial load still happens
-      expect(mockReadUrl).toHaveBeenCalled();
-      expect(
-        screen.getByText(/Currently displaying: Data from sample.s2p/i)
-      ).toBeInTheDocument()
-    })
+      expect(mockReadUrl).toHaveBeenCalledWith('/sample.s2p');
+      expect(screen.getByText(/Currently displaying: Data from sample.s2p/i)).toBeInTheDocument();
+    });
+    mockReadUrl.mockClear(); // Clear mock after initial load
 
     const fileInput = screen.getByLabelText(/Upload a Touchstone file/i)
     fireEvent.change(fileInput, { target: { files: [invalidFile] } })
 
     await waitFor(() => {
       expect(mockReadFile).toHaveBeenCalledWith(invalidFile);
+      expect(mockReadUrl).not.toHaveBeenCalled(); // IMPORTANT
       expect(screen.getByText(/Error with invalid.s2p/i)).toBeInTheDocument()
       expect(
         screen.getByText(/Error: Mocked read error for invalid file/i)
@@ -234,17 +253,17 @@ describe('TouchstoneViewer Component', () => {
 
     render(<TouchstoneViewer />);
     await waitFor(() => {
-      expect(mockReadUrl).toHaveBeenCalled();
-      expect(
-        screen.getByText(/Currently displaying: Data from sample.s2p/i)
-      ).toBeInTheDocument()
-    })
+      expect(mockReadUrl).toHaveBeenCalledWith('/sample.s2p');
+      expect(screen.getByText(/Currently displaying: Data from sample.s2p/i)).toBeInTheDocument();
+    });
+    mockReadUrl.mockClear(); // Clear mock after initial load
 
     const fileInput = screen.getByLabelText(/Upload a Touchstone file/i)
     fireEvent.change(fileInput, { target: { files: [emptyFile] } })
 
     await waitFor(() => {
       expect(mockReadFile).toHaveBeenCalledWith(emptyFile);
+      expect(mockReadUrl).not.toHaveBeenCalled(); // IMPORTANT
       expect(screen.getByText(/Error with empty.s2p/i)).toBeInTheDocument()
       expect(
         screen.getByText(/Error: File content is empty./i)
@@ -275,17 +294,17 @@ describe('TouchstoneViewer Component', () => {
     render(<TouchstoneViewer />);
     await waitFor(() => {
       // Default load
-      expect(mockReadUrl).toHaveBeenCalled();
-      expect(
-        screen.getByText(/Currently displaying: Data from sample.s2p/i)
-      ).toBeInTheDocument()
-    })
+      expect(mockReadUrl).toHaveBeenCalledWith('/sample.s2p');
+      expect(screen.getByText(/Currently displaying: Data from sample.s2p/i)).toBeInTheDocument();
+    });
+    mockReadUrl.mockClear(); // Clear mock after initial load
 
     const fileInput = screen.getByLabelText(/Upload a Touchstone file/i)
     fireEvent.change(fileInput, { target: { files: [errorFile] } })
 
     await waitFor(() => {
       expect(mockReadFile).toHaveBeenCalledWith(errorFile);
+      expect(mockReadUrl).not.toHaveBeenCalled(); // IMPORTANT
       expect(screen.getByText(/Error with error.s2p/i)).toBeInTheDocument();
       expect(
         screen.getByText(/Error: Mocked Error reading file./i)
