@@ -208,12 +208,15 @@ const DataTable: React.FC<DataTableProps> = ({
   }
 
   return (
-    <div>
+    <div style={{ marginTop: '20px' }}> {/* Added margin for separation */}
       <h3>Network Data</h3>
-      <table>
-        <thead>{renderTableHeaders(touchstone, unit, format)}</thead>
-        <tbody>{renderTableRows(touchstone, format)}</tbody>
-      </table>
+      {/* Added a wrapper div for sticky positioning context and scrolling */}
+      <div className="dataTableContainer" style={{ maxHeight: '500px', overflow: 'auto', border: '1px solid #ccc' }}>
+        <table>
+          <thead>{renderTableHeaders(touchstone, unit, format)}</thead>
+          <tbody>{renderTableRows(touchstone, format)}</tbody>
+        </table>
+      </div>
     </div>
   )
 }

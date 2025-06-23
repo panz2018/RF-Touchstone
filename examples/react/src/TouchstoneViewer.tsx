@@ -113,7 +113,7 @@ const TouchstoneViewer: React.FC = () => {
   // State for the name of the currently loaded or selected file.
   const [filename, setFilename] = useState<string>('') // Initialize empty, set on load
   // State for editable comments, distinct from touchstone.comments for UI interaction
-  const [editableComments, setEditableComments] = useState<string[]>([])
+  const [comments, setComments] = useState<string[]>([])
   // copyStatus state is now managed by CopyButton.tsx
 
   /**
@@ -123,16 +123,35 @@ const TouchstoneViewer: React.FC = () => {
    * @param fileUrl The URL of the Touchstone file to load.
    */
   const loadFileContent = async (fileUrl: string) => {
-    // Extract filename from URL for display purposes
-    // This logic is similar to what's in handleUrlSubmit, good to consolidate or ensure consistency
-    let nameOnly = 'file_from_url.sNp';
+    let nameOnly: string | undefined = undefined;
     try {
-      const urlObject = new URL(fileUrl, window.location.origin); // Add base for relative URLs like '/sample.s2p'
-      const pathSegments = urlObject.pathname.split('/');
-      nameOnly = pathSegments.pop() || nameOnly;
+      // Attempt to parse filename from URL
+      // For relative URLs like '/sample.s2p', URL constructor needs a base.
+      const tempUrl = new URL(fileUrl, window.location.origin);
+      const pathSegments = tempUrl.pathname.split('/');
+      nameOnly = pathSegments.pop();
     } catch (e) {
-      nameOnly = fileUrl.substring(fileUrl.lastIndexOf('/') + 1) || nameOnly;
+      // If URL parsing fails (e.g. not a valid URL string), try simple substring
+      // This might be the case for non-URL strings if they somehow reach here, though unlikely for fileUrl.
+      const lastSlash = fileUrl.lastIndexOf('/');
+      if (lastSlash !== -1) {
+        nameOnly = fileUrl.substring(lastSlash + 1);
+      } else {
+        // If no slash, and not a valid URL, consider the whole string as potential filename
+        // but only if it's not empty. This case should ideally not happen with valid URLs.
+        nameOnly = fileUrl;
+      }
     }
+
+    // Validate if a name was actually extracted
+    if (!nameOnly || nameOnly.trim() === '') {
+      setError(`Could not determine a valid filename from URL: ${fileUrl}`);
+      setFilename(''); // Clear filename
+      setTouchstone(null);
+      setComments([]);
+      return;
+    }
+
     setFilename(nameOnly);
     setError(null); // Clear previous errors before attempting to load
 
@@ -141,7 +160,7 @@ const TouchstoneViewer: React.FC = () => {
       setTouchstone(ts)
       setUnit(ts.frequency?.unit);
       setFormat(ts.format);
-      setEditableComments(ts.comments || []); // Initialize/update editableComments
+      setComments(ts.comments || []); // Initialize/update comments
       // setError(null) // Already cleared above
     } catch (err) {
       console.error(`Error loading or parsing Touchstone file from URL ${fileUrl}:`, err)
@@ -177,7 +196,7 @@ const TouchstoneViewer: React.FC = () => {
         setTouchstone(ts)
         setUnit(ts.frequency?.unit);
         setFormat(ts.format);
-        setEditableComments(ts.comments || []); // Initialize/update editableComments
+        setComments(ts.comments || []); // Initialize/update comments
         // setError(null) // Already cleared
       } catch (err) {
         console.error('Error processing uploaded Touchstone file:', err)
@@ -248,17 +267,17 @@ const TouchstoneViewer: React.FC = () => {
     setFilename(newName);
   };
 
-  // Effect to update the touchstone object's comments when editableComments change
+  // Effect to update the touchstone object's comments when comments state changes
   useEffect(() => {
-    if (touchstone && JSON.stringify(touchstone.comments) !== JSON.stringify(editableComments)) {
+    if (touchstone && JSON.stringify(touchstone.comments) !== JSON.stringify(comments)) {
       // Create a new Touchstone instance or clone the existing one to update its comments
       // This ensures that we are not mutating the state directly and triggers re-renders if necessary.
       const updatedTouchstone = new Touchstone();
       Object.assign(updatedTouchstone, touchstone); // Copy properties
-      updatedTouchstone.comments = [...editableComments]; // Assign new comments
+      updatedTouchstone.comments = [...comments]; // Assign new comments
       setTouchstone(updatedTouchstone); // Update the state
     }
-  }, [editableComments, touchstone]); // Dependency: run when editableComments or touchstone changes
+  }, [comments, touchstone]); // Dependency: run when comments or touchstone changes
 
   // handleCopyData and handleDownloadFile are now moved to their respective components.
 
@@ -311,8 +330,8 @@ const TouchstoneViewer: React.FC = () => {
             handleFormatChange={handleFormatChange}
             filename={filename}
             handleFilenameChange={handleFilenameChange}
-            comments={editableComments}
-            handleCommentsChange={setEditableComments}
+            comments={comments}
+            handleCommentsChange={setComments}
           />
           {/* Data Table Component */}
           <DataTable
