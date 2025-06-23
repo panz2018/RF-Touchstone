@@ -6,7 +6,9 @@ import {
 } from 'rf-touchstone'
 import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
-import UrlLoader from './components/UrlLoader' // Import the new component
+import UrlLoader from './components/UrlLoader'
+import CopyButton from './components/CopyButton' // Import CopyButton
+import DownloadButton from './components/DownloadButton' // Import DownloadButton
 
 /**
  * Helper function to determine the number of ports from a Touchstone filename (e.g., .s2p -> 2 ports).
@@ -110,8 +112,9 @@ const TouchstoneViewer: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   // State for the name of the currently loaded or selected file.
   const [filename, setFilename] = useState<string>('') // Initialize empty, set on load
-  // State for providing feedback messages for the copy operation.
-  const [copyStatus, setCopyStatus] = useState<string>('')
+  // State for editable comments, distinct from touchstone.comments for UI interaction
+  const [editableComments, setEditableComments] = useState<string[]>([])
+  // copyStatus state is now managed by CopyButton.tsx
 
   /**
    * Loads Touchstone file content from a given URL (typically for remote files or the initial default file).
@@ -138,6 +141,7 @@ const TouchstoneViewer: React.FC = () => {
       setTouchstone(ts)
       setUnit(ts.frequency?.unit);
       setFormat(ts.format);
+      setEditableComments(ts.comments || []); // Initialize/update editableComments
       // setError(null) // Already cleared above
     } catch (err) {
       console.error(`Error loading or parsing Touchstone file from URL ${fileUrl}:`, err)
@@ -173,6 +177,7 @@ const TouchstoneViewer: React.FC = () => {
         setTouchstone(ts)
         setUnit(ts.frequency?.unit);
         setFormat(ts.format);
+        setEditableComments(ts.comments || []); // Initialize/update editableComments
         // setError(null) // Already cleared
       } catch (err) {
         console.error('Error processing uploaded Touchstone file:', err)
@@ -236,54 +241,26 @@ const TouchstoneViewer: React.FC = () => {
   };
 
   /**
-   * Handles the "Copy Data" button click.
-   * Converts the current Touchstone data to its string representation and copies it to the clipboard.
-   * Provides user feedback via `copyStatus` state.
+   * Handles changes to the filename from the FileInfo component.
+   * @param newName The new full filename (base + extension).
    */
-  const handleCopyData = async () => {
-    if (!touchstone) {
-      setCopyStatus('No data to copy.')
-      setTimeout(() => setCopyStatus(''), 3000)
-      return
-    }
-    try {
-      const fileContentString = touchstone.toString()
-      await navigator.clipboard.writeText(fileContentString)
-      setCopyStatus('Copied to clipboard!')
-    } catch (err) {
-      console.error('Failed to copy data:', err)
-      setCopyStatus('Failed to copy.')
-    } finally {
-      setTimeout(() => setCopyStatus(''), 3000)
-    }
-  }
+  const handleFilenameChange = (newName: string) => {
+    setFilename(newName);
+  };
 
-  /**
-   * Handles the "Download File" button click.
-   * Converts the current Touchstone data to its string representation and initiates a file download.
-   */
-  const handleDownloadFile = () => {
-    if (!touchstone) {
-      console.warn('No data to download.')
-      return
+  // Effect to update the touchstone object's comments when editableComments change
+  useEffect(() => {
+    if (touchstone && JSON.stringify(touchstone.comments) !== JSON.stringify(editableComments)) {
+      // Create a new Touchstone instance or clone the existing one to update its comments
+      // This ensures that we are not mutating the state directly and triggers re-renders if necessary.
+      const updatedTouchstone = new Touchstone();
+      Object.assign(updatedTouchstone, touchstone); // Copy properties
+      updatedTouchstone.comments = [...editableComments]; // Assign new comments
+      setTouchstone(updatedTouchstone); // Update the state
     }
-    try {
-      const fileContentString = touchstone.toString()
-      const blob = new Blob([fileContentString], {
-        type: 'text/plain;charset=utf-8',
-      })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = filename || `data.s${touchstone.nports || ''}p` // Use filename state
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-    } catch (err) {
-      console.error('Failed to download file:', err)
-    }
-  }
+  }, [editableComments, touchstone]); // Dependency: run when editableComments or touchstone changes
+
+  // handleCopyData and handleDownloadFile are now moved to their respective components.
 
   return (
     <div>
@@ -307,17 +284,8 @@ const TouchstoneViewer: React.FC = () => {
 
       {/* Action Buttons Section (Copy/Download) */}
       <div style={{ marginTop: '20px' }}>
-        <button onClick={handleCopyData} disabled={!touchstone}>
-          Copy Data
-        </button>
-        <button
-          onClick={handleDownloadFile}
-          disabled={!touchstone}
-          style={{ marginLeft: '10px' }}
-        >
-          Download File
-        </button>
-        {copyStatus && <span style={{ marginLeft: '10px' }}>{copyStatus}</span>}
+        <CopyButton touchstone={touchstone} />
+        <DownloadButton touchstone={touchstone} filename={filename} />
       </div>
 
       {/* Status/Error Message Display */}
@@ -341,6 +309,10 @@ const TouchstoneViewer: React.FC = () => {
             handleUnitChange={handleUnitChange}
             format={format}
             handleFormatChange={handleFormatChange}
+            filename={filename}
+            handleFilenameChange={handleFilenameChange}
+            comments={editableComments}
+            handleCommentsChange={setEditableComments}
           />
           {/* Data Table Component */}
           <DataTable

@@ -15,6 +15,14 @@ interface FileInfoProps {
   format: string | undefined
   /** Callback function to handle changes to the data format. */
   handleFormatChange: (newFormat: string) => void
+  /** The current filename. */
+  filename: string
+  /** Callback function to handle changes to the filename. */
+  handleFilenameChange: (newName: string) => void
+  /** The current editable comments. */
+  comments: string[]
+  /** Callback function to handle changes to the comments. */
+  handleCommentsChange: (newComments: string[]) => void
 }
 
 /**
@@ -28,15 +36,63 @@ const FileInfo: React.FC<FileInfoProps> = ({
   handleUnitChange,
   format,
   handleFormatChange,
+  filename,
+  handleFilenameChange,
+  comments,
+  handleCommentsChange,
 }) => {
   // If no Touchstone data is available, render nothing.
   if (!touchstone) {
     return null
   }
 
+  const getBaseName = (name: string): string => name.substring(0, name.lastIndexOf('.')) || name;
+  const getExtension = (name: string): string => name.substring(name.lastIndexOf('.'));
+
+  const [editableBaseName, setEditableBaseName] = React.useState<string>(getBaseName(filename));
+
+  React.useEffect(() => {
+    setEditableBaseName(getBaseName(filename));
+  }, [filename]);
+
+  const onBaseNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEditableBaseName(event.target.value);
+  };
+
+  const onBaseNameBlur = () => {
+    const newFilename = editableBaseName + getExtension(filename);
+    if (newFilename !== filename && editableBaseName.trim() !== '') {
+      handleFilenameChange(newFilename);
+    } else if (editableBaseName.trim() === '') {
+      // Revert to original if input is empty
+      setEditableBaseName(getBaseName(filename));
+    }
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      onBaseNameBlur(); // Apply changes on Enter key
+      (event.target as HTMLInputElement).blur(); // Optionally blur the input
+    }
+  };
+
   return (
     <div>
       <h3>File Information</h3>
+
+      {/* Editable Filename */}
+      <p>
+        <strong>Filename:</strong>{' '}
+        <input
+          type="text"
+          value={editableBaseName}
+          onChange={onBaseNameChange}
+          onBlur={onBaseNameBlur}
+          onKeyPress={handleKeyPress}
+          style={{ marginLeft: '5px', padding: '2px' }}
+        />
+        <span>{getExtension(filename)}</span>
+      </p>
 
       {/* Display the number of ports in the Touchstone file. */}
       <p>
@@ -94,16 +150,16 @@ const FileInfo: React.FC<FileInfoProps> = ({
       </p>
 
       {/* Display any comments found in the Touchstone file. */}
-      {touchstone.comments.length > 0 && (
-        <div>
-          <strong>Comments:</strong>
-          <ul>
-            {touchstone.comments.map((comment, index) => (
-              <li key={index}>{comment}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <div>
+        <strong>Comments:</strong>
+        <textarea
+          value={comments.join('\n')}
+          onChange={(e) => handleCommentsChange(e.target.value.split('\n'))}
+          rows={Math.max(3, comments.length)} // Adjust rows based on number of comments, min 3
+          style={{ width: '100%', marginTop: '5px', padding: '5px', boxSizing: 'border-box' }}
+          placeholder="Enter comments here, one per line."
+        />
+      </div>
     </div>
   )
 }
