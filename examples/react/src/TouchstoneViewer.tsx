@@ -6,6 +6,7 @@ import {
 } from 'rf-touchstone'
 import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
+import UrlLoader from './components/UrlLoader' // Import the new component
 
 /**
  * Helper function to determine the number of ports from a Touchstone filename (e.g., .s2p -> 2 ports).
@@ -211,6 +212,28 @@ const TouchstoneViewer: React.FC = () => {
   }
 
   /**
+   * Handles the submission of a URL from the UrlLoader component.
+   * It attempts to load and parse the Touchstone file from the given URL.
+   * @param url The URL string of the Touchstone file.
+   */
+  const handleUrlSubmit = async (url: string) => {
+    setError(null); // Clear previous main errors
+    // Extract filename from URL for display purposes
+    try {
+      const urlObject = new URL(url);
+      const pathSegments = urlObject.pathname.split('/');
+      setFilename(pathSegments.pop() || 'file_from_url.sNp'); // Use last segment or a default
+    } catch (e) {
+      // If URL parsing for filename fails, use a generic name or part of the URL
+      setFilename(url.substring(url.lastIndexOf('/') + 1) || 'file_from_url.sNp');
+    }
+
+    // loadFileContent will handle the actual fetching and parsing
+    // It also sets the touchstone, unit, format, and error states.
+    await loadFileContent(url);
+  };
+
+  /**
    * Handles the "Copy Data" button click.
    * Converts the current Touchstone data to its string representation and copies it to the clipboard.
    * Provides user feedback via `copyStatus` state.
@@ -275,8 +298,13 @@ const TouchstoneViewer: React.FC = () => {
         />
       </div>
 
+      {/* URL Loader Section */}
+      <div style={{ marginTop: '10px' }}>
+        <UrlLoader onUrlSubmit={handleUrlSubmit} />
+      </div>
+
       {/* Action Buttons Section (Copy/Download) */}
-      <div>
+      <div style={{ marginTop: '20px' }}>
         <button onClick={handleCopyData} disabled={!touchstone}>
           Copy Data
         </button>
