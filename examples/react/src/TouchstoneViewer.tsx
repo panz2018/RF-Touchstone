@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react' // Removed useCallback
 import {
   Frequency,
   Touchstone,
@@ -255,8 +255,6 @@ const TouchstoneViewer: React.FC = () => {
 }
 
 export default TouchstoneViewer
-
-// --- Helper Functions (Moved to bottom) ---
 
 /**
  * Helper function to determine the number of ports from a Touchstone filename (e.g., .s2p -> 2 ports).

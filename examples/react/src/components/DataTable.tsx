@@ -52,8 +52,6 @@ const DataTable: React.FC<DataTableProps> = ({
 
 export default DataTable
 
-// --- Helper Functions (Moved to bottom) ---
-
 /**
  * Determines the unit names for the two parts of a formatted data value based on the display format.
  * @param format The current display format string (e.g., 'RI', 'MA', 'DB').
