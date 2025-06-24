@@ -13,6 +13,52 @@ interface DataTableProps {
   format: string | undefined
 }
 
+// Helper functions (getUnitNames, formatDataValues, renderTableHeaders, renderTableRows)
+// will be moved to the bottom of the file.
+
+/**
+ * DataTable component.
+ * Renders the main table displaying Touchstone network parameter data (e.g., S-parameters).
+ * It delegates the generation of table headers and rows to module-level helper functions,
+ * passing them the necessary Touchstone data and display format information.
+ */
+const DataTable: React.FC<DataTableProps> = ({
+  touchstone,
+  unit,
+  format,
+}) => {
+  if (
+    !touchstone ||
+    !touchstone.matrix ||
+    touchstone.matrix.length === 0 ||
+    !touchstone.frequency?.f_scaled ||
+    touchstone.frequency.f_scaled.length === 0
+  ) {
+    return (
+      <p>
+        No network data available or data format is not supported for display.
+      </p>
+    )
+  }
+
+  return (
+    <div style={{ marginTop: '20px' }}> {/* Added margin for separation */}
+      <h3>Network Data</h3>
+      {/* Added a wrapper div for sticky positioning context and scrolling */}
+      <div className="dataTableContainer" style={{ maxHeight: '500px', overflow: 'auto', border: '1px solid #ccc' }}>
+        <table>
+          <thead>{renderTableHeaders(touchstone, unit, format)}</thead>
+          <tbody>{renderTableRows(touchstone, format)}</tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+export default DataTable
+
+// --- Helper Functions (Moved to bottom) ---
+
 /**
  * Determines the unit names for the two parts of a formatted data value based on the display format.
  * @param format The current display format string (e.g., 'RI', 'MA', 'DB').
@@ -181,44 +227,3 @@ const renderTableRows = (touchstone: Touchstone, format: string | undefined): JS
   }
   return <>{rows}</>
 }
-
-/**
- * DataTable component.
- * Renders the main table displaying Touchstone network parameter data (e.g., S-parameters).
- * It delegates the generation of table headers and rows to module-level helper functions,
- * passing them the necessary Touchstone data and display format information.
- */
-const DataTable: React.FC<DataTableProps> = ({
-  touchstone,
-  unit,
-  format,
-}) => {
-  if (
-    !touchstone ||
-    !touchstone.matrix ||
-    touchstone.matrix.length === 0 ||
-    !touchstone.frequency?.f_scaled ||
-    touchstone.frequency.f_scaled.length === 0
-  ) {
-    return (
-      <p>
-        No network data available or data format is not supported for display.
-      </p>
-    )
-  }
-
-  return (
-    <div style={{ marginTop: '20px' }}> {/* Added margin for separation */}
-      <h3>Network Data</h3>
-      {/* Added a wrapper div for sticky positioning context and scrolling */}
-      <div className="dataTableContainer" style={{ maxHeight: '500px', overflow: 'auto', border: '1px solid #ccc' }}>
-        <table>
-          <thead>{renderTableHeaders(touchstone, unit, format)}</thead>
-          <tbody>{renderTableRows(touchstone, format)}</tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
-
-export default DataTable

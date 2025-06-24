@@ -7,93 +7,10 @@ import {
 import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
 import UrlLoader from './components/UrlLoader'
-import CopyButton from './components/CopyButton' // Import CopyButton
-import DownloadButton from './components/DownloadButton' // Import DownloadButton
+import CopyButton from './components/CopyButton'
+import DownloadButton from './components/DownloadButton'
 
-/**
- * Helper function to determine the number of ports from a Touchstone filename (e.g., .s2p -> 2 ports).
- * Moved to module level as it doesn't depend on component state or props.
- * @param filename The filename to parse.
- * @returns The number of ports, or null if not determinable from the extension.
- */
-const getNumberOfPorts = (filename: string): number | null => {
-  const match = filename.match(/\.s(\d+)p$/i)
-  if (match && match[1]) {
-    return parseInt(match[1], 10)
-  }
-  return null
-}
-
-/**
- * Reads a Touchstone file from a given URL, parses it, and returns a Touchstone object.
- * @param fileUrl The URL of the Touchstone file to load.
- * @returns A Promise that resolves to a Touchstone object.
- * @throws An error if fetching or parsing fails.
- */
-const readUrl = async (fileUrl: string): Promise<Touchstone> => {
-  try {
-    const response = await fetch(fileUrl)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch file: ${response.statusText}`)
-    }
-    const textContent = await response.text()
-    // getNumberOfPorts is now a module-level function
-    const nports = getNumberOfPorts(fileUrl.substring(fileUrl.lastIndexOf('/') + 1)) // Pass only filename part
-    if (nports === null) {
-      throw new Error(
-        `Could not determine number of ports from file name: ${fileUrl}`
-      )
-    }
-    const ts = new Touchstone()
-    ts.readContent(textContent, nports)
-    return ts
-  } catch (err) {
-    // Re-throw the error to be handled by the caller
-    throw err
-  }
-}
-
-/**
- * Reads a File object, parses its content as Touchstone data, and returns a Touchstone object.
- * @param file The File object to read.
- * @returns A Promise that resolves to a Touchstone object.
- * @throws An error if reading or parsing fails.
- */
-const readFile = (file: File): Promise<Touchstone> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-
-    reader.onload = (e) => {
-      try {
-        const textContent = e.target?.result as string
-        if (!textContent) {
-          reject(new Error('File content is empty.'))
-          return
-        }
-        const nports = getNumberOfPorts(file.name) // Use module-level function
-        if (nports === null) {
-          reject(
-            new Error(
-              `Could not determine number of ports from file name: ${file.name}`
-            )
-          )
-          return
-        }
-        const ts = new Touchstone()
-        ts.readContent(textContent, nports)
-        resolve(ts)
-      } catch (err) {
-        reject(err) // Catch errors from Touchstone parsing or nports
-      }
-    }
-
-    reader.onerror = () => {
-      reject(new Error('Error reading file.'))
-    }
-
-    reader.readAsText(file)
-  })
-}
+// Helper functions will be moved to the bottom
 
 /**
  * TouchstoneViewer component.
@@ -346,3 +263,93 @@ const TouchstoneViewer: React.FC = () => {
 }
 
 export default TouchstoneViewer
+
+// --- Helper Functions (Moved to bottom) ---
+
+/**
+ * Helper function to determine the number of ports from a Touchstone filename (e.g., .s2p -> 2 ports).
+ * Moved to module level as it doesn't depend on component state or props.
+ * @param filename The filename to parse.
+ * @returns The number of ports, or null if not determinable from the extension.
+ */
+const getNumberOfPorts = (filename: string): number | null => {
+  console.log('[DEBUG] getNumberOfPorts called with filename:', filename);
+  const match = filename.match(/\.s(\d+)p$/i)
+  if (match && match[1]) {
+    return parseInt(match[1], 10)
+  }
+  return null
+}
+
+/**
+ * Reads a Touchstone file from a given URL, parses it, and returns a Touchstone object.
+ * @param fileUrl The URL of the Touchstone file to load.
+ * @returns A Promise that resolves to a Touchstone object.
+ * @throws An error if fetching or parsing fails.
+ */
+const readUrl = async (fileUrl: string): Promise<Touchstone> => {
+  console.log('[DEBUG] readUrl called with fileUrl:', fileUrl);
+  try {
+    const response = await fetch(fileUrl)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file: ${response.statusText}`)
+    }
+    const textContent = await response.text()
+    // getNumberOfPorts is now a module-level function
+    const nports = getNumberOfPorts(fileUrl.substring(fileUrl.lastIndexOf('/') + 1)) // Pass only filename part
+    if (nports === null) {
+      throw new Error(
+        `Could not determine number of ports from file name: ${fileUrl}`
+      )
+    }
+    const ts = new Touchstone()
+    ts.readContent(textContent, nports)
+    return ts
+  } catch (err) {
+    // Re-throw the error to be handled by the caller
+    throw err
+  }
+}
+
+/**
+ * Reads a File object, parses its content as Touchstone data, and returns a Touchstone object.
+ * @param file The File object to read.
+ * @returns A Promise that resolves to a Touchstone object.
+ * @throws An error if reading or parsing fails.
+ */
+const readFile = (file: File): Promise<Touchstone> => {
+  console.log('[DEBUG] readFile called with file - name:', file.name, 'size:', file.size, 'type:', file.type);
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = (e) => {
+      try {
+        const textContent = e.target?.result as string
+        if (!textContent) {
+          reject(new Error('File content is empty.'))
+          return
+        }
+        const nports = getNumberOfPorts(file.name) // Use module-level function
+        if (nports === null) {
+          reject(
+            new Error(
+              `Could not determine number of ports from file name: ${file.name}`
+            )
+          )
+          return
+        }
+        const ts = new Touchstone()
+        ts.readContent(textContent, nports)
+        resolve(ts)
+      } catch (err) {
+        reject(err) // Catch errors from Touchstone parsing or nports
+      }
+    }
+
+    reader.onerror = () => {
+      reject(new Error('Error reading file.'))
+    }
+
+    reader.readAsText(file)
+  })
+}
