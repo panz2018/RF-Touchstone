@@ -7,7 +7,6 @@ import { Touchstone, FrequencyUnits } from 'rf-touchstone'
 interface FileInfoProps {
   /** The loaded Touchstone data object, or null if no data is loaded. */
   touchstone: Touchstone | null
-  // unit, format, and comments are now derived from the touchstone object.
   /** Callback function to handle changes to the frequency unit. */
   handleUnitChange: (newUnit: string) => void
   /** Callback function to handle changes to the data format. */

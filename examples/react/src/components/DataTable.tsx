@@ -7,7 +7,6 @@ import { Touchstone, Complex, abs, arg } from 'rf-touchstone'
 interface DataTableProps {
   /** The loaded Touchstone data object, or null if no data is available or an error occurred. */
   touchstone: Touchstone | null
-  // unit and format props are removed; they will be derived from the touchstone object.
 }
 
 /**
