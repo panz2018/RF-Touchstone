@@ -13,9 +13,6 @@ interface DataTableProps {
   format: string | undefined
 }
 
-// Helper functions (getUnitNames, formatDataValues, renderTableHeaders, renderTableRows)
-// will be moved to the bottom of the file.
-
 /**
  * DataTable component.
  * Renders the main table displaying Touchstone network parameter data (e.g., S-parameters).

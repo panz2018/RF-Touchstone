@@ -6,6 +6,11 @@ interface DownloadButtonProps {
   filename: string; // Current filename, potentially edited
 }
 
+/**
+ * DownloadButton component.
+ * Provides a button to download the content of the loaded Touchstone file.
+ * Uses the provided filename, which may have been edited by the user.
+ */
 const DownloadButton: React.FC<DownloadButtonProps> = ({ touchstone, filename }) => {
   const handleDownloadFile = () => {
     if (!touchstone) {

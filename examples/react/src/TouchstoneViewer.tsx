@@ -10,8 +10,6 @@ import UrlLoader from './components/UrlLoader'
 import CopyButton from './components/CopyButton'
 import DownloadButton from './components/DownloadButton'
 
-// Helper functions will be moved to the bottom
-
 /**
  * TouchstoneViewer component.
  * Main component for loading, viewing, and interacting with Touchstone (.sNp) files.
@@ -78,7 +76,6 @@ const TouchstoneViewer: React.FC = () => {
       setUnit(ts.frequency?.unit);
       setFormat(ts.format);
       setComments(ts.comments || []); // Initialize/update comments
-      // setError(null) // Already cleared above
     } catch (err) {
       console.error(`Error loading or parsing Touchstone file from URL ${fileUrl}:`, err)
       setError(
@@ -114,7 +111,6 @@ const TouchstoneViewer: React.FC = () => {
         setUnit(ts.frequency?.unit);
         setFormat(ts.format);
         setComments(ts.comments || []); // Initialize/update comments
-        // setError(null) // Already cleared
       } catch (err) {
         console.error('Error processing uploaded Touchstone file:', err)
         setError(
@@ -171,9 +167,7 @@ const TouchstoneViewer: React.FC = () => {
    * @param url The URL string of the Touchstone file.
    */
   const handleUrlSubmit = async (url: string) => {
-    // setError(null); // loadFileContent will handle clearing errors and setting filename
-    // No need to extract filename here, loadFileContent does it.
-    await loadFileContent(url); // loadFileContent handles fetching, parsing, and state updates including filename
+    await loadFileContent(url); // loadFileContent handles filename extraction, fetching, parsing, and state updates
   };
 
   /**
@@ -184,19 +178,23 @@ const TouchstoneViewer: React.FC = () => {
     setFilename(newName);
   };
 
-  // Effect to update the touchstone object's comments when comments state changes
-  useEffect(() => {
-    if (touchstone && JSON.stringify(touchstone.comments) !== JSON.stringify(comments)) {
-      // Create a new Touchstone instance or clone the existing one to update its comments
-      // This ensures that we are not mutating the state directly and triggers re-renders if necessary.
-      const updatedTouchstone = new Touchstone();
-      Object.assign(updatedTouchstone, touchstone); // Copy properties
-      updatedTouchstone.comments = [...comments]; // Assign new comments
-      setTouchstone(updatedTouchstone); // Update the state
-    }
-  }, [comments, touchstone]); // Dependency: run when comments or touchstone changes
+  /**
+   * Handles updates to comments from the FileInfo component.
+   * It updates both the local `comments` state and the `comments` property
+   * of the main `touchstone` object to ensure consistency for display and export.
+   * @param newCommentsArray An array of strings representing the new comments.
+   */
+  const handleCommentsUpdate = (newCommentsArray: string[]) => {
+    setComments(newCommentsArray); // Update the local state for FileInfo's textarea
 
-  // handleCopyData and handleDownloadFile are now moved to their respective components.
+    if (touchstone) {
+      // Also update the touchstone object itself so that copy/download reflect changes
+      const updatedTouchstone = new Touchstone();
+      Object.assign(updatedTouchstone, touchstone); // Clone existing touchstone
+      updatedTouchstone.comments = [...newCommentsArray]; // Set new comments
+      setTouchstone(updatedTouchstone); // Update the touchstone state
+    }
+  };
 
   return (
     <div>
@@ -248,7 +246,7 @@ const TouchstoneViewer: React.FC = () => {
             filename={filename}
             handleFilenameChange={handleFilenameChange}
             comments={comments}
-            handleCommentsChange={setComments}
+            handleCommentsChange={handleCommentsUpdate}
           />
           {/* Data Table Component */}
           <DataTable

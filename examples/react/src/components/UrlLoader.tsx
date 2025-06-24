@@ -7,6 +7,12 @@ interface UrlLoaderProps {
   // onError?: (errorMessage: string) => void;
 }
 
+/**
+ * UrlLoader component.
+ * Provides UI for users to input a URL for a Touchstone file and submit it for loading.
+ * Includes an "Open from URL" button that toggles a text input and a "Load URL" button.
+ * Handles basic URL validation (non-empty, valid format).
+ */
 const UrlLoader: React.FC<UrlLoaderProps> = ({ onUrlSubmit }) => {
   const [url, setUrl] = useState<string>('');
   const [showInput, setShowInput] = useState<boolean>(false);

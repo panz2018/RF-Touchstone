@@ -5,6 +5,11 @@ interface CopyButtonProps {
   touchstone: Touchstone | null;
 }
 
+/**
+ * CopyButton component.
+ * Provides a button to copy the content of the loaded Touchstone file to the clipboard.
+ * Manages its own status messages for the copy operation.
+ */
 const CopyButton: React.FC<CopyButtonProps> = ({ touchstone }) => {
   const [copyStatus, setCopyStatus] = useState<string>('');
 
