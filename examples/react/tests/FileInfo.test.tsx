@@ -27,24 +27,26 @@ describe('FileInfo Component', () => {
   beforeEach(() => {
     mockHandleFilenameChange = vi.fn();
     mockHandleCommentsChange = vi.fn();
-    mockHandleUnitChange = vi.fn(); // Required prop, mock even if not directly tested here
-    mockHandleFormatChange = vi.fn(); // Required prop, mock even if not directly tested here
+    mockHandleUnitChange = vi.fn();
+    mockHandleFormatChange = vi.fn();
 
-    // Update mockTouchstoneInstance comments for each test if needed, or ensure it's consistent
+    // Ensure mockTouchstoneInstance has consistent initial values for unit, format, comments for each test run
+    mockTouchstoneInstance.frequency = { unit: 'GHz', f: [1], f_Hz: [1e9] } as any;
+    mockTouchstoneInstance.format = 'RI';
     mockTouchstoneInstance.comments = [...initialComments];
   });
 
-  const renderComponent = (filename = initialFilename, comments = initialComments) => {
+  // Updated renderComponent to not pass unit, format, comments directly
+  // It will rely on the values within mockTouchstoneInstance
+  const renderComponent = (filename = initialFilename, customTouchstone?: Touchstone) => {
+    const tsToUse = customTouchstone || mockTouchstoneInstance;
     return render(
       <FileInfo
-        touchstone={mockTouchstoneInstance}
-        unit="GHz"
+        touchstone={tsToUse}
         handleUnitChange={mockHandleUnitChange}
-        format="RI"
         handleFormatChange={mockHandleFormatChange}
         filename={filename}
         handleFilenameChange={mockHandleFilenameChange}
-        comments={comments}
         handleCommentsChange={mockHandleCommentsChange}
       />
     );
@@ -103,16 +105,15 @@ describe('FileInfo Component', () => {
       expect(basenameInput).toBeInTheDocument();
       expect(screen.getByText('.s1p')).toBeInTheDocument();
 
+      // Create a new touchstone instance for rerender if its properties are different
+      // For this test, only filename prop changes, touchstone instance can be the same.
       rerender(
         <FileInfo
-          touchstone={mockTouchstoneInstance}
-          unit="GHz"
+          touchstone={mockTouchstoneInstance} // Assuming unit, format, comments in this instance are fine
           handleUnitChange={mockHandleUnitChange}
-          format="RI"
           handleFormatChange={mockHandleFormatChange}
           filename="secondName.s4p" // New filename prop
           handleFilenameChange={mockHandleFilenameChange}
-          comments={initialComments}
           handleCommentsChange={mockHandleCommentsChange}
         />
       );
@@ -124,7 +125,8 @@ describe('FileInfo Component', () => {
 
   // Placeholder for Comments Editing tests
   describe('Comments Editing', () => {
-    it('displays initial comments in a textarea', () => {
+    it('displays initial comments from touchstone prop in a textarea', () => {
+      // mockTouchstoneInstance.comments is set to initialComments in beforeEach
       renderComponent();
       const textarea = screen.getByPlaceholderText(/Enter comments here, one per line./i) as HTMLTextAreaElement;
       expect(textarea).toBeInTheDocument();
@@ -138,29 +140,43 @@ describe('FileInfo Component', () => {
       expect(mockHandleCommentsChange).toHaveBeenCalledWith(["new comment 1", "new comment 2"]);
     });
 
-    it('updates textarea when comments prop changes externally', () => {
-      const { rerender } = renderComponent(initialFilename, ['original line 1']);
+    it('updates textarea when touchstone.comments prop changes externally', () => {
+      // Initial render with default comments from mockTouchstoneInstance (via beforeEach)
+      const { rerender } = renderComponent();
       let textarea = screen.getByPlaceholderText(/Enter comments here, one per line./i) as HTMLTextAreaElement;
-      expect(textarea.value).toBe('original line 1');
+      expect(textarea.value).toBe(initialComments.join('\n')); // Check initial state
 
-      const newCommentsProp = ['updated line 1', 'updated line 2'];
-      mockTouchstoneInstance.comments = [...newCommentsProp]; // Assuming touchstone comments also update
+      // Create a new touchstone instance with different comments
+      const updatedTouchstone = new Touchstone();
+      Object.assign(updatedTouchstone, mockTouchstoneInstance); // clone base properties
+      updatedTouchstone.comments = ['updated line 1', 'updated line 2'];
 
       rerender(
          <FileInfo
-          touchstone={mockTouchstoneInstance}
-          unit="GHz"
+          touchstone={updatedTouchstone} // Pass new touchstone object
           handleUnitChange={mockHandleUnitChange}
-          format="RI"
           handleFormatChange={mockHandleFormatChange}
           filename={initialFilename}
           handleFilenameChange={mockHandleFilenameChange}
-          comments={newCommentsProp} // Pass new comments
           handleCommentsChange={mockHandleCommentsChange}
         />
       );
       textarea = screen.getByPlaceholderText(/Enter comments here, one per line./i) as HTMLTextAreaElement;
-      expect(textarea.value).toBe(newCommentsProp.join('\n'));
+      expect(textarea.value).toBe(updatedTouchstone.comments.join('\n'));
+    });
+  });
+
+  describe('Unit and Format Display', () => {
+    it('displays unit from touchstone prop', () => {
+      mockTouchstoneInstance.frequency = { unit: 'MHz' } as any; // Set specific unit for this test
+      renderComponent();
+      expect(screen.getByDisplayValue('MHz')).toBeInTheDocument();
+    });
+
+    it('displays format from touchstone prop', () => {
+      mockTouchstoneInstance.format = 'MA'; // Set specific format for this test
+      renderComponent();
+      expect(screen.getByDisplayValue('MA')).toBeInTheDocument();
     });
   });
 });

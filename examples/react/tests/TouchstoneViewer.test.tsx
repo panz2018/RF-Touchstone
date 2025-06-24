@@ -36,14 +36,24 @@ let mockTriggerCommentsChange: ((newComments: string[]) => void) | null = null;
 vi.mock('../src/components/FileInfo', () => ({
   default: vi.fn((props) => {
     mockTriggerFilenameChange = props.handleFilenameChange;
+    mockTriggerFilenameChange = props.handleFilenameChange;
     mockTriggerCommentsChange = props.handleCommentsChange;
+    // The mocked FileInfo now derives unit, format, comments from the touchstone prop
+    const displayUnit = props.touchstone?.frequency?.unit || 'N/A';
+    const displayFormat = props.touchstone?.format || 'N/A';
+    const displayComments = (props.touchstone?.comments || []).join('/');
+
     return (
       <div data-testid="mock-fileinfo">
         <span>Filename: {props.filename}</span>
-        <span>Comments: {props.comments.join('/')}</span>
-        <span>Unit: {props.unit}</span>
-        <span>Format: {props.format}</span>
+        <span>Comments: {displayComments}</span>
+        <span>Unit: {displayUnit}</span>
+        <span>Format: {displayFormat}</span>
         <span>Touchstone NPorts: {props.touchstone?.nports}</span>
+        {/* Pass through handlers for testing interaction */}
+        <button data-testid="mock-fileinfo-change-unit" onClick={() => props.handleUnitChange('MockNewUnit')} />
+        <button data-testid="mock-fileinfo-change-format" onClick={() => props.handleFormatChange('MockNewFormat')} />
+        <button data-testid="mock-fileinfo-change-comments" onClick={() => props.handleCommentsChange(['MockNewComment'])} />
       </div>
     );
   }),
@@ -119,8 +129,12 @@ describe('TouchstoneViewer Component', () => {
 
     const fileInfoProps = MockedFileInfo.mock.calls[0][0] as any;
     expect(fileInfoProps.filename).toBe('sample.s2p');
-    expect(fileInfoProps.comments).toEqual(['Original Comment 1']);
+    expect(fileInfoProps.touchstone).toBeInstanceOf(Touchstone);
     expect(fileInfoProps.touchstone.comments).toEqual(['Original Comment 1']);
+    // unit and format are now derived by the mock from fileInfoProps.touchstone
+    // So, we check the mock's rendering rather than direct props for these
+    expect(screen.getByText('Unit: HZ')).toBeInTheDocument(); // From mockSampleS2PContent
+    expect(screen.getByText('Format: RI')).toBeInTheDocument(); // Default
 
     const copyButtonProps = MockedCopyButton.mock.calls[0][0] as any;
     expect(copyButtonProps.touchstone).toBeInstanceOf(Touchstone);
@@ -169,9 +183,12 @@ describe('TouchstoneViewer Component', () => {
       expect(downloadButtonProps.touchstone.comments).toEqual(newCommentsFromChild);
     });
 
+    // Verify the mock FileInfo displays the updated comments
     await waitFor(() => {
-        const fileInfoProps = MockedFileInfo.mock.lastCall![0] as any;
-        expect(fileInfoProps.comments).toEqual(newCommentsFromChild);
+      expect(screen.getByText(`Comments: ${newCommentsFromChild.join('/')}`)).toBeInTheDocument();
+      // Also ensure the touchstone object passed to FileInfo itself has updated comments
+      const fileInfoProps = MockedFileInfo.mock.lastCall![0] as any;
+      expect(fileInfoProps.touchstone.comments).toEqual(newCommentsFromChild);
     });
   });
 
@@ -315,14 +332,21 @@ describe('TouchstoneViewer Component', () => {
       render(<TouchstoneViewer />);
       await waitFor(() => expect(screen.getByTestId('mock-fileinfo')).toBeInTheDocument());
 
-      let fileInfoProps = MockedFileInfo.mock.lastCall![0] as any;
-      expect(fileInfoProps.format).toBe('RI');
+      // Check initial format via the mock's display (derived from touchstone)
+      expect(screen.getByText('Format: RI')).toBeInTheDocument();
 
-      act(() => { fileInfoProps.handleFormatChange('MA'); });
+      // Simulate FileInfo's internal mechanism calling handleFormatChange
+      fireEvent.click(screen.getByTestId('mock-fileinfo-change-format'));
 
       await waitFor(() => {
-        const updatedFileInfoProps = MockedFileInfo.mock.lastCall![0] as any;
-        expect(updatedFileInfoProps.format).toBe('MA');
+        // Verify the touchstone object passed to FileInfo (and thus its display) is updated
+        expect(screen.getByText('Format: MockNewFormat')).toBeInTheDocument();
+        const fileInfoProps = MockedFileInfo.mock.lastCall![0] as any;
+        expect(fileInfoProps.touchstone.format).toBe('MockNewFormat');
+
+        // Also verify CopyButton gets the updated touchstone
+        const copyButtonProps = MockedCopyButton.mock.lastCall![0] as any;
+        expect(copyButtonProps.touchstone.format).toBe('MockNewFormat');
       });
     });
 
@@ -330,14 +354,21 @@ describe('TouchstoneViewer Component', () => {
       render(<TouchstoneViewer />);
       await waitFor(() => expect(screen.getByTestId('mock-fileinfo')).toBeInTheDocument());
 
-      let fileInfoProps = MockedFileInfo.mock.lastCall![0] as any;
-      expect(fileInfoProps.unit).toBe('HZ');
+      // Check initial unit via the mock's display
+      expect(screen.getByText('Unit: HZ')).toBeInTheDocument();
 
-      act(() => { fileInfoProps.handleUnitChange('KHz'); });
+      // Simulate FileInfo's internal mechanism calling handleUnitChange
+      fireEvent.click(screen.getByTestId('mock-fileinfo-change-unit'));
 
       await waitFor(() => {
-        const updatedFileInfoProps = MockedFileInfo.mock.lastCall![0] as any;
-        expect(updatedFileInfoProps.unit).toBe('KHz');
+        // Verify the touchstone object passed to FileInfo (and thus its display) is updated
+        expect(screen.getByText('Unit: MockNewUnit')).toBeInTheDocument();
+        const fileInfoProps = MockedFileInfo.mock.lastCall![0] as any;
+        expect(fileInfoProps.touchstone.frequency.unit).toBe('MockNewUnit');
+
+        // Also verify CopyButton gets the updated touchstone
+        const copyButtonProps = MockedCopyButton.mock.lastCall![0] as any;
+        expect(copyButtonProps.touchstone.frequency.unit).toBe('MockNewUnit');
       });
     });
   });

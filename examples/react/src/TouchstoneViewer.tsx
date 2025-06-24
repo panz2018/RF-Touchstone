@@ -17,19 +17,14 @@ import DownloadButton from './components/DownloadButton'
  * and provides copy/download functionality.
  */
 const TouchstoneViewer: React.FC = () => {
-  // State for the currently loaded Touchstone object.
+  // State for the currently loaded Touchstone object. This will be the single source of truth.
   const [touchstone, setTouchstone] = useState<Touchstone | null>(null);
-  // State for the selected frequency unit for display.
-  const [unit, setUnit] = useState<string | undefined>();
-  // State for the selected S-parameter format for display.
-  const [format, setFormat] = useState<string | undefined>();
   // State for storing any error messages.
   const [error, setError] = useState<string | null>(null)
   // State for the name of the currently loaded or selected file.
   const [filename, setFilename] = useState<string>('') // Initialize empty, set on load
-  // State for editable comments, distinct from touchstone.comments for UI interaction
-  const [comments, setComments] = useState<string[]>([])
-  // copyStatus state is now managed by CopyButton.tsx
+  // Unit, Format, and Comments will now be derived directly from the `touchstone` object.
+  // copyStatus state is managed by CopyButton.tsx
 
   /**
    * Loads Touchstone file content from a given URL (typically for remote files or the initial default file).
@@ -63,7 +58,7 @@ const TouchstoneViewer: React.FC = () => {
       setError(`Could not determine a valid filename from URL: ${fileUrl}`);
       setFilename(''); // Clear filename
       setTouchstone(null);
-      setComments([]);
+      // setComments([]); // No longer needed, comments are part of touchstone object or null
       return;
     }
 
@@ -73,9 +68,7 @@ const TouchstoneViewer: React.FC = () => {
     try {
       const ts = await readUrl(fileUrl) // Use the module-level readUrl function
       setTouchstone(ts)
-      setUnit(ts.frequency?.unit);
-      setFormat(ts.format);
-      setComments(ts.comments || []); // Initialize/update comments
+      // setUnit, setFormat, setComments are removed. These values are now part of 'ts'.
     } catch (err) {
       console.error(`Error loading or parsing Touchstone file from URL ${fileUrl}:`, err)
       setError(
@@ -108,9 +101,7 @@ const TouchstoneViewer: React.FC = () => {
       try {
         const ts = await readFile(file) // Use the module-level readFile function
         setTouchstone(ts)
-        setUnit(ts.frequency?.unit);
-        setFormat(ts.format);
-        setComments(ts.comments || []); // Initialize/update comments
+        // setUnit, setFormat, setComments are removed. These values are now part of 'ts'.
       } catch (err) {
         console.error('Error processing uploaded Touchstone file:', err)
         setError(
@@ -143,6 +134,8 @@ const TouchstoneViewer: React.FC = () => {
       newFrequency.unit = newUnitString as any; // `unit` setter handles scaling
 
       updatedTouchstone.frequency = newFrequency;
+      // The 'unit' state is removed, so no setUnit(newUnitString) call.
+      // The change is reflected by updating the entire touchstone object.
       setTouchstone(updatedTouchstone);
     }
   }
@@ -157,6 +150,8 @@ const TouchstoneViewer: React.FC = () => {
       const updatedTouchstone = new Touchstone()
       Object.assign(updatedTouchstone, touchstone)
       updatedTouchstone.format = newFormatString as TouchstoneFormat;
+      // The 'format' state is removed, so no setFormat(newFormatString) call.
+      // The change is reflected by updating the entire touchstone object.
       setTouchstone(updatedTouchstone)
     }
   }
@@ -184,15 +179,15 @@ const TouchstoneViewer: React.FC = () => {
    * of the main `touchstone` object to ensure consistency for display and export.
    * @param newCommentsArray An array of strings representing the new comments.
    */
-  const handleCommentsUpdate = (newCommentsArray: string[]) => {
-    setComments(newCommentsArray); // Update the local state for FileInfo's textarea
-
+  const handleCommentsChange = (newCommentsArray: string[]) => {
+    // setComments(newCommentsArray); // Local 'comments' state is removed.
+                                  // FileInfo will get comments from touchstone.comments.
+                                  // This handler directly updates the touchstone object.
     if (touchstone) {
-      // Also update the touchstone object itself so that copy/download reflect changes
       const updatedTouchstone = new Touchstone();
-      Object.assign(updatedTouchstone, touchstone); // Clone existing touchstone
-      updatedTouchstone.comments = [...newCommentsArray]; // Set new comments
-      setTouchstone(updatedTouchstone); // Update the touchstone state
+      Object.assign(updatedTouchstone, touchstone);
+      updatedTouchstone.comments = [...newCommentsArray];
+      setTouchstone(updatedTouchstone);
     }
   };
 
@@ -239,20 +234,19 @@ const TouchstoneViewer: React.FC = () => {
           {/* File Information and Controls Component */}
           <FileInfo
             touchstone={touchstone}
-            unit={unit}
+            // unit, format, and comments props are removed.
+            // FileInfo will derive these from the touchstone object.
             handleUnitChange={handleUnitChange}
-            format={format}
             handleFormatChange={handleFormatChange}
-            filename={filename}
+            filename={filename} // filename is still a separate state
             handleFilenameChange={handleFilenameChange}
-            comments={comments}
-            handleCommentsChange={handleCommentsUpdate}
+            handleCommentsChange={handleCommentsChange} // Corrected name
           />
           {/* Data Table Component */}
           <DataTable
             touchstone={touchstone}
-            unit={unit}
-            format={format}
+            // unit and format props are removed.
+            // DataTable will derive these from the touchstone object.
           />
         </>
       )}

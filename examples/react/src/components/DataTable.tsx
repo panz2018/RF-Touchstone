@@ -7,23 +7,21 @@ import { Touchstone, Complex, abs, arg } from 'rf-touchstone'
 interface DataTableProps {
   /** The loaded Touchstone data object, or null if no data is available or an error occurred. */
   touchstone: Touchstone | null
-  /** The currently selected frequency unit (e.g., "GHz", "MHz") to be displayed in the frequency column header. */
-  unit: string | undefined
-  /** The currently selected S-parameter display format (e.g., 'RI', 'MA', 'DB') which dictates how data is shown. */
-  format: string | undefined
+  // unit and format props are removed; they will be derived from the touchstone object.
 }
 
 /**
  * DataTable component.
  * Renders the main table displaying Touchstone network parameter data (e.g., S-parameters).
- * It delegates the generation of table headers and rows to module-level helper functions,
- * passing them the necessary Touchstone data and display format information.
+ * Unit and format for display are derived directly from the `touchstone` object.
  */
 const DataTable: React.FC<DataTableProps> = ({
   touchstone,
-  unit,
-  format,
 }) => {
+  // Derive unit and format from the touchstone object
+  const unit = touchstone?.frequency?.unit;
+  const format = touchstone?.format;
+
   if (
     !touchstone ||
     !touchstone.matrix ||
