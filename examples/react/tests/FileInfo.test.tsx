@@ -17,18 +17,18 @@ mockTouchstoneInstance.comments = ['Comment 1', 'Comment 2'];
 
 describe('FileInfo Component', () => {
   let mockHandleFilenameChange: ReturnType<typeof vi.fn>;
-  let mockHandleCommentsChange: ReturnType<typeof vi.fn>;
-  let mockHandleUnitChange: ReturnType<typeof vi.fn>;
-  let mockHandleFormatChange: ReturnType<typeof vi.fn>;
+  let mockSetComments: ReturnType<typeof vi.fn>; // Renamed
+  let mockSetUnit: ReturnType<typeof vi.fn>;     // Renamed
+  let mockSetFormat: ReturnType<typeof vi.fn>;   // Renamed
 
   const initialFilename = 'testfile.s2p';
   const initialComments = ['Initial comment 1', 'Initial comment 2'];
 
   beforeEach(() => {
     mockHandleFilenameChange = vi.fn();
-    mockHandleCommentsChange = vi.fn();
-    mockHandleUnitChange = vi.fn();
-    mockHandleFormatChange = vi.fn();
+    mockSetComments = vi.fn(); // Renamed
+    mockSetUnit = vi.fn();     // Renamed
+    mockSetFormat = vi.fn();   // Renamed
 
     // Ensure mockTouchstoneInstance has consistent initial values for unit, format, comments for each test run
     mockTouchstoneInstance.frequency = { unit: 'GHz', f: [1], f_Hz: [1e9] } as any;
@@ -43,11 +43,11 @@ describe('FileInfo Component', () => {
     return render(
       <FileInfo
         touchstone={tsToUse}
-        handleUnitChange={mockHandleUnitChange}
-        handleFormatChange={mockHandleFormatChange}
+        setUnit={mockSetUnit} // Renamed prop
+        setFormat={mockSetFormat} // Renamed prop
         filename={filename}
         handleFilenameChange={mockHandleFilenameChange}
-        handleCommentsChange={mockHandleCommentsChange}
+        setComments={mockSetComments} // Renamed prop
       />
     );
   };
@@ -105,16 +105,14 @@ describe('FileInfo Component', () => {
       expect(basenameInput).toBeInTheDocument();
       expect(screen.getByText('.s1p')).toBeInTheDocument();
 
-      // Create a new touchstone instance for rerender if its properties are different
-      // For this test, only filename prop changes, touchstone instance can be the same.
       rerender(
         <FileInfo
-          touchstone={mockTouchstoneInstance} // Assuming unit, format, comments in this instance are fine
-          handleUnitChange={mockHandleUnitChange}
-          handleFormatChange={mockHandleFormatChange}
-          filename="secondName.s4p" // New filename prop
+          touchstone={mockTouchstoneInstance}
+          setUnit={mockSetUnit} // Renamed prop
+          setFormat={mockSetFormat} // Renamed prop
+          filename="secondName.s4p"
           handleFilenameChange={mockHandleFilenameChange}
-          handleCommentsChange={mockHandleCommentsChange}
+          setComments={mockSetComments} // Renamed prop
         />
       );
       basenameInput = screen.getByDisplayValue('secondName') as HTMLInputElement;
@@ -137,7 +135,7 @@ describe('FileInfo Component', () => {
       renderComponent();
       const textarea = screen.getByPlaceholderText(/Enter comments here, one per line./i);
       fireEvent.change(textarea, { target: { value: "new comment 1\nnew comment 2" } });
-      expect(mockHandleCommentsChange).toHaveBeenCalledWith(["new comment 1", "new comment 2"]);
+      expect(mockSetComments).toHaveBeenCalledWith(["new comment 1", "new comment 2"]); // Renamed mock
     });
 
     it('updates textarea when touchstone.comments prop changes externally', () => {
@@ -154,11 +152,11 @@ describe('FileInfo Component', () => {
       rerender(
          <FileInfo
           touchstone={updatedTouchstone} // Pass new touchstone object
-          handleUnitChange={mockHandleUnitChange}
-          handleFormatChange={mockHandleFormatChange}
+          setUnit={mockSetUnit} // Renamed prop
+          setFormat={mockSetFormat} // Renamed prop
           filename={initialFilename}
           handleFilenameChange={mockHandleFilenameChange}
-          handleCommentsChange={mockHandleCommentsChange}
+          setComments={mockSetComments} // Renamed prop
         />
       );
       textarea = screen.getByPlaceholderText(/Enter comments here, one per line./i) as HTMLTextAreaElement;

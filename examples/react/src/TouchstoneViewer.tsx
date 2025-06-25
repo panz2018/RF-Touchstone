@@ -116,11 +116,11 @@ const TouchstoneViewer: React.FC = () => {
   }
 
   /**
-   * Handles changes to the selected frequency unit.
-   * It creates a new Touchstone object with frequencies scaled to the new unit.
+   * Updates the frequency unit for the current Touchstone data.
+   * Creates a new Touchstone object with scaled frequencies and updates the state.
    * @param newUnitString The new frequency unit string (e.g., "GHz", "MHz").
    */
-  const handleUnitChange = (newUnitString: string) => {
+  const setUnit = (newUnitString: string) => {
     if (touchstone?.frequency) {
       const frequenciesInHz = touchstone.frequency.f_Hz;
       const updatedTouchstone = new Touchstone();
@@ -136,11 +136,11 @@ const TouchstoneViewer: React.FC = () => {
   }
 
   /**
-   * Handles changes to the selected S-parameter display format.
-   * It creates a new Touchstone object with the updated format property.
+   * Updates the S-parameter display format for the current Touchstone data.
+   * Creates a new Touchstone object with the new format and updates the state.
    * @param newFormatString The new format string ('RI', 'MA', 'DB').
    */
-  const handleFormatChange = (newFormatString: string) => {
+  const setFormat = (newFormatString: string) => {
     if (touchstone) {
       const updatedTouchstone = new Touchstone()
       Object.assign(updatedTouchstone, touchstone)
@@ -167,12 +167,11 @@ const TouchstoneViewer: React.FC = () => {
   };
 
   /**
-   * Handles updates to comments from the FileInfo component.
-   * It updates both the local `comments` state and the `comments` property
-   * of the main `touchstone` object to ensure consistency for display and export.
+   * Updates the comments for the current Touchstone data.
+   * Creates a new Touchstone object with the new comments and updates the state.
    * @param newCommentsArray An array of strings representing the new comments.
    */
-  const handleCommentsChange = (newCommentsArray: string[]) => {
+  const setComments = (newCommentsArray: string[]) => {
     if (touchstone) {
       const updatedTouchstone = new Touchstone();
       Object.assign(updatedTouchstone, touchstone); // Create a new instance based on the current one
@@ -224,11 +223,11 @@ const TouchstoneViewer: React.FC = () => {
           {/* File Information and Controls Component */}
           <FileInfo
             touchstone={touchstone}
-            handleUnitChange={handleUnitChange}
-            handleFormatChange={handleFormatChange}
+            handleUnitChange={setUnit}
+            handleFormatChange={setFormat}
             filename={filename}
             handleFilenameChange={handleFilenameChange}
-            handleCommentsChange={handleCommentsChange}
+            handleCommentsChange={setComments}
           />
           {/* Data Table Component */}
           <DataTable

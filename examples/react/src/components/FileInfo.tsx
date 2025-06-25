@@ -7,16 +7,16 @@ import { Touchstone, FrequencyUnits } from 'rf-touchstone'
 interface FileInfoProps {
   /** The loaded Touchstone data object, or null if no data is loaded. */
   touchstone: Touchstone | null
-  /** Callback function to handle changes to the frequency unit. */
-  handleUnitChange: (newUnit: string) => void
-  /** Callback function to handle changes to the data format. */
-  handleFormatChange: (newFormat: string) => void
+  /** Callback function to set the new frequency unit. */
+  setUnit: (newUnit: string) => void
+  /** Callback function to set the new data format. */
+  setFormat: (newFormat: string) => void
   /** The current filename. */
   filename: string // Filename state is still managed separately in parent
   /** Callback function to handle changes to the filename. */
   handleFilenameChange: (newName: string) => void
-  /** Callback function to handle changes to the comments. */
-  handleCommentsChange: (newComments: string[]) => void
+  /** Callback function to set the new comments. */
+  setComments: (newComments: string[]) => void
 }
 
 /**
@@ -24,14 +24,15 @@ interface FileInfoProps {
  * Displays metadata from the Touchstone object and provides controls for user interactions
  * such as changing frequency units, data formats, filename, and comments.
  * Unit, format, and comments data are sourced directly from the `touchstone` prop.
+ * Calls provided setter functions to update parent state.
  */
 const FileInfo: React.FC<FileInfoProps> = ({
   touchstone,
-  handleUnitChange,
-  handleFormatChange,
+  setUnit,
+  setFormat,
   filename,
   handleFilenameChange,
-  handleCommentsChange,
+  setComments,
 }) => {
   // If no Touchstone data is available, render nothing.
   if (!touchstone) {
@@ -97,7 +98,7 @@ const FileInfo: React.FC<FileInfoProps> = ({
         {touchstone.frequency?.unit ? (
           <select
             value={touchstone.frequency.unit || ''} // Use unit from touchstone object
-            onChange={(e) => handleUnitChange(e.target.value)}
+            onChange={(e) => setUnit(e.target.value)}
           >
             {FrequencyUnits.map((u) => (
               <option key={u} value={u}>
@@ -121,7 +122,7 @@ const FileInfo: React.FC<FileInfoProps> = ({
         {touchstone.format ? (
           <select
             value={touchstone.format || ''} // Use format from touchstone object
-            onChange={(e) => handleFormatChange(e.target.value)}
+            onChange={(e) => setFormat(e.target.value)}
           >
             <option value="RI">RI (Real/Imaginary)</option>
             <option value="MA">MA (Magnitude/Angle)</option>
@@ -146,7 +147,7 @@ const FileInfo: React.FC<FileInfoProps> = ({
         <strong>Comments:</strong>
         <textarea
           value={(touchstone.comments || []).join('\n')} // Use comments from touchstone object
-          onChange={(e) => handleCommentsChange(e.target.value.split('\n'))}
+          onChange={(e) => setComments(e.target.value.split('\n'))}
           rows={Math.max(3, (touchstone.comments || []).length)} // Adjust rows
           style={{ width: '100%', marginTop: '5px', padding: '5px', boxSizing: 'border-box' }}
           placeholder="Enter comments here, one per line."
