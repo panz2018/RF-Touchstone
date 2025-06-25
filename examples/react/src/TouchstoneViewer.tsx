@@ -223,11 +223,11 @@ const TouchstoneViewer: React.FC = () => {
           {/* File Information and Controls Component */}
           <FileInfo
             touchstone={touchstone}
-            handleUnitChange={setUnit}
-            handleFormatChange={setFormat}
+            setUnit={setUnit}
+            setFormat={setFormat}
             filename={filename}
             handleFilenameChange={handleFilenameChange}
-            handleCommentsChange={setComments}
+            setComments={setComments}
           />
           {/* Data Table Component */}
           <DataTable

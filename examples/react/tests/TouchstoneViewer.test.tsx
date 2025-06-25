@@ -32,12 +32,16 @@ vi.mock('../src/components/UrlLoader', () => ({
 }));
 
 let mockTriggerFilenameChange: ((newName: string) => void) | null = null;
-let mockTriggerCommentsChange: ((newComments: string[]) => void) | null = null;
+// mockTriggerCommentsChange, mockTriggerUnitChange, mockTriggerFormatChange will be set via props
+let mockFileInfoHandlers: any = {};
 vi.mock('../src/components/FileInfo', () => ({
   default: vi.fn((props) => {
-    mockTriggerFilenameChange = props.handleFilenameChange;
-    mockTriggerFilenameChange = props.handleFilenameChange;
-    mockTriggerCommentsChange = props.handleCommentsChange;
+    mockTriggerFilenameChange = props.handleFilenameChange; // Still used for filename
+    // Store all handlers passed to the mock to be triggered by tests
+    mockFileInfoHandlers.setUnit = props.setUnit;
+    mockFileInfoHandlers.setFormat = props.setFormat;
+    mockFileInfoHandlers.setComments = props.setComments;
+
     // The mocked FileInfo now derives unit, format, comments from the touchstone prop
     const displayUnit = props.touchstone?.frequency?.unit || 'N/A';
     const displayFormat = props.touchstone?.format || 'N/A';
@@ -50,10 +54,10 @@ vi.mock('../src/components/FileInfo', () => ({
         <span>Unit: {displayUnit}</span>
         <span>Format: {displayFormat}</span>
         <span>Touchstone NPorts: {props.touchstone?.nports}</span>
-        {/* Pass through handlers for testing interaction */}
-        <button data-testid="mock-fileinfo-change-unit" onClick={() => props.handleUnitChange('MockNewUnit')} />
-        <button data-testid="mock-fileinfo-change-format" onClick={() => props.handleFormatChange('MockNewFormat')} />
-        <button data-testid="mock-fileinfo-change-comments" onClick={() => props.handleCommentsChange(['MockNewComment'])} />
+        {/* Buttons to simulate FileInfo triggering parent handlers with new prop names */}
+        <button data-testid="mock-fileinfo-set-unit" onClick={() => props.setUnit('MockNewUnit')} />
+        <button data-testid="mock-fileinfo-set-format" onClick={() => props.setFormat('MockNewFormat')} />
+        <button data-testid="mock-fileinfo-set-comments" onClick={() => props.setComments(['MockNewComment'])} />
       </div>
     );
   }),
@@ -171,9 +175,9 @@ describe('TouchstoneViewer Component', () => {
     expect(copyButtonProps.touchstone.comments).toEqual(initialLoadedTs.comments);
 
     const newCommentsFromChild = ['User comment 1', 'User comment 2'];
-    expect(mockTriggerCommentsChange).not.toBeNull();
-    if(mockTriggerCommentsChange) {
-       act(() => { mockTriggerCommentsChange(newCommentsFromChild); });
+    expect(mockFileInfoHandlers.setComments).toBeDefined();
+    if(mockFileInfoHandlers.setComments) {
+       act(() => { mockFileInfoHandlers.setComments(newCommentsFromChild); });
     }
 
     await waitFor(() => {
@@ -335,8 +339,8 @@ describe('TouchstoneViewer Component', () => {
       // Check initial format via the mock's display (derived from touchstone)
       expect(screen.getByText('Format: RI')).toBeInTheDocument();
 
-      // Simulate FileInfo's internal mechanism calling handleFormatChange
-      fireEvent.click(screen.getByTestId('mock-fileinfo-change-format'));
+      // Simulate FileInfo's internal mechanism calling setFormat
+      fireEvent.click(screen.getByTestId('mock-fileinfo-set-format'));
 
       await waitFor(() => {
         // Verify the touchstone object passed to FileInfo (and thus its display) is updated
@@ -357,8 +361,8 @@ describe('TouchstoneViewer Component', () => {
       // Check initial unit via the mock's display
       expect(screen.getByText('Unit: HZ')).toBeInTheDocument();
 
-      // Simulate FileInfo's internal mechanism calling handleUnitChange
-      fireEvent.click(screen.getByTestId('mock-fileinfo-change-unit'));
+      // Simulate FileInfo's internal mechanism calling setUnit
+      fireEvent.click(screen.getByTestId('mock-fileinfo-set-unit'));
 
       await waitFor(() => {
         // Verify the touchstone object passed to FileInfo (and thus its display) is updated
