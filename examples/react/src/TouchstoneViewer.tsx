@@ -276,9 +276,7 @@ const readUrl = async (fileUrl: string): Promise<Touchstone> => {
       `Could not determine number of ports from file name: ${fileUrl}`
     )
   }
-  const ts = new Touchstone()
-  ts.readContent(textContent, nports)
-  return ts
+  return readText(textContent, nports);
 }
 
 /**
@@ -308,11 +306,9 @@ const readFile = (file: File): Promise<Touchstone> => {
           )
           return
         }
-        const ts = new Touchstone()
-        ts.readContent(textContent, nports)
-        resolve(ts)
+        resolve(readText(textContent, nports));
       } catch (err) {
-        reject(err) // Catch errors from Touchstone parsing or nports
+        reject(err) // Catch errors from Touchstone parsing or nports (readText might throw)
       }
     }
 
@@ -322,4 +318,18 @@ const readFile = (file: File): Promise<Touchstone> => {
 
     reader.readAsText(file)
   })
+}
+
+/**
+ * Parses text content into a Touchstone object.
+ * @param textContent The string content of the Touchstone file.
+ * @param nports The number of ports for the Touchstone file.
+ * @returns A Touchstone object.
+ * @throws An error if parsing fails.
+ */
+const readText = (textContent: string, nports: number): Touchstone => {
+  console.log('[DEBUG] readText called with textContent length:', textContent.length, 'and nports:', nports);
+  const ts = new Touchstone();
+  ts.readContent(textContent, nports);
+  return ts;
 }
