@@ -264,26 +264,21 @@ const getNumberOfPorts = (filename: string): number | null => {
  */
 const readUrl = async (fileUrl: string): Promise<Touchstone> => {
   console.log('[DEBUG] readUrl called with fileUrl:', fileUrl);
-  try {
-    const response = await fetch(fileUrl)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch file: ${response.statusText}`)
-    }
-    const textContent = await response.text()
-    // getNumberOfPorts is now a module-level function
-    const nports = getNumberOfPorts(fileUrl.substring(fileUrl.lastIndexOf('/') + 1)) // Pass only filename part
-    if (nports === null) {
-      throw new Error(
-        `Could not determine number of ports from file name: ${fileUrl}`
-      )
-    }
-    const ts = new Touchstone()
-    ts.readContent(textContent, nports)
-    return ts
-  } catch (err) {
-    // Re-throw the error to be handled by the caller
-    throw err
+  // Removed redundant try...catch, errors will propagate to loadFileContent
+  const response = await fetch(fileUrl)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch file: ${response.statusText}`)
   }
+  const textContent = await response.text()
+  const nports = getNumberOfPorts(fileUrl.substring(fileUrl.lastIndexOf('/') + 1))
+  if (nports === null) {
+    throw new Error(
+      `Could not determine number of ports from file name: ${fileUrl}`
+    )
+  }
+  const ts = new Touchstone()
+  ts.readContent(textContent, nports)
+  return ts
 }
 
 /**
