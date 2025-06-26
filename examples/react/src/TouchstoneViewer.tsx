@@ -33,31 +33,35 @@ const TouchstoneViewer: React.FC = () => {
    * @param url The URL of the Touchstone file to load.
    */
   const loadFileContent = async (url: string) => {
-    const nameOnly = getFilenameFromUrl(url);
-
-    // Validate if a name was actually extracted.
-    // getFilenameFromUrl will return the original url if no '/' is found,
-    // so it should generally not be empty if the input url is not empty.
-    // However, an additional trim check is good for robustness.
-    if (!nameOnly || nameOnly.trim() === '') {
-      setError(`Could not determine a valid filename from URL: ${url}`);
-      setFilename('');
-      setTouchstone(null);
-      return;
-    }
-
-    setFilename(nameOnly);
-    setError(null); // Clear previous errors before new load attempt.
-
+    let activeFilename = ''; // To hold the filename determined before potential errors
     try {
-      const ts = await readUrl(url)
-      setTouchstone(ts)
+      const nameOnly = getFilenameFromUrl(url);
+
+      if (!nameOnly || nameOnly.trim() === '') {
+        // Specific error for filename parsing failure
+        throw new Error(`Could not determine a valid filename from URL: ${url}`);
+      }
+
+      activeFilename = nameOnly; // Store valid filename
+      setFilename(activeFilename);
+      setError(null); // Clear previous errors before new load attempt.
+
+      const ts = await readUrl(url);
+      setTouchstone(ts);
+
     } catch (err) {
-      console.error(`Error loading or parsing Touchstone file from URL ${url}:`, err)
-      setError(
-        err instanceof Error ? err.message : 'An unknown error occurred.'
-      )
-      setTouchstone(null) // Clear data on error
+      console.error(`Error processing URL ${url}:`, err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      setTouchstone(null);
+      // If the error was due to filename parsing, filename might not have been set or should be cleared.
+      // If activeFilename is still empty, it implies filename parsing failed.
+      if (activeFilename.trim() === '' && url) {
+        // If filename parsing itself failed, ensure filename state is also cleared.
+        // The error message from the specific throw above will be displayed.
+        setFilename('');
+      }
+      // If activeFilename was set but readUrl failed, filename state remains,
+      // and the error message will be "Error with {activeFilename}"
     }
   }
 
