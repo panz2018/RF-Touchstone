@@ -30,32 +30,17 @@ const TouchstoneViewer: React.FC = () => {
    * Loads Touchstone file content from a given URL.
    * Parses the content and updates the component's state.
    * Also sets the filename based on the URL.
-   * @param fileUrl The URL of the Touchstone file to load.
+   * @param url The URL of the Touchstone file to load.
    */
-  const loadFileContent = async (fileUrl: string) => {
-    let nameOnly: string | undefined = undefined;
-    try {
-      // Attempt to parse filename from URL
-      // For relative URLs like '/sample.s2p', URL constructor needs a base.
-      const tempUrl = new URL(fileUrl, window.location.origin);
-      const pathSegments = tempUrl.pathname.split('/');
-      nameOnly = pathSegments.pop();
-    } catch (e) {
-      // If URL parsing fails (e.g. not a valid URL string), try simple substring
-      // This might be the case for non-URL strings if they somehow reach here, though unlikely for fileUrl.
-      const lastSlash = fileUrl.lastIndexOf('/');
-      if (lastSlash !== -1) {
-        nameOnly = fileUrl.substring(lastSlash + 1);
-      } else {
-        // If no slash, and not a valid URL, consider the whole string as potential filename
-        // but only if it's not empty. This case should ideally not happen with valid URLs.
-        nameOnly = fileUrl;
-      }
-    }
+  const loadFileContent = async (url: string) => {
+    const nameOnly = getFilenameFromUrl(url);
 
     // Validate if a name was actually extracted.
+    // getFilenameFromUrl will return the original url if no '/' is found,
+    // so it should generally not be empty if the input url is not empty.
+    // However, an additional trim check is good for robustness.
     if (!nameOnly || nameOnly.trim() === '') {
-      setError(`Could not determine a valid filename from URL: ${fileUrl}`);
+      setError(`Could not determine a valid filename from URL: ${url}`);
       setFilename('');
       setTouchstone(null);
       return;
@@ -65,10 +50,10 @@ const TouchstoneViewer: React.FC = () => {
     setError(null); // Clear previous errors before new load attempt.
 
     try {
-      const ts = await readUrl(fileUrl)
+      const ts = await readUrl(url)
       setTouchstone(ts)
     } catch (err) {
-      console.error(`Error loading or parsing Touchstone file from URL ${fileUrl}:`, err)
+      console.error(`Error loading or parsing Touchstone file from URL ${url}:`, err)
       setError(
         err instanceof Error ? err.message : 'An unknown error occurred.'
       )
@@ -256,22 +241,22 @@ const getNumberOfPorts = (filename: string): number | null => {
 
 /**
  * Reads a Touchstone file from a given URL, parses it, and returns a Touchstone object.
- * @param fileUrl The URL of the Touchstone file to load.
+ * @param url The URL of the Touchstone file to load.
  * @returns A Promise that resolves to a Touchstone object.
  * @throws An error if fetching or parsing fails.
  */
-const readUrl = async (fileUrl: string): Promise<Touchstone> => {
-  console.log('[DEBUG] readUrl called with fileUrl:', fileUrl);
-  // Removed redundant try...catch, errors will propagate to loadFileContent
-  const response = await fetch(fileUrl)
+const readUrl = async (url: string): Promise<Touchstone> => {
+  console.log('[DEBUG] readUrl called with url:', url);
+  const response = await fetch(url)
   if (!response.ok) {
     throw new Error(`Failed to fetch file: ${response.statusText}`)
   }
   const textContent = await response.text()
-  const nports = getNumberOfPorts(fileUrl.substring(fileUrl.lastIndexOf('/') + 1))
+  const filenameForPortCheck = getFilenameFromUrl(url);
+  const nports = getNumberOfPorts(filenameForPortCheck)
   if (nports === null) {
     throw new Error(
-      `Could not determine number of ports from file name: ${fileUrl}`
+      `Could not determine number of ports from file name: ${filenameForPortCheck} (derived from URL: ${url})`
     )
   }
   return readText(textContent, nports);
@@ -331,3 +316,16 @@ const readText = (textContent: string, nports: number): Touchstone => {
   ts.readContent(textContent, nports);
   return ts;
 }
+
+/**
+ * Extracts a filename from a URL string.
+ * It takes the part of the string after the last '/' character.
+ * If no '/' is found, the original string is returned.
+ * @param url The URL string.
+ * @returns The extracted filename or the original URL if no path is present.
+ */
+const getFilenameFromUrl = (url: string): string => {
+  console.log('[DEBUG] getFilenameFromUrl called with url:', url);
+  const lastSlash = url.lastIndexOf('/');
+  return lastSlash !== -1 ? url.substring(lastSlash + 1) : url;
+};
