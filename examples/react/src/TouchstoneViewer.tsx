@@ -80,9 +80,7 @@ const TouchstoneViewer: React.FC = () => {
    * Effect hook to load the default Touchstone file (sample.s2p) when the component mounts.
    */
   useEffect(() => {
-    // Set initial filename and load content for the default file
-    // setFilename('sample.s2p'); // Set filename before loading
-    loadFileContent('/sample.s2p'); // loadFileContent will now also set the filename
+    loadFileContent('/sample.s2p');
   }, []); // Empty dependency array ensures this runs only once on mount
 
   /**
