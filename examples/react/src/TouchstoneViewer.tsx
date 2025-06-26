@@ -3,6 +3,7 @@ import {
   Frequency,
   Touchstone,
   type TouchstoneFormat,
+  type FrequencyUnit, // Import FrequencyUnit
 } from 'rf-touchstone'
 import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
@@ -105,9 +106,9 @@ const TouchstoneViewer: React.FC = () => {
   /**
    * Updates the frequency unit for the current Touchstone data.
    * Creates a new Touchstone object with scaled frequencies and updates the state.
-   * @param newUnitString The new frequency unit string (e.g., "GHz", "MHz").
+   * @param unit The new frequency unit.
    */
-  const setUnit = (newUnitString: string) => {
+  const setUnit = (unit: FrequencyUnit) => {
     if (touchstone?.frequency) {
       const frequenciesInHz = touchstone.frequency.f_Hz;
       const updatedTouchstone = new Touchstone();
@@ -115,7 +116,7 @@ const TouchstoneViewer: React.FC = () => {
 
       const newFrequency = new Frequency();
       newFrequency.f_Hz = frequenciesInHz;
-      newFrequency.unit = newUnitString as any; // `unit` setter handles scaling
+      newFrequency.unit = unit; // Use the specific FrequencyUnit type
 
       updatedTouchstone.frequency = newFrequency;
       setTouchstone(updatedTouchstone); // Update the main touchstone state
@@ -125,13 +126,13 @@ const TouchstoneViewer: React.FC = () => {
   /**
    * Updates the S-parameter display format for the current Touchstone data.
    * Creates a new Touchstone object with the new format and updates the state.
-   * @param newFormatString The new format string ('RI', 'MA', 'DB').
+   * @param format The new S-parameter display format.
    */
-  const setFormat = (newFormatString: string) => {
+  const setFormat = (format: TouchstoneFormat) => {
     if (touchstone) {
       const updatedTouchstone = new Touchstone()
       Object.assign(updatedTouchstone, touchstone)
-      updatedTouchstone.format = newFormatString as TouchstoneFormat;
+      updatedTouchstone.format = format;
       setTouchstone(updatedTouchstone) // Update the main touchstone state
     }
   }
@@ -149,13 +150,13 @@ const TouchstoneViewer: React.FC = () => {
   /**
    * Updates the comments for the current Touchstone data.
    * Creates a new Touchstone object with the new comments and updates the state.
-   * @param newCommentsArray An array of strings representing the new comments.
+   * @param comments An array of strings representing the new comments.
    */
-  const setComments = (newCommentsArray: string[]) => {
+  const setComments = (comments: string[]) => {
     if (touchstone) {
       const updatedTouchstone = new Touchstone();
       Object.assign(updatedTouchstone, touchstone); // Create a new instance based on the current one
-      updatedTouchstone.comments = [...newCommentsArray];
+      updatedTouchstone.comments = [...comments];
       setTouchstone(updatedTouchstone);
     }
   };

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Touchstone, FrequencyUnits } from 'rf-touchstone'
+import { Touchstone, FrequencyUnits, type FrequencyUnit, type TouchstoneFormat } from 'rf-touchstone'
 
 /**
  * Props for the FileInfo component.
@@ -8,15 +8,15 @@ interface FileInfoProps {
   /** The loaded Touchstone data object, or null if no data is loaded. */
   touchstone: Touchstone | null
   /** Callback function to set the new frequency unit. */
-  setUnit: (newUnit: string) => void
+  setUnit: (unit: FrequencyUnit) => void
   /** Callback function to set the new data format. */
-  setFormat: (newFormat: string) => void
+  setFormat: (format: TouchstoneFormat) => void
   /** The current filename. */
   filename: string // Filename state is still managed separately in parent
   /** Callback function to handle changes to the filename. */
   handleFilenameChange: (newName: string) => void
   /** Callback function to set the new comments. */
-  setComments: (newComments: string[]) => void
+  setComments: (comments: string[]) => void
 }
 
 /**
@@ -98,7 +98,7 @@ const FileInfo: React.FC<FileInfoProps> = ({
         {touchstone.frequency?.unit ? (
           <select
             value={touchstone.frequency.unit || ''} // Use unit from touchstone object
-            onChange={(e) => setUnit(e.target.value)}
+            onChange={(e) => setUnit(e.target.value as FrequencyUnit)}
           >
             {FrequencyUnits.map((u) => (
               <option key={u} value={u}>
@@ -122,7 +122,7 @@ const FileInfo: React.FC<FileInfoProps> = ({
         {touchstone.format ? (
           <select
             value={touchstone.format || ''} // Use format from touchstone object
-            onChange={(e) => setFormat(e.target.value)}
+            onChange={(e) => setFormat(e.target.value as TouchstoneFormat)}
           >
             <option value="RI">RI (Real/Imaginary)</option>
             <option value="MA">MA (Magnitude/Angle)</option>

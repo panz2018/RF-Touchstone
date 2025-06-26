@@ -176,5 +176,21 @@ describe('FileInfo Component', () => {
       renderComponent();
       expect(screen.getByDisplayValue('MA')).toBeInTheDocument();
     });
+
+    it('calls setUnit when frequency unit is changed', () => {
+      mockTouchstoneInstance.frequency = { unit: 'GHz' } as any;
+      renderComponent();
+      const unitSelect = screen.getByDisplayValue('GHz');
+      fireEvent.change(unitSelect, { target: { value: 'MHz' } });
+      expect(mockSetUnit).toHaveBeenCalledWith('MHz');
+    });
+
+    it('calls setFormat when S-parameter format is changed', () => {
+      mockTouchstoneInstance.format = 'RI';
+      renderComponent();
+      const formatSelect = screen.getByDisplayValue('RI');
+      fireEvent.change(formatSelect, { target: { value: 'DB' } });
+      expect(mockSetFormat).toHaveBeenCalledWith('DB');
+    });
   });
 });
