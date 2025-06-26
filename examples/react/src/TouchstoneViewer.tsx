@@ -32,7 +32,7 @@ const TouchstoneViewer: React.FC = () => {
    * Also sets the filename based on the URL.
    * @param url The URL of the Touchstone file to load.
    */
-  const loadFileContent = async (url: string) => {
+  const loadUrl = async (url: string) => { // Renamed from loadFileContent
     let activeFilename = ''; // To hold the filename determined before potential errors
     try {
       const nameOnly = getFilenameFromUrl(url);
@@ -69,15 +69,15 @@ const TouchstoneViewer: React.FC = () => {
    * Effect hook to load the default Touchstone file (sample.s2p) when the component mounts.
    */
   useEffect(() => {
-    loadFileContent('/sample.s2p');
+    loadUrl('/sample.s2p');
   }, []); // Empty dependency array ensures this runs only once on mount
 
   /**
-   * Handles the change event when a user selects a new file via the input element.
-   * Reads the file content, parses it, and updates the state.
+   * Handles a local file upload via the file input element.
+   * Reads the selected file's content, parses it as Touchstone data, and updates the state.
    * @param event The React change event from the file input.
    */
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadFile = async (event: React.ChangeEvent<HTMLInputElement>) => { // Renamed from handleFileChange
     const file = event.target.files?.[0]
     if (file) {
       setFilename(file.name); // Update filename state for display
@@ -136,14 +136,7 @@ const TouchstoneViewer: React.FC = () => {
     }
   }
 
-  /**
-   * Handles the submission of a URL from the UrlLoader component.
-   * It attempts to load and parse the Touchstone file from the given URL.
-   * @param url The URL string of the Touchstone file.
-   */
-  const handleUrlSubmit = async (url: string) => {
-    await loadFileContent(url); // loadFileContent handles filename extraction, fetching, parsing, and state updates
-  };
+  // Note: handleUrlSubmit was removed; UrlLoader now calls loadUrl directly.
 
   /**
    * Handles changes to the filename from the FileInfo component.
@@ -178,13 +171,13 @@ const TouchstoneViewer: React.FC = () => {
           type="file"
           id="fileInput"
           accept=".s1p,.s2p,.s3p,.s4p,.s5p,.s6p,.s7p,.s8p,.s9p,.s10p,.s11p,.s12p,.s13p,.s14p,.s15p,.s16p,.s17p,.s18p,.s19p,.s20p"
-          onChange={handleFileChange}
+            onChange={uploadFile}
         />
       </div>
 
       {/* URL Loader Section */}
       <div style={{ marginTop: '10px' }}>
-        <UrlLoader onUrlSubmit={handleUrlSubmit} />
+        <UrlLoader onUrlSubmit={loadUrl} />
       </div>
 
       {/* Action Buttons Section (Copy/Download) */}
