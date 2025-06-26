@@ -31,6 +31,27 @@ vi.mock('../src/components/UrlLoader', () => ({
   }),
 }));
 
+// Mock DataTable
+let mockTriggerMatrixUpdateFromCsv: ((matrix: Complex[][][], frequencies: number[], filename: string) => void) | null = null;
+vi.mock('../src/components/DataTable', () => ({
+  default: vi.fn((props) => {
+    // Expose a way to simulate CSV upload calling setMatrix and setFilename
+    mockTriggerMatrixUpdateFromCsv = (matrix, frequencies, newFilename) => {
+      props.setMatrix(matrix, frequencies);
+      props.setFilename(newFilename);
+    };
+    return (
+      <div data-testid="mock-datatable">
+        <span>Mock DataTable (File: {props.filename})</span>
+        {/* Button to simulate download, not strictly needed for these tests but good for completeness */}
+        <button data-testid="mock-datatable-download-csv">Download CSV</button>
+        {/* Input to simulate upload */}
+        <input type="file" data-testid="mock-datatable-upload-csv" />
+      </div>
+    );
+  }),
+}));
+
 let mockTriggerFilenameChange: ((newName: string) => void) | null = null;
 // mockTriggerCommentsChange, mockTriggerUnitChange, mockTriggerFormatChange will be set via props
 let mockFileInfoHandlers: any = {};
@@ -102,9 +123,10 @@ describe('TouchstoneViewer Component', () => {
   const mockedReadUrl = TouchstoneViewerModule.readUrl as vi.Mock;
   const mockedReadFile = TouchstoneViewerModule.readFile as vi.Mock;
 
-  const MockedFileInfo = vi.mocked(FileInfo); // Get the auto-mocked version
+  const MockedFileInfo = vi.mocked(FileInfo);
   const MockedCopyButton = vi.mocked(CopyButton);
   const MockedDownloadButton = vi.mocked(DownloadButton);
+  const MockedDataTable = vi.mocked(DataTable); // Added mock for DataTable
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -130,6 +152,7 @@ describe('TouchstoneViewer Component', () => {
     expect(screen.getByTestId('mock-fileinfo')).toBeInTheDocument();
     expect(screen.getByTestId('mock-copybutton')).toBeInTheDocument();
     expect(screen.getByTestId('mock-downloadbutton')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-datatable')).toBeInTheDocument(); // Check DataTable mock is rendered
 
     const fileInfoProps = MockedFileInfo.mock.calls[0][0] as any;
     expect(fileInfoProps.filename).toBe('sample.s2p');
@@ -146,6 +169,13 @@ describe('TouchstoneViewer Component', () => {
     const downloadButtonProps = MockedDownloadButton.mock.calls[0][0] as any;
     expect(downloadButtonProps.touchstone).toBeInstanceOf(Touchstone);
     expect(downloadButtonProps.filename).toBe('sample.s2p');
+
+    // Verify props for DataTable
+    const dataTableProps = MockedDataTable.mock.calls[0][0] as any;
+    expect(dataTableProps.touchstone).toBeInstanceOf(Touchstone);
+    expect(dataTableProps.filename).toBe('sample.s2p');
+    expect(typeof dataTableProps.setMatrix).toBe('function');
+    expect(typeof dataTableProps.setFilename).toBe('function');
   });
 
   it('handles filename change from FileInfo', async () => {
@@ -374,6 +404,36 @@ describe('TouchstoneViewer Component', () => {
         const copyButtonProps = MockedCopyButton.mock.lastCall![0] as any;
         expect(copyButtonProps.touchstone.frequency.unit).toBe('MockNewUnit');
       });
+    });
+  });
+
+  it('updates touchstone matrix and filename when CSV data is uploaded via DataTable', async () => {
+    render(<TouchstoneViewer />);
+    await waitFor(() => expect(mockedReadUrl).toHaveBeenCalledWith('/sample.s2p')); // Initial load
+
+    const newMatrix: Complex[][][] = [ [[new Complex(1,1)]], [[new Complex(2,2)]] ]; // Simplified 1-port matrix
+    const newFrequencies = [3e9, 4e9];
+    const newFilenameFromCsv = "uploaded_matrix.csv";
+
+    expect(mockTriggerMatrixUpdateFromCsv).not.toBeNull();
+    if (mockTriggerMatrixUpdateFromCsv) {
+      act(() => {
+        mockTriggerMatrixUpdateFromCsv(newMatrix, newFrequencies, newFilenameFromCsv);
+      });
+    }
+
+    await waitFor(() => {
+      // Check that filename displayed by TouchstoneViewer is updated
+      expect(screen.getByText(`Currently displaying: Data from ${newFilenameFromCsv}`)).toBeInTheDocument();
+
+      // Check that the new matrix and frequencies are reflected in props passed to children
+      const dataTableProps = MockedDataTable.mock.lastCall![0] as any;
+      expect(dataTableProps.touchstone.matrix).toEqual(newMatrix);
+      expect(dataTableProps.touchstone.frequency.f_Hz).toEqual(newFrequencies.map(f => f * dataTableProps.touchstone.frequency.getMultiplier(dataTableProps.touchstone.frequency.unit))); // Assuming frequencies were passed in current unit
+      expect(dataTableProps.filename).toBe(newFilenameFromCsv);
+
+      const copyButtonProps = MockedCopyButton.mock.lastCall![0] as any;
+      expect(copyButtonProps.touchstone.matrix).toEqual(newMatrix);
     });
   });
 });

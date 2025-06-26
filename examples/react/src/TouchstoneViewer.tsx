@@ -137,15 +137,8 @@ const TouchstoneViewer: React.FC = () => {
     }
   }
 
-  // Note: handleUrlSubmit was removed; UrlLoader now calls loadUrl directly.
-
-  /**
-   * Handles changes to the filename from the FileInfo component.
-   * @param newName The new full filename (base + extension).
-   */
-  const handleFilenameChange = (newName: string) => {
-    setFilename(newName);
-  };
+  // The handleFilenameChange function is removed.
+  // The setFilename state setter will be passed directly to FileInfo.
 
   /**
    * Updates the comments for the current Touchstone data.
@@ -159,6 +152,43 @@ const TouchstoneViewer: React.FC = () => {
       updatedTouchstone.comments = [...comments];
       setTouchstone(updatedTouchstone);
     }
+  };
+
+  /**
+   * Updates the Touchstone data's S-parameter matrix and frequencies.
+   * Assumes newFrequencies are in the current touchstone's frequency unit.
+   * Preserves other metadata like format, comments, impedance. Updates nports.
+   * @param newMatrix The new S-parameter matrix (Complex[][][]).
+   * @param frequencies The new array of frequency values (in the current unit).
+   */
+  const setMatrix = (newMatrix: Complex[][][], frequencies: number[]) => {
+    if (!touchstone) {
+      console.error("Cannot set matrix: no base touchstone data loaded.");
+      // Optionally, could create a new default Touchstone object here if desired,
+      // but current plan implies updating an existing one.
+      return;
+    }
+
+    const updatedTouchstone = new Touchstone();
+    // Deep clone or copy relevant properties from the existing touchstone
+    Object.assign(updatedTouchstone, {
+      ...touchstone,
+      comments: [...touchstone.comments], // Ensure comments are a new array
+      // Frequency will be entirely replaced
+    });
+
+    updatedTouchstone.matrix = newMatrix;
+
+    // nports is preserved from the original touchstone object.
+    // Validation of matrix dimensions against nports should occur in DataTable's CSV parsing.
+
+    // Update frequencies
+    const newFrequency = new Frequency();
+    newFrequency.unit = touchstone.frequency.unit; // Preserve current unit
+    newFrequency.f = frequencies; // The 'f' setter in Frequency class handles conversion to f_Hz
+    updatedTouchstone.frequency = newFrequency;
+
+    setTouchstone(updatedTouchstone);
   };
 
   return (
@@ -207,12 +237,15 @@ const TouchstoneViewer: React.FC = () => {
             setUnit={setUnit}
             setFormat={setFormat}
             filename={filename}
-            handleFilenameChange={handleFilenameChange}
+            setFilename={setFilename} // Pass setFilename directly
             setComments={setComments}
           />
           {/* Data Table Component */}
           <DataTable
             touchstone={touchstone}
+            filename={filename} // Pass filename for CSV download naming
+            setMatrix={setMatrix} // Pass setMatrix for CSV upload
+            setFilename={setFilename} // Pass setFilename for CSV upload to update parent's filename
           />
         </>
       )}

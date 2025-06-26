@@ -13,8 +13,8 @@ interface FileInfoProps {
   setFormat: (format: TouchstoneFormat) => void
   /** The current filename. */
   filename: string // Filename state is still managed separately in parent
-  /** Callback function to handle changes to the filename. */
-  handleFilenameChange: (newName: string) => void
+  /** Callback function to update the filename in the parent component. */
+  setFilename: (newName: string) => void
   /** Callback function to set the new comments. */
   setComments: (comments: string[]) => void
 }
@@ -31,7 +31,7 @@ const FileInfo: React.FC<FileInfoProps> = ({
   setUnit,
   setFormat,
   filename,
-  handleFilenameChange,
+  setFilename, // Updated prop name
   setComments,
 }) => {
   // If no Touchstone data is available, render nothing.
@@ -55,7 +55,7 @@ const FileInfo: React.FC<FileInfoProps> = ({
   const onBaseNameBlur = () => {
     const newFilename = editableBaseName + getExtension(filename);
     if (newFilename !== filename && editableBaseName.trim() !== '') {
-      handleFilenameChange(newFilename);
+      setFilename(newFilename); // Use the new prop name
     } else if (editableBaseName.trim() === '') {
       // Revert to original if input is empty
       setEditableBaseName(getBaseName(filename));
