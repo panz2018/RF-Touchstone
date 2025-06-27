@@ -57,7 +57,7 @@ let mockTriggerFilenameChange: ((newName: string) => void) | null = null;
 let mockFileInfoHandlers: any = {};
 vi.mock('../src/components/FileInfo', () => ({
   default: vi.fn((props) => {
-    mockTriggerFilenameChange = props.setFilename; // Updated to expect setFilename
+    mockTriggerFilenameChange = props.setFilename; // Corrected: FileInfo expects setFilename prop
     // Store all handlers passed to the mock to be triggered by tests
     mockFileInfoHandlers.setUnit = props.setUnit;
     mockFileInfoHandlers.setFormat = props.setFormat;
@@ -449,5 +449,41 @@ describe('TouchstoneViewer Component', () => {
       const downloadButtonProps = MockedDownloadButton.mock.lastCall![0] as any;
       expect(downloadButtonProps.filename).toBe(originalFilename); // Should still be original filename
     });
+  });
+
+  it('updateMatrixFrequency sets error if base touchstone data is not loaded', async () => {
+    // Ensure initial load fails or results in null touchstone
+    mockedReadUrl.mockImplementation(async () => {
+      // Simulate readUrl itself throwing or returning null, leading to touchstone being null
+      throw new Error("Initial load failed for test");
+    });
+
+    render(<TouchstoneViewer />);
+    await waitFor(() => {
+      // Expect an error message from the failed initial load
+      expect(screen.getByText(/Error: Initial load failed for test/i)).toBeInTheDocument();
+    });
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Attempt to trigger matrix update when touchstone is null
+    const newMatrix: Complex[][][] = [ [[new Complex(1,1)]] ];
+    const newFrequencies = [3e9];
+
+    expect(mockTriggerMatrixUpdateFromCsv).not.toBeNull();
+    if (mockTriggerMatrixUpdateFromCsv) {
+      act(() => {
+        // The third arg (filename) is unused by the updated mock trigger
+        mockTriggerMatrixUpdateFromCsv(newMatrix, newFrequencies, "dummy.csv");
+      });
+    }
+
+    // Check for the specific error message from updateMatrixFrequency's guard
+    await waitFor(() => {
+      expect(screen.getByText("Error: Cannot update matrix/frequency: No base Touchstone data is currently loaded.")).toBeInTheDocument();
+    });
+    expect(consoleErrorSpy).toHaveBeenCalledWith("Cannot update matrix/frequency: No base Touchstone data is currently loaded.");
+
+    consoleErrorSpy.mockRestore();
   });
 });

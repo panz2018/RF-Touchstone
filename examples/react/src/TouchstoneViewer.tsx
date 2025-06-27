@@ -161,35 +161,37 @@ const TouchstoneViewer: React.FC = () => {
    */
   const updateMatrixFrequency = (matrix: TouchstoneMatrix, frequencies: number[]) => {
     if (!touchstone) {
-      console.error("Cannot update matrix/frequency: no base touchstone data loaded.");
+      const msg = "Cannot update matrix/frequency: No base Touchstone data is currently loaded.";
+      console.error(msg);
+      setError(msg);
+      return;
+    }
+
+    if (!touchstone.frequency || typeof touchstone.frequency.unit === 'undefined') {
+      const msg = "Cannot update matrix/frequency: Current Touchstone data is missing essential frequency unit information.";
+      console.error(msg);
+      setError(msg);
+      setTouchstone(null); // Clear potentially inconsistent data
       return;
     }
 
     const updatedTouchstone = new Touchstone();
     // Preserve existing metadata by copying from the current touchstone object
     Object.assign(updatedTouchstone, {
-      ...touchstone, // This copies format, parameter, impedance, nports, comments etc.
-      comments: [...touchstone.comments], // Ensure comments array is a new copy
+      ...touchstone,
+      comments: [...touchstone.comments],
     });
 
     updatedTouchstone.matrix = matrix;
 
     // Create and set the new frequency object
     const newFrequency = new Frequency();
-    // If touchstone and touchstone.frequency exist, preserve its unit.
-    // This path should only be taken if touchstone and touchstone.frequency are valid,
-    // as per the function's precondition and the `if (!touchstone)` guard.
-    if (touchstone.frequency) {
-      newFrequency.unit = touchstone.frequency.unit;
-    } else {
-      // This case should ideally not be reached if touchstone is valid and has frequencies.
-      // Defaulting to 'Hz' as a fallback, though it implies an inconsistent state.
-      console.warn("updateMatrixFrequency: touchstone.frequency or its unit was unexpectedly undefined. Defaulting to 'Hz'.");
-      newFrequency.unit = 'Hz';
-    }
-    newFrequency.f_scaled = frequencies; // Assign frequencies; .f_scaled setter handles internal storage.
+    newFrequency.unit = touchstone.frequency.unit; // Now safe due to the check above
+    newFrequency.f_scaled = frequencies;
 
     updatedTouchstone.frequency = newFrequency;
+
+    // nports is not changed here, CSV parsing should validate against existing nports.
 
     setTouchstone(updatedTouchstone);
   };
