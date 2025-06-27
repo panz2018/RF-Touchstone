@@ -3,7 +3,8 @@ import {
   Frequency,
   Touchstone,
   type TouchstoneFormat,
-  type FrequencyUnit, // Import FrequencyUnit
+  type FrequencyUnit,
+  type TouchstoneMatrix, // Import TouchstoneMatrix
 } from 'rf-touchstone'
 import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
@@ -137,9 +138,6 @@ const TouchstoneViewer: React.FC = () => {
     }
   }
 
-  // The handleFilenameChange function is removed.
-  // The setFilename state setter will be passed directly to FileInfo.
-
   /**
    * Updates the comments for the current Touchstone data.
    * Creates a new Touchstone object with the new comments and updates the state.
@@ -156,36 +154,33 @@ const TouchstoneViewer: React.FC = () => {
 
   /**
    * Updates the Touchstone data's S-parameter matrix and frequencies.
-   * Assumes newFrequencies are in the current touchstone's frequency unit.
-   * Preserves other metadata like format, comments, impedance. Updates nports.
-   * @param newMatrix The new S-parameter matrix (Complex[][][]).
-   * @param frequencies The new array of frequency values (in the current unit).
+   * Assumes input `frequencies` are in the unit of the current `touchstone` object.
+   * Preserves other metadata (format, comments, impedance, parameter). `nports` is NOT changed by this function.
+   * @param matrix The new S-parameter matrix (`TouchstoneMatrix`).
+   * @param frequencies The new array of frequency values (assumed to be in the current `touchstone`'s frequency unit).
    */
-  const setMatrix = (newMatrix: Complex[][][], frequencies: number[]) => {
+  const updateMatrixFrequency = (matrix: TouchstoneMatrix, frequencies: number[]) => {
     if (!touchstone) {
-      console.error("Cannot set matrix: no base touchstone data loaded.");
-      // Optionally, could create a new default Touchstone object here if desired,
-      // but current plan implies updating an existing one.
+      console.error("Cannot update matrix/frequency: no base touchstone data loaded.");
       return;
     }
 
     const updatedTouchstone = new Touchstone();
-    // Deep clone or copy relevant properties from the existing touchstone
+    // Preserve existing metadata by copying from the current touchstone object
     Object.assign(updatedTouchstone, {
-      ...touchstone,
-      comments: [...touchstone.comments], // Ensure comments are a new array
-      // Frequency will be entirely replaced
+      ...touchstone, // This copies format, parameter, impedance, nports, comments etc.
+      comments: [...touchstone.comments], // Ensure comments array is a new copy
     });
 
-    updatedTouchstone.matrix = newMatrix;
+    updatedTouchstone.matrix = matrix;
 
-    // nports is preserved from the original touchstone object.
-    // Validation of matrix dimensions against nports should occur in DataTable's CSV parsing.
-
-    // Update frequencies
+    // Create and set the new frequency object
     const newFrequency = new Frequency();
-    newFrequency.unit = touchstone.frequency.unit; // Preserve current unit
-    newFrequency.f = frequencies; // The 'f' setter in Frequency class handles conversion to f_Hz
+    // Preserve the unit from the current touchstone object.
+    // If touchstone.frequency or touchstone.frequency.unit is undefined, default to 'HZ'.
+    newFrequency.unit = touchstone.frequency?.unit || 'HZ';
+    newFrequency.f_scaled = frequencies; // Assign frequencies; .f_scaled setter handles internal storage.
+
     updatedTouchstone.frequency = newFrequency;
 
     setTouchstone(updatedTouchstone);
@@ -244,8 +239,8 @@ const TouchstoneViewer: React.FC = () => {
           <DataTable
             touchstone={touchstone}
             filename={filename} // Pass filename for CSV download naming
-            setMatrix={setMatrix} // Pass setMatrix for CSV upload
-            setFilename={setFilename} // Pass setFilename for CSV upload to update parent's filename
+            setMatrix={updateMatrixFrequency} // Corrected: Pass updateMatrixFrequency as setMatrix prop
+            // setFilename prop is removed from DataTable
           />
         </>
       )}

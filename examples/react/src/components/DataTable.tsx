@@ -11,8 +11,7 @@ interface DataTableProps {
   filename: string;
   /** Callback to update the touchstone matrix and frequencies in the parent component. */
   setMatrix: (matrix: Complex[][][], frequencies: number[]) => void;
-  /** Callback to update the filename in the parent component. */
-  setFilename: (newFilename: string) => void;
+  // setFilename prop is removed as parent's filename should not change on CSV matrix upload.
 }
 
 /**
@@ -22,9 +21,8 @@ interface DataTableProps {
  */
 const DataTable: React.FC<DataTableProps> = ({
   touchstone,
-  filename, // Added prop
-  setMatrix, // Added prop (for CSV upload later)
-  setFilename // Added prop (for CSV upload later)
+  filename,
+  setMatrix,
 }) => {
   // Derive unit and format from the touchstone object
   const unit = touchstone?.frequency?.unit;
@@ -104,7 +102,7 @@ const DataTable: React.FC<DataTableProps> = ({
           // Pass touchstone from props to parseCSV
           const { matrix, frequencies } = parseCSV(text, touchstone);
           setMatrix(matrix, frequencies); // Call setMatrix prop
-          setFilename(file.name);      // Call setFilename prop
+          // setFilename(file.name); // Removed: Parent filename is not updated by CSV matrix upload.
         } catch (error) {
           console.error("Error parsing CSV:", error);
           alert(`Error parsing CSV: ${error instanceof Error ? error.message : String(error)}`);

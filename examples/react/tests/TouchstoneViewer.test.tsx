@@ -35,10 +35,10 @@ vi.mock('../src/components/UrlLoader', () => ({
 let mockTriggerMatrixUpdateFromCsv: ((matrix: Complex[][][], frequencies: number[], filename: string) => void) | null = null;
 vi.mock('../src/components/DataTable', () => ({
   default: vi.fn((props) => {
-    // Expose a way to simulate CSV upload calling setMatrix and setFilename
-    mockTriggerMatrixUpdateFromCsv = (matrix, frequencies, newFilename) => {
+    // Expose a way to simulate CSV upload calling setMatrix
+    // props.setFilename is no longer passed to DataTable or called by it.
+    mockTriggerMatrixUpdateFromCsv = (matrix, frequencies, _newFilename_not_used) => {
       props.setMatrix(matrix, frequencies);
-      props.setFilename(newFilename);
     };
     return (
       <div data-testid="mock-datatable">
@@ -413,27 +413,41 @@ describe('TouchstoneViewer Component', () => {
 
     const newMatrix: Complex[][][] = [ [[new Complex(1,1)]], [[new Complex(2,2)]] ]; // Simplified 1-port matrix
     const newFrequencies = [3e9, 4e9];
-    const newFilenameFromCsv = "uploaded_matrix.csv";
+    const filenameUsedByDataTableForDisplay = "uploaded_matrix.csv"; // This would be the name of the file *selected in the input[type=file]* within DataTable, but TouchstoneViewer's filename state won't change.
+
+    const originalFilename = "sample.s2p"; // From initial load
 
     expect(mockTriggerMatrixUpdateFromCsv).not.toBeNull();
     if (mockTriggerMatrixUpdateFromCsv) {
       act(() => {
-        mockTriggerMatrixUpdateFromCsv(newMatrix, newFrequencies, newFilenameFromCsv);
+        // DataTable's internal handleCsvFileSelect would have read the file, parsed it,
+        // then called props.setMatrix(newMatrix, newFrequencies).
+        // It no longer calls props.setFilename.
+        // The third argument to mockTriggerMatrixUpdateFromCsv is now unused by the mock.
+        mockTriggerMatrixUpdateFromCsv(newMatrix, newFrequencies, filenameUsedByDataTableForDisplay);
       });
     }
 
     await waitFor(() => {
-      // Check that filename displayed by TouchstoneViewer is updated
-      expect(screen.getByText(`Currently displaying: Data from ${newFilenameFromCsv}`)).toBeInTheDocument();
+      // Filename displayed by TouchstoneViewer should NOT change to the uploaded CSV's name.
+      // It should remain the filename of the sNp file that was active before matrix update.
+      expect(screen.getByText(`Currently displaying: Data from ${originalFilename}`)).toBeInTheDocument();
 
       // Check that the new matrix and frequencies are reflected in props passed to children
       const dataTableProps = MockedDataTable.mock.lastCall![0] as any;
       expect(dataTableProps.touchstone.matrix).toEqual(newMatrix);
-      expect(dataTableProps.touchstone.frequency.f_Hz).toEqual(newFrequencies.map(f => f * dataTableProps.touchstone.frequency.getMultiplier(dataTableProps.touchstone.frequency.unit))); // Assuming frequencies were passed in current unit
-      expect(dataTableProps.filename).toBe(newFilenameFromCsv);
+      expect(dataTableProps.touchstone.frequency.f_Hz).toEqual(
+        newFrequencies.map(f => f * dataTableProps.touchstone.frequency.getMultiplier(dataTableProps.touchstone.frequency.unit))
+      );
+      // DataTable still receives the original filename prop from TouchstoneViewer for its display/download use
+      expect(dataTableProps.filename).toBe(originalFilename);
+
 
       const copyButtonProps = MockedCopyButton.mock.lastCall![0] as any;
       expect(copyButtonProps.touchstone.matrix).toEqual(newMatrix);
+
+      const downloadButtonProps = MockedDownloadButton.mock.lastCall![0] as any;
+      expect(downloadButtonProps.filename).toBe(originalFilename); // Should still be original filename
     });
   });
 });

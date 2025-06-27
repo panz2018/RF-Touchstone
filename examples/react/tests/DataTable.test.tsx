@@ -15,7 +15,7 @@ const mockRevokeObjectURL = vi.fn();
 describe('DataTable Component', () => {
   let mockTouchstone: Touchstone;
   let mockSetMatrix: ReturnType<typeof vi.fn>;
-  let mockSetFilename: ReturnType<typeof vi.fn>;
+  // mockSetFilename is removed as DataTable no longer uses this prop
   const initialFilename = "test_data.s2p";
 
   beforeEach(() => {
@@ -53,7 +53,7 @@ describe('DataTable Component', () => {
     mockTouchstone.comments = ["Test data for DataTable"];
 
     mockSetMatrix = vi.fn();
-    mockSetFilename = vi.fn();
+    // mockSetFilename = vi.fn(); // Removed
   });
 
   const renderTable = (ts = mockTouchstone, filename = initialFilename) => {
@@ -62,7 +62,7 @@ describe('DataTable Component', () => {
         touchstone={ts}
         filename={filename}
         setMatrix={mockSetMatrix}
-        setFilename={mockSetFilename}
+        // setFilename prop is no longer passed
       />
     );
   };
