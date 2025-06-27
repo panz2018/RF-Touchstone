@@ -7,24 +7,23 @@ import { Touchstone, Complex, abs, arg } from 'rf-touchstone'
 interface DataTableProps {
   /** The loaded Touchstone data object, or null if no data is available or an error occurred. */
   touchstone: Touchstone | null;
-  /** The current base filename (without extension) for downloads. */
+  /** The current base filename (without extension) for CSV downloads. */
   filename: string;
-  /** Callback to update the touchstone matrix and frequencies in the parent component. */
+  /** Callback to update the matrix and frequencies in the parent component when a CSV is uploaded. */
   setMatrix: (matrix: Complex[][][], frequencies: number[]) => void;
-  // setFilename prop is removed as parent's filename should not change on CSV matrix upload.
 }
 
 /**
  * DataTable component.
- * Renders the main table displaying Touchstone network parameter data (e.g., S-parameters).
- * Unit and format for display are derived directly from the `touchstone` object.
+ * Renders Touchstone network parameter data in a table and provides CSV import/export functionality.
+ * Unit and format for display and CSV operations are derived from the `touchstone` object.
  */
 const DataTable: React.FC<DataTableProps> = ({
   touchstone,
   filename,
   setMatrix,
 }) => {
-  // Derive unit and format from the touchstone object
+  // Derive unit and format from the touchstone object for display purposes.
   const unit = touchstone?.frequency?.unit;
   const format = touchstone?.format;
 
@@ -34,7 +33,6 @@ const DataTable: React.FC<DataTableProps> = ({
     const currentUnit = touchstone.frequency?.unit;
     const currentFormat = touchstone.format;
 
-    // (CSV Download logic as before...)
     // 1. Get Headers
     const headerParts: string[] = [];
     headerParts.push(`Frequency (${currentUnit || 'N/A'})`);
@@ -88,7 +86,7 @@ const DataTable: React.FC<DataTableProps> = ({
   };
 
   const handleCsvFileSelectInternal = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!touchstone) { // Use touchstone from component props
+    if (!touchstone) {
       alert("Cannot upload CSV: No current Touchstone data loaded to provide context (format, unit, ports).");
       if (event.target) event.target.value = ''; // Reset file input
       return;
@@ -99,10 +97,8 @@ const DataTable: React.FC<DataTableProps> = ({
       reader.onload = async (e) => {
         const text = e.target?.result as string;
         try {
-          // Pass touchstone from props to parseCSV
           const { matrix, frequencies } = parseCSV(text, touchstone);
-          setMatrix(matrix, frequencies); // Call setMatrix prop
-          // setFilename(file.name); // Removed: Parent filename is not updated by CSV matrix upload.
+          setMatrix(matrix, frequencies);
         } catch (error) {
           console.error("Error parsing CSV:", error);
           alert(`Error parsing CSV: ${error instanceof Error ? error.message : String(error)}`);
@@ -163,7 +159,14 @@ const DataTable: React.FC<DataTableProps> = ({
   )
 }
 
-// --- CSV Upload Logic ---
+/**
+ * Parses a CSV string into a data structure for updating a Touchstone object's matrix and frequencies.
+ * Assumes the CSV format matches the current display format, unit, and nports of `currentTouchstone`.
+ * @param csvString The raw CSV string content.
+ * @param currentTouchstone The current Touchstone object, used as a template for expected format.
+ * @returns An object containing the parsed `matrix` and `frequencies`.
+ * @throws If CSV headers are mismatched, data rows have incorrect value counts, or data is non-numeric.
+ */
 const parseCSV = (csvString: string, currentTouchstone: Touchstone): { matrix: Complex[][][], frequencies: number[] } => {
   const lines = csvString.trim().split('\n');
   if (lines.length < 2) {

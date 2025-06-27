@@ -57,7 +57,7 @@ let mockTriggerFilenameChange: ((newName: string) => void) | null = null;
 let mockFileInfoHandlers: any = {};
 vi.mock('../src/components/FileInfo', () => ({
   default: vi.fn((props) => {
-    mockTriggerFilenameChange = props.handleFilenameChange; // Still used for filename
+    mockTriggerFilenameChange = props.setFilename; // Updated to expect setFilename
     // Store all handlers passed to the mock to be triggered by tests
     mockFileInfoHandlers.setUnit = props.setUnit;
     mockFileInfoHandlers.setFormat = props.setFormat;
@@ -175,7 +175,7 @@ describe('TouchstoneViewer Component', () => {
     expect(dataTableProps.touchstone).toBeInstanceOf(Touchstone);
     expect(dataTableProps.filename).toBe('sample.s2p');
     expect(typeof dataTableProps.setMatrix).toBe('function');
-    expect(typeof dataTableProps.setFilename).toBe('function');
+    // expect(typeof dataTableProps.setFilename).toBe('function'); // DataTable no longer receives setFilename
   });
 
   it('handles filename change from FileInfo', async () => {

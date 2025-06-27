@@ -34,8 +34,8 @@ const TouchstoneViewer: React.FC = () => {
    * Also sets the filename based on the URL.
    * @param url The URL of the Touchstone file to load.
    */
-  const loadUrl = async (url: string) => { // Renamed from loadFileContent
-    let activeFilename = ''; // To hold the filename determined before potential errors
+  const loadUrl = async (url: string) => {
+    let activeFilename = ''; // Stores the filename if successfully extracted before further processing.
     try {
       const nameOnly = getFilenameFromUrl(url);
 
@@ -79,10 +79,10 @@ const TouchstoneViewer: React.FC = () => {
    * Reads the selected file's content, parses it as Touchstone data, and updates the state.
    * @param event The React change event from the file input.
    */
-  const uploadFile = async (event: React.ChangeEvent<HTMLInputElement>) => { // Renamed from handleFileChange
+  const uploadFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      setFilename(file.name); // Update filename state for display
+      setFilename(file.name);
       setError(null);       // Clear previous errors
 
       try {
@@ -246,9 +246,8 @@ const TouchstoneViewer: React.FC = () => {
           {/* Data Table Component */}
           <DataTable
             touchstone={touchstone}
-            filename={filename} // Pass filename for CSV download naming
-            setMatrix={updateMatrixFrequency} // Corrected: Pass updateMatrixFrequency as setMatrix prop
-            // setFilename prop is removed from DataTable
+            filename={filename} // For CSV download naming
+            setMatrix={updateMatrixFrequency} // For CSV upload to update matrix/frequencies
           />
         </>
       )}
@@ -314,7 +313,7 @@ const readFile = (file: File): Promise<Touchstone> => {
           reject(new Error('File content is empty.'))
           return
         }
-        const nports = getNumberOfPorts(file.name) // Use module-level function
+        const nports = getNumberOfPorts(file.name)
         if (nports === null) {
           reject(
             new Error(
