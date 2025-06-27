@@ -176,9 +176,17 @@ const TouchstoneViewer: React.FC = () => {
 
     // Create and set the new frequency object
     const newFrequency = new Frequency();
-    // Preserve the unit from the current touchstone object.
-    // If touchstone.frequency or touchstone.frequency.unit is undefined, default to 'HZ'.
-    newFrequency.unit = touchstone.frequency?.unit || 'HZ';
+    // If touchstone and touchstone.frequency exist, preserve its unit.
+    // This path should only be taken if touchstone and touchstone.frequency are valid,
+    // as per the function's precondition and the `if (!touchstone)` guard.
+    if (touchstone.frequency) {
+      newFrequency.unit = touchstone.frequency.unit;
+    } else {
+      // This case should ideally not be reached if touchstone is valid and has frequencies.
+      // Defaulting to 'Hz' as a fallback, though it implies an inconsistent state.
+      console.warn("updateMatrixFrequency: touchstone.frequency or its unit was unexpectedly undefined. Defaulting to 'Hz'.");
+      newFrequency.unit = 'Hz';
+    }
     newFrequency.f_scaled = frequencies; // Assign frequencies; .f_scaled setter handles internal storage.
 
     updatedTouchstone.frequency = newFrequency;
