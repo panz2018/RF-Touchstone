@@ -191,8 +191,6 @@ const TouchstoneViewer: React.FC = () => {
 
     updatedTouchstone.frequency = newFrequency;
 
-    // nports is not changed here, CSV parsing should validate against existing nports.
-
     setTouchstone(updatedTouchstone);
   };
 
