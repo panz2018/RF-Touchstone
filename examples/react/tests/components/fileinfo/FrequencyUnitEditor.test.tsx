@@ -20,6 +20,24 @@ describe('FrequencyUnitEditor Component', () => {
 
     fireEvent.change(select, { target: { value: 'MHz' } });
     expect(mockOnUnitChange).toHaveBeenCalledWith('MHz');
+    expect(screen.queryByText(/Error:/)).not.toBeInTheDocument(); // No error displayed
+  });
+
+  it('displays error when onUnitChange throws', () => {
+    const errMsg = "Parent error on unit change";
+    mockOnUnitChange.mockImplementation(() => {
+      throw new Error(errMsg);
+    });
+    render(
+      <FrequencyUnitEditor
+        currentUnit="GHz"
+        onUnitChange={mockOnUnitChange}
+        disabled={false}
+      />
+    );
+    const select = screen.getByLabelText('Frequency Unit Selector');
+    fireEvent.change(select, { target: { value: 'MHz' } });
+    expect(screen.getByText(`Error: ${errMsg}`)).toBeInTheDocument();
   });
 
   it('is disabled when disabled prop is true', () => {

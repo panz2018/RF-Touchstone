@@ -20,6 +20,24 @@ describe('DataFormatEditor Component', () => {
 
     fireEvent.change(select, { target: { value: 'MA' } });
     expect(mockOnFormatChange).toHaveBeenCalledWith('MA');
+    expect(screen.queryByText(/Error:/)).not.toBeInTheDocument();
+  });
+
+  it('displays error when onFormatChange throws', () => {
+    const errMsg = "Parent error on format change";
+    mockOnFormatChange.mockImplementation(() => {
+      throw new Error(errMsg);
+    });
+    render(
+      <DataFormatEditor
+        currentFormat="RI"
+        onFormatChange={mockOnFormatChange}
+        disabled={false}
+      />
+    );
+    const select = screen.getByLabelText('Data Format Selector');
+    fireEvent.change(select, { target: { value: 'MA' } });
+    expect(screen.getByText(`Error: ${errMsg}`)).toBeInTheDocument();
   });
 
   it('is disabled when disabled prop is true', () => {

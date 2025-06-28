@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface CommentsEditorProps {
   currentComments: string[];
@@ -6,8 +6,15 @@ interface CommentsEditorProps {
 }
 
 const CommentsEditor: React.FC<CommentsEditorProps> = ({ currentComments, onCommentsChange }) => {
+  const [localError, setLocalError] = useState<string | null>(null);
+
   const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onCommentsChange(event.target.value.split('\n'));
+    setLocalError(null); // Clear previous error
+    try {
+      onCommentsChange(event.target.value.split('\n'));
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : String(err));
+    }
   };
 
   return (
@@ -21,6 +28,7 @@ const CommentsEditor: React.FC<CommentsEditorProps> = ({ currentComments, onComm
         placeholder="Enter comments here, one per line."
         aria-label="Editable Comments"
       />
+      {localError && <div style={{ color: 'red', marginTop: '5px', fontSize: '0.9em' }}>Error: {localError}</div>}
     </div>
   );
 };

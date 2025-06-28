@@ -1,5 +1,5 @@
-import React from 'react';
-import { TouchstoneFormat, TouchstoneFormats } from 'rf-touchstone'; // Assuming TouchstoneFormats is exported
+import React, { useState } from 'react';
+import { TouchstoneFormat, TouchstoneFormats } from 'rf-touchstone';
 
 interface DataFormatEditorProps {
   currentFormat: TouchstoneFormat | undefined;
@@ -8,10 +8,21 @@ interface DataFormatEditorProps {
 }
 
 const DataFormatEditor: React.FC<DataFormatEditorProps> = ({ currentFormat, onFormatChange, disabled }) => {
+  const [localError, setLocalError] = useState<string | null>(null);
+
   const formatLabels: Record<TouchstoneFormat, string> = {
     RI: 'RI (Real/Imaginary)',
     MA: 'MA (Magnitude/Angle)',
     DB: 'DB (Decibel/Angle)',
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setLocalError(null); // Clear previous error
+    try {
+      onFormatChange(event.target.value as TouchstoneFormat);
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : String(err));
+    }
   };
 
   return (
@@ -20,7 +31,7 @@ const DataFormatEditor: React.FC<DataFormatEditorProps> = ({ currentFormat, onFo
       {currentFormat !== undefined ? (
         <select
           value={currentFormat || ''}
-          onChange={(e) => onFormatChange(e.target.value as TouchstoneFormat)}
+          onChange={handleChange}
           disabled={disabled}
           aria-label="Data Format Selector"
         >
@@ -33,6 +44,7 @@ const DataFormatEditor: React.FC<DataFormatEditorProps> = ({ currentFormat, onFo
       ) : (
         'N/A'
       )}
+      {localError && <span style={{ color: 'red', marginLeft: '10px', fontSize: '0.9em' }}>Error: {localError}</span>}
     </p>
   );
 };

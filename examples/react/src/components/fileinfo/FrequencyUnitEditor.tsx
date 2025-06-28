@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FrequencyUnits, type FrequencyUnit } from 'rf-touchstone';
 
 interface FrequencyUnitEditorProps {
@@ -8,13 +8,24 @@ interface FrequencyUnitEditorProps {
 }
 
 const FrequencyUnitEditor: React.FC<FrequencyUnitEditorProps> = ({ currentUnit, onUnitChange, disabled }) => {
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setLocalError(null); // Clear previous error
+    try {
+      onUnitChange(event.target.value as FrequencyUnit);
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
   return (
     <p>
       <strong>Frequency Unit:</strong>{' '}
       {currentUnit !== undefined ? (
         <select
           value={currentUnit || ''}
-          onChange={(e) => onUnitChange(e.target.value as FrequencyUnit)}
+          onChange={handleChange}
           disabled={disabled}
           aria-label="Frequency Unit Selector"
         >
@@ -27,6 +38,7 @@ const FrequencyUnitEditor: React.FC<FrequencyUnitEditorProps> = ({ currentUnit, 
       ) : (
         'N/A'
       )}
+      {localError && <span style={{ color: 'red', marginLeft: '10px', fontSize: '0.9em' }}>Error: {localError}</span>}
     </p>
   );
 };

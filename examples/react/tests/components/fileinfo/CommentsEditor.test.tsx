@@ -19,5 +19,23 @@ describe('CommentsEditor Component', () => {
 
     fireEvent.change(textarea, { target: { value: 'New comment\nAnother line' } });
     expect(mockOnCommentsChange).toHaveBeenCalledWith(['New comment', 'Another line']);
+    expect(screen.queryByText(/Error:/)).not.toBeInTheDocument();
+  });
+
+  it('displays error when onCommentsChange throws', () => {
+    const errMsg = "Parent error on comments change";
+    mockOnCommentsChange.mockImplementation(() => {
+      throw new Error(errMsg);
+    });
+    const initialComments = ['Comment 1'];
+    render(
+      <CommentsEditor
+        currentComments={initialComments}
+        onCommentsChange={mockOnCommentsChange}
+      />
+    );
+    const textarea = screen.getByLabelText('Editable Comments');
+    fireEvent.change(textarea, { target: { value: 'New comment' } });
+    expect(screen.getByText(`Error: ${errMsg}`)).toBeInTheDocument();
   });
 });

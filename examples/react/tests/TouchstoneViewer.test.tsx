@@ -489,6 +489,49 @@ describe('TouchstoneViewer Component', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  describe('Setter Error Handling when touchstone is null', () => {
+    beforeEach(() => {
+      // Ensure initial load fails to make touchstone null
+      mockedReadUrl.mockImplementation(async () => {
+        throw new Error("Simulated initial load failure");
+      });
+    });
+
+    it('setUnit throws error if touchstone is null', async () => {
+      render(<TouchstoneViewer />);
+      await waitFor(() => expect(screen.getByText(/Error: Simulated initial load failure/i)).toBeInTheDocument());
+      // At this point, touchstone in TouchstoneViewer should be null.
+      // We access the handler directly from the mock's props after it has been rendered once.
+      const fileInfoProps = MockedFileInfo.mock.calls[0][0] as any;
+      expect(() => fileInfoProps.setUnit('GHz')).toThrow("Cannot set unit: Touchstone data or frequency information is missing.");
+    });
+
+    it('setFormat throws error if touchstone is null', async () => {
+      render(<TouchstoneViewer />);
+      await waitFor(() => expect(screen.getByText(/Error: Simulated initial load failure/i)).toBeInTheDocument());
+      const fileInfoProps = MockedFileInfo.mock.calls[0][0] as any;
+      expect(() => fileInfoProps.setFormat('MA')).toThrow("Cannot set format: No Touchstone data loaded.");
+    });
+
+    it('setComments throws error if touchstone is null', async () => {
+      render(<TouchstoneViewer />);
+      await waitFor(() => expect(screen.getByText(/Error: Simulated initial load failure/i)).toBeInTheDocument());
+      const fileInfoProps = MockedFileInfo.mock.calls[0][0] as any;
+      expect(() => fileInfoProps.setComments(['new comment'])).toThrow("Cannot set comments: No Touchstone data loaded.");
+    });
+
+    it('setImpedance throws error if touchstone is null', async () => {
+      render(<TouchstoneViewer />);
+      await waitFor(() => expect(screen.getByText(/Error: Simulated initial load failure/i)).toBeInTheDocument());
+      const fileInfoProps = MockedFileInfo.mock.calls[0][0] as any;
+      expect(() => fileInfoProps.setImpedance(75)).toThrow("Cannot set impedance: No Touchstone data loaded.");
+    });
+
+    // updateMatrixFrequency error for null touchstone is already tested in a separate test case.
+    // The case for touchstone.frequency being undefined is hard to reliably set up here
+    // without more direct state manipulation ability in tests.
+  });
+
   it('handles impedance change from FileInfo and updates touchstone object', async () => {
     render(<TouchstoneViewer />);
     await waitFor(() => expect(mockedReadUrl).toHaveBeenCalledWith('/sample.s2p')); // Initial load

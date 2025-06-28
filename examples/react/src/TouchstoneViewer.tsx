@@ -4,7 +4,8 @@ import {
   Touchstone,
   type TouchstoneFormat,
   type FrequencyUnit,
-  type TouchstoneMatrix, // Import TouchstoneMatrix
+  type TouchstoneMatrix,
+  type TouchstoneImpedance, // Import TouchstoneImpedance
 } from 'rf-touchstone'
 import FileInfo from './components/FileInfo'
 import DataTable from './components/DataTable'
@@ -22,8 +23,7 @@ const TouchstoneViewer: React.FC = () => {
   // State for the currently loaded Touchstone object. This object serves as the single source
   // of truth for Touchstone data including its unit, format, and comments.
   const [touchstone, setTouchstone] = useState<Touchstone | null>(null);
-  // State for storing any error messages encountered during file loading or processing.
-  const [error, setError] = useState<string | null>(null)
+  // Global error state is removed. Errors will be handled by individual components or will propagate.
   // State for the name of the currently loaded or selected file. This is managed separately
   // to allow user edits to the filename independent of the Touchstone object's internal metadata.
   const [filename, setFilename] = useState<string>('')
@@ -46,14 +46,14 @@ const TouchstoneViewer: React.FC = () => {
 
       activeFilename = nameOnly; // Store valid filename
       setFilename(activeFilename);
-      setError(null); // Clear previous errors before new load attempt.
+      // setError(null); // Global error state removed
 
       const ts = await readUrl(url);
       setTouchstone(ts);
 
     } catch (err) {
       console.error(`Error processing URL ${url}:`, err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      // setError(err instanceof Error ? err.message : 'An unknown error occurred.'); // Global error state removed
       setTouchstone(null);
       // If the error was due to filename parsing, filename might not have been set or should be cleared.
       // If activeFilename is still empty, it implies filename parsing failed.
@@ -83,18 +83,18 @@ const TouchstoneViewer: React.FC = () => {
     const file = event.target.files?.[0]
     if (file) {
       setFilename(file.name);
-      setError(null);       // Clear previous errors
+      // setError(null);       // Global error state removed
 
       try {
         const ts = await readFile(file)
         setTouchstone(ts)
       } catch (err) {
         console.error('Error processing uploaded Touchstone file:', err)
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Failed to process uploaded file.'
-        )
+        // setError( // Global error state removed
+        //   err instanceof Error
+        //     ? err.message
+        //     : 'Failed to process uploaded file.'
+        // )
         setTouchstone(null) // Clear data on error
       }
       // Reset the input value to allow re-uploading the same file name
@@ -110,18 +110,20 @@ const TouchstoneViewer: React.FC = () => {
    * @param unit The new frequency unit.
    */
   const setUnit = (unit: FrequencyUnit) => {
-    if (touchstone?.frequency) {
-      const frequenciesInHz = touchstone.frequency.f_Hz;
-      const updatedTouchstone = new Touchstone();
-      Object.assign(updatedTouchstone, touchstone);
-
-      const newFrequency = new Frequency();
-      newFrequency.f_Hz = frequenciesInHz;
-      newFrequency.unit = unit; // Use the specific FrequencyUnit type
-
-      updatedTouchstone.frequency = newFrequency;
-      setTouchstone(updatedTouchstone); // Update the main touchstone state
+    if (!touchstone || !touchstone.frequency) {
+      throw new Error("Cannot set unit: Touchstone data or frequency information is missing.");
     }
+    // Proceed with creating a new Touchstone object if touchstone and frequency info exist
+    const frequenciesInHz = touchstone.frequency.f_Hz;
+    const updatedTouchstone = new Touchstone();
+    Object.assign(updatedTouchstone, touchstone);
+
+    const newFrequency = new Frequency();
+    newFrequency.f_Hz = frequenciesInHz;
+    newFrequency.unit = unit;
+
+    updatedTouchstone.frequency = newFrequency;
+    setTouchstone(updatedTouchstone);
   }
 
   /**
@@ -130,12 +132,13 @@ const TouchstoneViewer: React.FC = () => {
    * @param format The new S-parameter display format.
    */
   const setFormat = (format: TouchstoneFormat) => {
-    if (touchstone) {
-      const updatedTouchstone = new Touchstone()
-      Object.assign(updatedTouchstone, touchstone)
-      updatedTouchstone.format = format;
-      setTouchstone(updatedTouchstone) // Update the main touchstone state
+    if (!touchstone) {
+      throw new Error("Cannot set format: No Touchstone data loaded.");
     }
+    const updatedTouchstone = new Touchstone()
+    Object.assign(updatedTouchstone, touchstone)
+    updatedTouchstone.format = format;
+    setTouchstone(updatedTouchstone)
   }
 
   /**
@@ -144,12 +147,13 @@ const TouchstoneViewer: React.FC = () => {
    * @param comments An array of strings representing the new comments.
    */
   const setComments = (comments: string[]) => {
-    if (touchstone) {
-      const updatedTouchstone = new Touchstone();
-      Object.assign(updatedTouchstone, touchstone); // Create a new instance based on the current one
-      updatedTouchstone.comments = [...comments];
-      setTouchstone(updatedTouchstone);
+    if (!touchstone) {
+      throw new Error("Cannot set comments: No Touchstone data loaded.");
     }
+    const updatedTouchstone = new Touchstone();
+    Object.assign(updatedTouchstone, touchstone);
+    updatedTouchstone.comments = [...comments];
+    setTouchstone(updatedTouchstone);
   };
 
   /**
@@ -161,18 +165,12 @@ const TouchstoneViewer: React.FC = () => {
    */
   const updateMatrixFrequency = (matrix: TouchstoneMatrix, frequencies: number[]) => {
     if (!touchstone) {
-      const msg = "Cannot update matrix/frequency: No base Touchstone data is currently loaded.";
-      console.error(msg);
-      setError(msg);
-      return;
+      throw new Error("Cannot update matrix/frequency: No base Touchstone data is currently loaded.");
     }
 
     if (!touchstone.frequency || typeof touchstone.frequency.unit === 'undefined') {
-      const msg = "Cannot update matrix/frequency: Current Touchstone data is missing essential frequency unit information.";
-      console.error(msg);
-      setError(msg);
-      setTouchstone(null); // Clear potentially inconsistent data
-      return;
+      // This indicates an inconsistent state if touchstone is loaded but frequency/unit is not.
+      throw new Error("Cannot update matrix/frequency: Current Touchstone data is missing essential frequency unit information.");
     }
 
     const updatedTouchstone = new Touchstone();
@@ -201,10 +199,7 @@ const TouchstoneViewer: React.FC = () => {
    */
   const setImpedance = (impedance: TouchstoneImpedance) => {
     if (!touchstone) {
-      const msg = "Cannot set impedance: No Touchstone data loaded.";
-      console.error(msg);
-      setError(msg);
-      return;
+      throw new Error("Cannot set impedance: No Touchstone data loaded.");
     }
     const updatedTouchstone = new Touchstone();
     Object.assign(updatedTouchstone, touchstone);
@@ -241,13 +236,17 @@ const TouchstoneViewer: React.FC = () => {
       {/* Status/Error Message Display */}
       <p>
         Currently displaying:{' '}
-        {touchstone
-          ? `Data from ${filename}` // Use filename state
-          : error
-          ? `Error with ${filename}` // Use filename state
-          : `Loading ${filename}...`} {/* Use filename state */}
+        {(() => {
+          if (touchstone) {
+            return `Data from ${filename}`;
+          } else if (filename) { // A file load was attempted (filename is set) but touchstone is null
+            return `Problem loading data for ${filename}. Check console for errors.`;
+          } else { // Initial state, no file loaded yet
+            return 'No file selected or loaded.';
+          }
+        })()}
       </p>
-      {error && <pre style={{ color: 'red' }}>Error: {error}</pre>}
+      {/* Global error display removed. Errors are handled by/shown in sub-components or logged. */}
 
       {/* Conditional Rendering for Touchstone Data */}
       {touchstone && (
