@@ -1,5 +1,5 @@
 import React from 'react'
-import { Touchstone, FrequencyUnits, type FrequencyUnit, type TouchstoneFormat } from 'rf-touchstone'
+import { Touchstone, FrequencyUnits, type FrequencyUnit, type TouchstoneFormat, type TouchstoneImpedance } from 'rf-touchstone'
 
 /**
  * Props for the FileInfo component.
@@ -17,6 +17,8 @@ interface FileInfoProps {
   setFilename: (newName: string) => void
   /** Callback function to set the new comments. */
   setComments: (comments: string[]) => void
+  /** Callback function to set the new impedance. */
+  setImpedance: (newImpedance: TouchstoneImpedance) => void;
 }
 
 /**
@@ -31,8 +33,9 @@ const FileInfo: React.FC<FileInfoProps> = ({
   setUnit,
   setFormat,
   filename,
-  setFilename, // Updated prop name
+  setFilename,
   setComments,
+  setImpedance, // Added prop
 }) => {
   // If no Touchstone data is available, render nothing.
   if (!touchstone) {
@@ -43,10 +46,20 @@ const FileInfo: React.FC<FileInfoProps> = ({
   const getExtension = (name: string): string => name.substring(name.lastIndexOf('.'));
 
   const [editableBaseName, setEditableBaseName] = React.useState<string>(getBaseName(filename));
+  const [editableImpedanceStr, setEditableImpedanceStr] = React.useState<string>(
+    Array.isArray(touchstone.impedance) ? touchstone.impedance.join(', ') : String(touchstone.impedance)
+  );
 
   React.useEffect(() => {
     setEditableBaseName(getBaseName(filename));
   }, [filename]);
+
+  React.useEffect(() => {
+    // Update local impedance string if touchstone prop changes (e.g., new file loaded)
+    setEditableImpedanceStr(
+      Array.isArray(touchstone.impedance) ? touchstone.impedance.join(', ') : String(touchstone.impedance)
+    );
+  }, [touchstone.impedance]);
 
   const onBaseNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEditableBaseName(event.target.value);
@@ -55,17 +68,60 @@ const FileInfo: React.FC<FileInfoProps> = ({
   const onBaseNameBlur = () => {
     const newFilename = editableBaseName + getExtension(filename);
     if (newFilename !== filename && editableBaseName.trim() !== '') {
-      setFilename(newFilename); // Use the new prop name
+      setFilename(newFilename);
     } else if (editableBaseName.trim() === '') {
-      // Revert to original if input is empty
       setEditableBaseName(getBaseName(filename));
     }
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleFilenameKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      onBaseNameBlur(); // Apply changes on Enter key
-      (event.target as HTMLInputElement).blur(); // Optionally blur the input
+      onBaseNameBlur();
+      (event.target as HTMLInputElement).blur();
+    }
+  };
+
+  const handleImpedanceStrChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEditableImpedanceStr(event.target.value);
+  };
+
+  const handleImpedanceBlur = () => {
+    const values = editableImpedanceStr.split(',').map(s => s.trim()).filter(s => s !== '');
+    let newImpedance: TouchstoneImpedance | null = null;
+
+    if (values.length === 0) {
+      alert("Impedance cannot be empty.");
+      setEditableImpedanceStr(Array.isArray(touchstone.impedance) ? touchstone.impedance.join(', ') : String(touchstone.impedance)); // Revert
+      return;
+    }
+
+    const parsedNumbers = values.map(v => parseFloat(v));
+
+    if (parsedNumbers.some(isNaN)) {
+      alert("Invalid impedance: All values must be numbers.");
+      setEditableImpedanceStr(Array.isArray(touchstone.impedance) ? touchstone.impedance.join(', ') : String(touchstone.impedance)); // Revert
+      return;
+    }
+
+    if (parsedNumbers.length === 1) {
+      newImpedance = parsedNumbers[0];
+    } else {
+      // Assuming if multiple values, it's for a multi-port scenario.
+      // No strict validation against nports here, parent will handle if mismatch is critical.
+      newImpedance = parsedNumbers;
+    }
+
+    // Check if actually changed to avoid unnecessary updates
+    const currentImpedanceStr = Array.isArray(touchstone.impedance) ? touchstone.impedance.join(', ') : String(touchstone.impedance);
+    if (editableImpedanceStr !== currentImpedanceStr) {
+        setImpedance(newImpedance);
+    }
+  };
+
+  const handleImpedanceKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleImpedanceBlur();
+      (event.target as HTMLInputElement).blur();
     }
   };
 
@@ -135,11 +191,16 @@ const FileInfo: React.FC<FileInfoProps> = ({
 
       {/* Display the reference impedance for the S-parameters. */}
       <p>
-        <strong>Impedance:</strong>{' '}
-        {Array.isArray(touchstone.impedance)
-          ? touchstone.impedance.join(', ')
-          : touchstone.impedance}{' '}
-        Ohms
+        <strong>Impedance (Ohms):</strong>{' '}
+        <input
+          type="text"
+          value={editableImpedanceStr}
+          onChange={handleImpedanceStrChange}
+          onBlur={handleImpedanceBlur}
+          onKeyPress={handleImpedanceKeyPress}
+          style={{ marginLeft: '5px', padding: '2px', width: '150px' }}
+          title="Enter number or comma-separated numbers for multi-port"
+        />
       </p>
 
       {/* Display any comments found in the Touchstone file. */}

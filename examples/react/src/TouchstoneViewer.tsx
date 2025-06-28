@@ -194,6 +194,24 @@ const TouchstoneViewer: React.FC = () => {
     setTouchstone(updatedTouchstone);
   };
 
+  /**
+   * Updates the impedance for the current Touchstone data.
+   * Creates a new Touchstone object with the new impedance and updates the state.
+   * @param newImpedance The new impedance value or array of values.
+   */
+  const setImpedance = (newImpedance: TouchstoneImpedance) => {
+    if (!touchstone) {
+      const msg = "Cannot set impedance: No Touchstone data loaded.";
+      console.error(msg);
+      setError(msg);
+      return;
+    }
+    const updatedTouchstone = new Touchstone();
+    Object.assign(updatedTouchstone, touchstone);
+    updatedTouchstone.impedance = newImpedance;
+    setTouchstone(updatedTouchstone);
+  };
+
   return (
     <div>
       <h2>Touchstone File Viewer</h2>
@@ -240,8 +258,9 @@ const TouchstoneViewer: React.FC = () => {
             setUnit={setUnit}
             setFormat={setFormat}
             filename={filename}
-            setFilename={setFilename} // Pass setFilename directly
+            setFilename={setFilename}
             setComments={setComments}
+            setImpedance={setImpedance} // Pass setImpedance
           />
           {/* Data Table Component */}
           <DataTable

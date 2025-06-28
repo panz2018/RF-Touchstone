@@ -57,7 +57,7 @@ let mockTriggerFilenameChange: ((newName: string) => void) | null = null;
 let mockFileInfoHandlers: any = {};
 vi.mock('../src/components/FileInfo', () => ({
   default: vi.fn((props) => {
-    mockTriggerFilenameChange = props.setFilename; // Corrected: FileInfo expects setFilename prop
+    mockTriggerFilenameChange = props.setFilename; // This should be props.setFilename
     // Store all handlers passed to the mock to be triggered by tests
     mockFileInfoHandlers.setUnit = props.setUnit;
     mockFileInfoHandlers.setFormat = props.setFormat;
