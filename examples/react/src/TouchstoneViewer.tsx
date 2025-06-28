@@ -197,9 +197,9 @@ const TouchstoneViewer: React.FC = () => {
   /**
    * Updates the impedance for the current Touchstone data.
    * Creates a new Touchstone object with the new impedance and updates the state.
-   * @param newImpedance The new impedance value or array of values.
+   * @param impedance The new impedance value or array of values.
    */
-  const setImpedance = (newImpedance: TouchstoneImpedance) => {
+  const setImpedance = (impedance: TouchstoneImpedance) => {
     if (!touchstone) {
       const msg = "Cannot set impedance: No Touchstone data loaded.";
       console.error(msg);
@@ -208,7 +208,7 @@ const TouchstoneViewer: React.FC = () => {
     }
     const updatedTouchstone = new Touchstone();
     Object.assign(updatedTouchstone, touchstone);
-    updatedTouchstone.impedance = newImpedance;
+    updatedTouchstone.impedance = impedance;
     setTouchstone(updatedTouchstone);
   };
 

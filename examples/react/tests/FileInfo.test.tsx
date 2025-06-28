@@ -1,196 +1,137 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom'; // Though vitest uses its own matchers, this can be kept for familiarity or if jest-dom is configured
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import FileInfo from '../src/components/FileInfo';
-import { Touchstone } from 'rf-touchstone';
+import FileInfo from '../src/components/FileInfo'; // Adjusted path
+import FilenameEditor from '../src/components/fileinfo/FilenameEditor';
+import CommentsEditor from '../src/components/fileinfo/CommentsEditor';
+import ImpedanceEditor from '../src/components/fileinfo/ImpedanceEditor';
+import FrequencyUnitEditor from '../src/components/fileinfo/FrequencyUnitEditor';
+import DataFormatEditor from '../src/components/fileinfo/DataFormatEditor';
+import { Touchstone, Frequency, TouchstoneImpedance, FrequencyUnit, TouchstoneFormat } from 'rf-touchstone';
 
-// Minimal mock for Touchstone data needed by FileInfo
-const mockTouchstoneInstance = new Touchstone();
-mockTouchstoneInstance.nports = 2;
-mockTouchstoneInstance.parameter = 'S';
-mockTouchstoneInstance.impedance = 50;
-mockTouchstoneInstance.frequency = { unit: 'GHz', f: [1], f_Hz: [1e9] } as any;
-mockTouchstoneInstance.format = 'RI';
-mockTouchstoneInstance.comments = ['Comment 1', 'Comment 2'];
+// Mock the sub-components
+vi.mock('../src/components/fileinfo/FilenameEditor', () => ({
+  default: vi.fn((props) => <div data-testid="mock-filename-editor">Filename: {props.currentFilename}</div>),
+}));
+vi.mock('../src/components/fileinfo/CommentsEditor', () => ({
+  default: vi.fn((props) => <div data-testid="mock-comments-editor">Comments: {props.currentComments.join('/')}</div>),
+}));
+vi.mock('../src/components/fileinfo/ImpedanceEditor', () => ({
+  default: vi.fn((props) => <div data-testid="mock-impedance-editor">Impedance: {Array.isArray(props.currentImpedance) ? props.currentImpedance.join(',') : props.currentImpedance}</div>),
+}));
+vi.mock('../src/components/fileinfo/FrequencyUnitEditor', () => ({
+  default: vi.fn((props) => <div data-testid="mock-frequency-unit-editor">Unit: {props.currentUnit}</div>),
+}));
+vi.mock('../src/components/fileinfo/DataFormatEditor', () => ({
+  default: vi.fn((props) => <div data-testid="mock-data-format-editor">Format: {props.currentFormat}</div>),
+}));
 
 
-describe('FileInfo Component', () => {
-  let mockHandleFilenameChange: ReturnType<typeof vi.fn>;
-  let mockSetComments: ReturnType<typeof vi.fn>; // Renamed
-  let mockSetUnit: ReturnType<typeof vi.fn>;     // Renamed
-  let mockSetFormat: ReturnType<typeof vi.fn>;   // Renamed
+describe('FileInfo Main Container Component', () => {
+  let mockTouchstone: Touchstone;
+  let mockSetFilename: ReturnType<typeof vi.fn>;
+  let mockSetComments: ReturnType<typeof vi.fn>;
+  let mockSetImpedance: ReturnType<typeof vi.fn>;
+  let mockSetUnit: ReturnType<typeof vi.fn>;
+  let mockSetFormat: ReturnType<typeof vi.fn>;
 
-  const initialFilename = 'testfile.s2p';
-  const initialComments = ['Initial comment 1', 'Initial comment 2'];
+  const initialFilename = "testfile.s2p";
 
   beforeEach(() => {
-    mockHandleFilenameChange = vi.fn();
-    mockSetComments = vi.fn(); // Renamed
-    mockSetUnit = vi.fn();     // Renamed
-    mockSetFormat = vi.fn();   // Renamed
+    vi.clearAllMocks();
 
-    // Ensure mockTouchstoneInstance has consistent initial values for unit, format, comments for each test run
-    mockTouchstoneInstance.frequency = { unit: 'GHz', f: [1], f_Hz: [1e9] } as any;
-    mockTouchstoneInstance.format = 'RI';
-    mockTouchstoneInstance.comments = [...initialComments];
+    mockTouchstone = new Touchstone();
+    mockTouchstone.frequency = new Frequency(); // Initialize frequency object
+    mockTouchstone.frequency.unit = 'GHz';
+    mockTouchstone.frequency.f_scaled = [1, 2];
+    mockTouchstone.format = 'RI';
+    mockTouchstone.comments = ['Initial Comment'];
+    mockTouchstone.impedance = 50;
+    mockTouchstone.nports = 2;
+    mockTouchstone.parameter = 'S';
+
+    mockSetFilename = vi.fn();
+    mockSetComments = vi.fn();
+    mockSetImpedance = vi.fn();
+    mockSetUnit = vi.fn();
+    mockSetFormat = vi.fn();
   });
 
-  // Updated renderComponent to not pass unit, format, comments directly
-  // It will rely on the values within mockTouchstoneInstance
-  const renderComponent = (filename = initialFilename, customTouchstone?: Touchstone) => {
-    const tsToUse = customTouchstone || mockTouchstoneInstance;
-    return render(
+  const renderFileInfoContainer = (touchstoneInstance: Touchstone | null = mockTouchstone) => {
+    render(
       <FileInfo
-        touchstone={tsToUse}
-        setUnit={mockSetUnit} // Renamed prop
-        setFormat={mockSetFormat} // Renamed prop
-        filename={filename}
-        handleFilenameChange={mockHandleFilenameChange}
-        setComments={mockSetComments} // Renamed prop
+        touchstone={touchstoneInstance}
+        filename={initialFilename}
+        setFilename={mockSetFilename}
+        setComments={mockSetComments}
+        setImpedance={mockSetImpedance}
+        setUnit={mockSetUnit}
+        setFormat={mockSetFormat}
       />
     );
   };
 
-  describe('Filename Editing', () => {
-    it('displays the initial filename correctly (basename and extension)', () => {
-      renderComponent();
-      const basenameInput = screen.getByDisplayValue('testfile') as HTMLInputElement;
-      expect(basenameInput).toBeInTheDocument();
-      expect(screen.getByText('.s2p')).toBeInTheDocument();
-    });
-
-    it('allows editing the basename of the filename', () => {
-      renderComponent();
-      const basenameInput = screen.getByDisplayValue('testfile') as HTMLInputElement;
-      fireEvent.change(basenameInput, { target: { value: 'newBaseName' } });
-      expect(basenameInput.value).toBe('newBaseName');
-    });
-
-    it('calls handleFilenameChange with the new full filename on blur if changed', () => {
-      renderComponent();
-      const basenameInput = screen.getByDisplayValue('testfile');
-      fireEvent.change(basenameInput, { target: { value: 'editedName' } });
-      fireEvent.blur(basenameInput);
-      expect(mockHandleFilenameChange).toHaveBeenCalledWith('editedName.s2p');
-    });
-
-    it('calls handleFilenameChange on Enter key press', () => {
-      renderComponent();
-      const basenameInput = screen.getByDisplayValue('testfile');
-      fireEvent.change(basenameInput, { target: { value: 'anotherName' } });
-      fireEvent.keyPress(basenameInput, { key: 'Enter', code: 'Enter', charCode: 13 });
-      expect(mockHandleFilenameChange).toHaveBeenCalledWith('anotherName.s2p');
-    });
-
-    it('does not call handleFilenameChange if basename is unchanged on blur', () => {
-      renderComponent();
-      const basenameInput = screen.getByDisplayValue('testfile');
-      fireEvent.blur(basenameInput); // Blur without changing
-      expect(mockHandleFilenameChange).not.toHaveBeenCalled();
-    });
-
-    it('reverts to original basename if input is cleared and blurred', () => {
-      renderComponent();
-      const basenameInput = screen.getByDisplayValue('testfile') as HTMLInputElement;
-      fireEvent.change(basenameInput, { target: { value: '' } });
-      fireEvent.blur(basenameInput);
-      expect(mockHandleFilenameChange).not.toHaveBeenCalled(); // Should not call if effectively no change or invalid
-      expect(basenameInput.value).toBe('testfile'); // Reverted
-    });
-
-    it('updates displayed basename when filename prop changes externally', () => {
-      const { rerender } = renderComponent('first.s1p');
-      let basenameInput = screen.getByDisplayValue('first') as HTMLInputElement;
-      expect(basenameInput).toBeInTheDocument();
-      expect(screen.getByText('.s1p')).toBeInTheDocument();
-
-      rerender(
-        <FileInfo
-          touchstone={mockTouchstoneInstance}
-          setUnit={mockSetUnit} // Renamed prop
-          setFormat={mockSetFormat} // Renamed prop
-          filename="secondName.s4p"
-          handleFilenameChange={mockHandleFilenameChange}
-          setComments={mockSetComments} // Renamed prop
-        />
-      );
-      basenameInput = screen.getByDisplayValue('secondName') as HTMLInputElement;
-      expect(basenameInput).toBeInTheDocument();
-      expect(screen.getByText('.s4p')).toBeInTheDocument();
-    });
+  it('renders \"No Touchstone data loaded.\" when touchstone prop is null', () => {
+    renderFileInfoContainer(null);
+    expect(screen.getByText('No Touchstone data loaded.')).toBeInTheDocument();
   });
 
-  // Placeholder for Comments Editing tests
-  describe('Comments Editing', () => {
-    it('displays initial comments from touchstone prop in a textarea', () => {
-      // mockTouchstoneInstance.comments is set to initialComments in beforeEach
-      renderComponent();
-      const textarea = screen.getByPlaceholderText(/Enter comments here, one per line./i) as HTMLTextAreaElement;
-      expect(textarea).toBeInTheDocument();
-      expect(textarea.value).toBe(initialComments.join('\n'));
-    });
-
-    it('calls handleCommentsChange when textarea content is changed', () => {
-      renderComponent();
-      const textarea = screen.getByPlaceholderText(/Enter comments here, one per line./i);
-      fireEvent.change(textarea, { target: { value: "new comment 1\nnew comment 2" } });
-      expect(mockSetComments).toHaveBeenCalledWith(["new comment 1", "new comment 2"]); // Renamed mock
-    });
-
-    it('updates textarea when touchstone.comments prop changes externally', () => {
-      // Initial render with default comments from mockTouchstoneInstance (via beforeEach)
-      const { rerender } = renderComponent();
-      let textarea = screen.getByPlaceholderText(/Enter comments here, one per line./i) as HTMLTextAreaElement;
-      expect(textarea.value).toBe(initialComments.join('\n')); // Check initial state
-
-      // Create a new touchstone instance with different comments
-      const updatedTouchstone = new Touchstone();
-      Object.assign(updatedTouchstone, mockTouchstoneInstance); // clone base properties
-      updatedTouchstone.comments = ['updated line 1', 'updated line 2'];
-
-      rerender(
-         <FileInfo
-          touchstone={updatedTouchstone} // Pass new touchstone object
-          setUnit={mockSetUnit} // Renamed prop
-          setFormat={mockSetFormat} // Renamed prop
-          filename={initialFilename}
-          handleFilenameChange={mockHandleFilenameChange}
-          setComments={mockSetComments} // Renamed prop
-        />
-      );
-      textarea = screen.getByPlaceholderText(/Enter comments here, one per line./i) as HTMLTextAreaElement;
-      expect(textarea.value).toBe(updatedTouchstone.comments.join('\n'));
-    });
+  it('renders all sub-editor components when touchstone data is present', () => {
+    renderFileInfoContainer();
+    expect(screen.getByTestId('mock-filename-editor')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-comments-editor')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-impedance-editor')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-frequency-unit-editor')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-data-format-editor')).toBeInTheDocument();
+    expect(screen.getByText(`Port number: ${mockTouchstone.nports}`)).toBeInTheDocument();
+    expect(screen.getByText(`Parameter: ${mockTouchstone.parameter}`)).toBeInTheDocument();
   });
 
-  describe('Unit and Format Display', () => {
-    it('displays unit from touchstone prop', () => {
-      mockTouchstoneInstance.frequency = { unit: 'MHz' } as any; // Set specific unit for this test
-      renderComponent();
-      expect(screen.getByDisplayValue('MHz')).toBeInTheDocument();
-    });
+  it('passes correct props to FilenameEditor', () => {
+    renderFileInfoContainer();
+    const FilenameEditorMock = vi.mocked(FilenameEditor);
+    expect(FilenameEditorMock).toHaveBeenCalledTimes(1);
+    const props = FilenameEditorMock.mock.calls[0][0];
+    expect(props.currentFilename).toBe(initialFilename);
+    expect(props.onFilenameChange).toBe(mockSetFilename);
+  });
 
-    it('displays format from touchstone prop', () => {
-      mockTouchstoneInstance.format = 'MA'; // Set specific format for this test
-      renderComponent();
-      expect(screen.getByDisplayValue('MA')).toBeInTheDocument();
-    });
+  it('passes correct props to CommentsEditor', () => {
+    renderFileInfoContainer();
+    const CommentsEditorMock = vi.mocked(CommentsEditor);
+    expect(CommentsEditorMock).toHaveBeenCalledTimes(1);
+    const props = CommentsEditorMock.mock.calls[0][0];
+    expect(props.currentComments).toEqual(mockTouchstone.comments);
+    expect(props.onCommentsChange).toBe(mockSetComments);
+  });
 
-    it('calls setUnit when frequency unit is changed', () => {
-      mockTouchstoneInstance.frequency = { unit: 'GHz' } as any;
-      renderComponent();
-      const unitSelect = screen.getByDisplayValue('GHz');
-      fireEvent.change(unitSelect, { target: { value: 'MHz' } });
-      expect(mockSetUnit).toHaveBeenCalledWith('MHz');
-    });
+  it('passes correct props to ImpedanceEditor', () => {
+    renderFileInfoContainer();
+    const ImpedanceEditorMock = vi.mocked(ImpedanceEditor);
+    expect(ImpedanceEditorMock).toHaveBeenCalledTimes(1);
+    const props = ImpedanceEditorMock.mock.calls[0][0];
+    expect(props.currentImpedance).toEqual(mockTouchstone.impedance);
+    expect(props.onImpedanceChange).toBe(mockSetImpedance);
+  });
 
-    it('calls setFormat when S-parameter format is changed', () => {
-      mockTouchstoneInstance.format = 'RI';
-      renderComponent();
-      const formatSelect = screen.getByDisplayValue('RI');
-      fireEvent.change(formatSelect, { target: { value: 'DB' } });
-      expect(mockSetFormat).toHaveBeenCalledWith('DB');
-    });
+  it('passes correct props to FrequencyUnitEditor', () => {
+    renderFileInfoContainer();
+    const FrequencyUnitEditorMock = vi.mocked(FrequencyUnitEditor);
+    expect(FrequencyUnitEditorMock).toHaveBeenCalledTimes(1);
+    const props = FrequencyUnitEditorMock.mock.calls[0][0];
+    expect(props.currentUnit).toBe(mockTouchstone.frequency?.unit);
+    expect(props.onUnitChange).toBe(mockSetUnit);
+    expect(props.disabled).toBe(!mockTouchstone.frequency);
+  });
+
+  it('passes correct props to DataFormatEditor', () => {
+    renderFileInfoContainer();
+    const DataFormatEditorMock = vi.mocked(DataFormatEditor);
+    expect(DataFormatEditorMock).toHaveBeenCalledTimes(1);
+    const props = DataFormatEditorMock.mock.calls[0][0];
+    expect(props.currentFormat).toBe(mockTouchstone.format);
+    expect(props.onFormatChange).toBe(mockSetFormat);
+    expect(props.disabled).toBe(!mockTouchstone.format);
   });
 });

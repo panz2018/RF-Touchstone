@@ -62,6 +62,7 @@ vi.mock('../src/components/FileInfo', () => ({
     mockFileInfoHandlers.setUnit = props.setUnit;
     mockFileInfoHandlers.setFormat = props.setFormat;
     mockFileInfoHandlers.setComments = props.setComments;
+    mockFileInfoHandlers.setImpedance = props.setImpedance; // Added for setImpedance
 
     // The mocked FileInfo now derives unit, format, comments from the touchstone prop
     const displayUnit = props.touchstone?.frequency?.unit || 'N/A';
@@ -79,6 +80,7 @@ vi.mock('../src/components/FileInfo', () => ({
         <button data-testid="mock-fileinfo-set-unit" onClick={() => props.setUnit('MockNewUnit')} />
         <button data-testid="mock-fileinfo-set-format" onClick={() => props.setFormat('MockNewFormat')} />
         <button data-testid="mock-fileinfo-set-comments" onClick={() => props.setComments(['MockNewComment'])} />
+        <button data-testid="mock-fileinfo-set-impedance" onClick={() => props.setImpedance(75)} />
       </div>
     );
   }),
@@ -485,5 +487,35 @@ describe('TouchstoneViewer Component', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith("Cannot update matrix/frequency: No base Touchstone data is currently loaded.");
 
     consoleErrorSpy.mockRestore();
+  });
+
+  it('handles impedance change from FileInfo and updates touchstone object', async () => {
+    render(<TouchstoneViewer />);
+    await waitFor(() => expect(mockedReadUrl).toHaveBeenCalledWith('/sample.s2p')); // Initial load
+
+    const initialTouchstone = MockedFileInfo.mock.calls[0][0].touchstone;
+    expect(initialTouchstone.impedance).toBe(50); // From mockSampleS2PContent
+
+    const newImpedance = 75;
+    expect(mockFileInfoHandlers.setImpedance).toBeDefined();
+    if (mockFileInfoHandlers.setImpedance) {
+      act(() => {
+        mockFileInfoHandlers.setImpedance(newImpedance);
+      });
+    }
+
+    await waitFor(() => {
+      const fileInfoProps = MockedFileInfo.mock.lastCall![0] as any;
+      expect(fileInfoProps.touchstone.impedance).toBe(newImpedance);
+
+      const copyButtonProps = MockedCopyButton.mock.lastCall![0] as any;
+      expect(copyButtonProps.touchstone.impedance).toBe(newImpedance);
+
+      const downloadButtonProps = MockedDownloadButton.mock.lastCall![0] as any;
+      expect(downloadButtonProps.touchstone.impedance).toBe(newImpedance);
+
+      const dataTableProps = MockedDataTable.mock.lastCall![0] as any;
+      expect(dataTableProps.touchstone.impedance).toBe(newImpedance);
+    });
   });
 });
