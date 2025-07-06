@@ -26,22 +26,28 @@ const TouchstoneViewer: React.FC = () => {
   // State for the currently loaded Touchstone object. This object serves as the single source
   // of truth for Touchstone data including its unit, format, and comments.
   const [touchstone, setTouchstone] = useState<Touchstone | null>(null)
-  // Global error state is removed. Errors will be handled by individual components or will propagate.
   // State for the name of the currently loaded or selected file. This is managed separately
   // to allow user edits to the filename independent of the Touchstone object's internal metadata.
   const [filename, setFilename] = useState<string>('')
+  // Global error state to display significant errors to the user.
+  const [error, setError] = useState<string | null>(null)
 
   /**
    * Loads Touchstone file content from a given URL.
    * Parses the content and updates the component's state.
    * Also sets the filename based on the URL.
+   * Handles errors during the entire process and sets a single error message.
    * @param url The URL of the Touchstone file to load.
    */
   const loadUrl = async (url: string) => {
     let activeFilename = '' // Stores the filename if successfully extracted before further processing.
     try {
+      setError(null) // Clear previous errors before new load attempt.
+
+      // 1. Extract filename from URL
       const nameOnly = getFilenameFromUrl(url)
 
+      // 2. Validate filename
       if (!nameOnly || nameOnly.trim() === '') {
         // Specific error for filename parsing failure
         throw new Error(`Could not determine a valid filename from URL: ${url}`)
@@ -49,23 +55,22 @@ const TouchstoneViewer: React.FC = () => {
 
       activeFilename = nameOnly // Store valid filename
       setFilename(activeFilename)
-      // setError(null); // Global error state removed
 
+      // 3. Read content from URL (readUrl throws errors)
       const ts = await readUrl(url)
+
+      // 4. If successful, update state with loaded data
       setTouchstone(ts)
     } catch (err) {
+      // --- Unified error handling ---
       console.error(`Error processing URL ${url}:`, err)
-      // setError(err instanceof Error ? err.message : 'An unknown error occurred.'); // Global error state removed
+      setError(
+        err instanceof Error
+          ? `Error loading ${activeFilename || url}: ${err.message}` // Include filename in error message
+          : `An unknown error occurred while loading ${activeFilename || url}.`
+      )
+      // Clear data on error
       setTouchstone(null)
-      // If the error was due to filename parsing, filename might not have been set or should be cleared.
-      // If activeFilename is still empty, it implies filename parsing failed.
-      if (activeFilename.trim() === '' && url) {
-        // If filename parsing itself failed, ensure filename state is also cleared.
-        // The error message from the specific throw above will be displayed.
-        setFilename('')
-      }
-      // If activeFilename was set but readUrl failed, filename state remains,
-      // and the error message will be "Error with {activeFilename}"
     }
   }
 
@@ -79,25 +84,27 @@ const TouchstoneViewer: React.FC = () => {
   /**
    * Handles a local file upload via the file input element.
    * Reads the selected file's content, parses it as Touchstone data, and updates the state.
+   * Handles errors during the process and sets a single error message.
    * @param event The React change event from the file input.
    */
   const uploadFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       setFilename(file.name)
-      // setError(null);       // Global error state removed
+      setError(null) // Clear previous errors before starting upload
 
       try {
-        const ts = await readFile(file)
+        const ts = await readFile(file) // readFile throws errors
         setTouchstone(ts)
       } catch (err) {
         console.error('Error processing uploaded Touchstone file:', err)
-        // setError( // Global error state removed
-        //   err instanceof Error
-        //     ? err.message
-        //     : 'Failed to process uploaded file.'
-        // )
+        setError(
+          err instanceof Error
+            ? `Error uploading ${file.name}: ${err.message}` // Include filename in error message
+            : `An unknown error occurred while uploading ${file.name}.`
+        )
         setTouchstone(null) // Clear data on error
+        // Filename state remains set to the uploaded file's name in this case.
       }
       // Reset the input value to allow re-uploading the same file name
       if (event.target) {
@@ -189,16 +196,13 @@ const TouchstoneViewer: React.FC = () => {
 
     const updatedTouchstone = new Touchstone()
     // Preserve existing metadata by copying from the current touchstone object
-    Object.assign(updatedTouchstone, {
-      ...touchstone,
-      comments: [...touchstone.comments],
-    })
+    Object.assign(updatedTouchstone, touchstone)
 
     updatedTouchstone.matrix = matrix
 
     // Create and set the new frequency object
     const newFrequency = new Frequency()
-    newFrequency.unit = touchstone.frequency.unit // Now safe due to the check above
+    newFrequency.unit = touchstone.frequency.unit
     newFrequency.f_scaled = frequencies
 
     updatedTouchstone.frequency = newFrequency
@@ -253,16 +257,26 @@ const TouchstoneViewer: React.FC = () => {
         {(() => {
           if (touchstone) {
             return `Data from ${filename}`
+          } else if (error) {
+            // Display the global error message when error state is set
+            return `Error: ${error}`
           } else if (filename) {
-            // A file load was attempted (filename is set) but touchstone is null
-            return `Problem loading data for ${filename}. Check console for errors.`
+            // A file load was attempted (filename is set) but touchstone is null and no specific error was caught
+            // This might indicate an error in a sub-component or unhandled error propagation.
+            // With the updated error handling, this case might be less frequent for loading errors.
+            return `Problem loading data for ${filename}. Check console for details.`
           } else {
             // Initial state, no file loaded yet
             return 'No file selected or loaded.'
           }
         })()}
       </p>
-      {/* Global error display removed. Errors are handled by/shown in sub-components or logged. */}
+      {/* Optional: Display the global error message more prominently */}
+      {error && (
+        <pre style={{ color: 'red', fontWeight: 'bold', marginTop: '10px' }}>
+          {error}
+        </pre>
+      )}
 
       {/* Conditional Rendering for Touchstone Data */}
       {touchstone && (
@@ -314,7 +328,7 @@ const TouchstoneViewer: React.FC = () => {
           <DataTable
             touchstone={touchstone}
             filename={filename} // For CSV download naming
-            setMatrix={updateMatrixFrequency} // For CSV upload to update matrix/frequencies
+            updateMatrixFrequency={updateMatrixFrequency} // For CSV upload to update matrix/frequencies
           />
         </>
       )}
@@ -323,6 +337,19 @@ const TouchstoneViewer: React.FC = () => {
 }
 
 export default TouchstoneViewer
+
+/**
+ * Extracts a filename from a URL string.
+ * It takes the part of the string after the last '/' character.
+ * If no '/' is found, the original string is returned.
+ * @param url The URL string.
+ * @returns The extracted filename or the original URL if no path is present.
+ */
+const getFilenameFromUrl = (url: string): string => {
+  console.log('[DEBUG] getFilenameFromUrl called with url:', url)
+  const lastSlash = url.lastIndexOf('/')
+  return lastSlash !== -1 ? url.substring(lastSlash + 1) : url
+}
 
 /**
  * Helper function to determine the number of ports from a Touchstone filename (e.g., .s2p -> 2 ports).
@@ -427,17 +454,4 @@ const readText = (textContent: string, nports: number): Touchstone => {
   const ts = new Touchstone()
   ts.readContent(textContent, nports)
   return ts
-}
-
-/**
- * Extracts a filename from a URL string.
- * It takes the part of the string after the last '/' character.
- * If no '/' is found, the original string is returned.
- * @param url The URL string.
- * @returns The extracted filename or the original URL if no path is present.
- */
-const getFilenameFromUrl = (url: string): string => {
-  console.log('[DEBUG] getFilenameFromUrl called with url:', url)
-  const lastSlash = url.lastIndexOf('/')
-  return lastSlash !== -1 ? url.substring(lastSlash + 1) : url
 }
