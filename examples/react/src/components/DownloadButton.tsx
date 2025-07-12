@@ -49,9 +49,10 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ touchstone, filename })
     <button
       onClick={handleDownloadFile}
       disabled={!touchstone}
+      className="prime-button" // Added CSS class
       style={{ marginLeft: '10px' }}
     >
-      Download File
+      Download
     </button>
   );
 };

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Touchstone } from 'rf-touchstone';
+import React, { useState } from 'react'
+import { Touchstone } from 'rf-touchstone'
 
 interface CopyButtonProps {
-  touchstone: Touchstone | null;
+  touchstone: Touchstone | null
 }
 
 /**
@@ -11,13 +11,13 @@ interface CopyButtonProps {
  * Manages its own status messages for the copy operation.
  */
 const CopyButton: React.FC<CopyButtonProps> = ({ touchstone }) => {
-  const [copyStatus, setCopyStatus] = useState<string>('');
+  const [copyStatus, setCopyStatus] = useState<string>('')
 
   const handleCopyData = async () => {
     if (!touchstone) {
-      setCopyStatus('No data to copy.');
-      setTimeout(() => setCopyStatus(''), 3000);
-      return;
+      setCopyStatus('No data to copy to clipboard.')
+      setTimeout(() => setCopyStatus(''), 3000)
+      return
     }
     try {
       // Note: If comments are edited in FileInfo and should be part of the copied string,
@@ -35,25 +35,29 @@ const CopyButton: React.FC<CopyButtonProps> = ({ touchstone }) => {
       // This is a point of potential refinement: if edited comments should be copied,
       // the `touchstone` object prop must reflect those changes.
 
-      const fileContentString = touchstone.toString();
-      await navigator.clipboard.writeText(fileContentString);
-      setCopyStatus('Copied to clipboard!');
+      const fileContentString = touchstone.toString()
+      await navigator.clipboard.writeText(fileContentString)
+      setCopyStatus('Copied to clipboard!')
     } catch (err) {
-      console.error('Failed to copy data:', err);
-      setCopyStatus('Failed to copy.');
+      console.error('Failed to copy data:', err)
+      setCopyStatus('Failed to copy.')
     } finally {
-      setTimeout(() => setCopyStatus(''), 3000);
+      setTimeout(() => setCopyStatus(''), 3000)
     }
-  };
+  }
 
   return (
     <>
-      <button onClick={handleCopyData} disabled={!touchstone}>
+      <button
+        className="prime-button"
+        onClick={handleCopyData}
+        disabled={!touchstone}
+      >
         Copy Data
       </button>
       {copyStatus && <span style={{ marginLeft: '10px' }}>{copyStatus}</span>}
     </>
-  );
-};
+  )
+}
 
-export default CopyButton;
+export default CopyButton

@@ -223,12 +223,11 @@ const TouchstoneViewer: React.FC = () => {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <label>Upload a Touchstone (.sNp) file: </label>
         {/* File Input Section */}
         <FileLoader uploadFile={uploadFile} />
         {/* URL Loader Section */}
-        <div>
-          <UrlLoader onUrlSubmit={loadUrl} />
-        </div>
+        <UrlLoader onUrlSubmit={loadUrl} />
       </div>
 
       {/* Error Message Display */}
@@ -243,12 +242,19 @@ const TouchstoneViewer: React.FC = () => {
         <>
           {/* File Information and Controls Section (Previously FileInfo Component) */}
           <div>
-            <h3>File Information</h3>
+            <h2>File Information</h2>
 
             {/* Action Buttons Section (Copy/Download) */}
-            <div style={{ marginTop: '20px' }}>
-              <CopyButton touchstone={touchstone} />
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <strong>Download Touchstone file: </strong>
               <DownloadButton touchstone={touchstone} filename={filename} />
+              <CopyButton touchstone={touchstone} />
             </div>
 
             <FilenameEditor

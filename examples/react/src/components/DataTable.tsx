@@ -175,7 +175,11 @@ const DataTable: React.FC<DataTableProps> = ({
           >
             Upload CSV
           </label>
-          <button onClick={handleDownloadCsvInternal} disabled={!touchstone}>
+          <button
+            className="prime-button"
+            onClick={handleDownloadCsvInternal}
+            disabled={!touchstone}
+          >
             Download CSV
           </button>
         </div>
