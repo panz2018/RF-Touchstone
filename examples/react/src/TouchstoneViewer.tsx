@@ -6,6 +6,7 @@ import type {
   TouchstoneMatrix,
   TouchstoneImpedance,
 } from 'rf-touchstone'
+import FileLoader from './components/FileLoader'
 import UrlLoader from './components/UrlLoader'
 import CopyButton from './components/CopyButton'
 import DownloadButton from './components/DownloadButton'
@@ -82,13 +83,12 @@ const TouchstoneViewer: React.FC = () => {
   }, []) // Empty dependency array ensures this runs only once on mount
 
   /**
-   * Handles a local file upload via the file input element.
+   * Handles a local file upload.
    * Reads the selected file's content, parses it as Touchstone data, and updates the state.
    * Handles errors during the process and sets a single error message.
-   * @param event The React change event from the file input.
+   * @param file The File object to upload.
    */
-  const uploadFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+  const uploadFile = async (file: File) => {
     if (file) {
       setFilename(file.name)
       setError(null) // Clear previous errors before starting upload
@@ -104,11 +104,6 @@ const TouchstoneViewer: React.FC = () => {
             : `An unknown error occurred while uploading ${file.name}.`
         )
         setTouchstone(null) // Clear data on error
-        // Filename state remains set to the uploaded file's name in this case.
-      }
-      // Reset the input value to allow re-uploading the same file name
-      if (event.target) {
-        ;(event.target as HTMLInputElement).value = ''
       }
     }
   }
@@ -227,51 +222,16 @@ const TouchstoneViewer: React.FC = () => {
 
   return (
     <div>
-      <h2>Touchstone File Viewer</h2>
-
-      {/* File Input Section */}
-      <div>
-        <label htmlFor="fileInput">Upload a Touchstone file (.sNp): </label>
-        <input
-          type="file"
-          id="fileInput"
-          accept=".s1p,.s2p,.s3p,.s4p,.s5p,.s6p,.s7p,.s8p,.s9p,.s10p,.s11p,.s12p,.s13p,.s14p,.s15p,.s16p,.s17p,.s18p,.s19p,.s20p"
-          onChange={uploadFile}
-        />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* File Input Section */}
+        <FileLoader uploadFile={uploadFile} />
+        {/* URL Loader Section */}
+        <div>
+          <UrlLoader onUrlSubmit={loadUrl} />
+        </div>
       </div>
 
-      {/* URL Loader Section */}
-      <div style={{ marginTop: '10px' }}>
-        <UrlLoader onUrlSubmit={loadUrl} />
-      </div>
-
-      {/* Action Buttons Section (Copy/Download) */}
-      <div style={{ marginTop: '20px' }}>
-        <CopyButton touchstone={touchstone} />
-        <DownloadButton touchstone={touchstone} filename={filename} />
-      </div>
-
-      {/* Status/Error Message Display */}
-      <p>
-        Currently displaying:{' '}
-        {(() => {
-          if (touchstone) {
-            return `Data from ${filename}`
-          } else if (error) {
-            // Display the global error message when error state is set
-            return `Error: ${error}`
-          } else if (filename) {
-            // A file load was attempted (filename is set) but touchstone is null and no specific error was caught
-            // This might indicate an error in a sub-component or unhandled error propagation.
-            // With the updated error handling, this case might be less frequent for loading errors.
-            return `Problem loading data for ${filename}. Check console for details.`
-          } else {
-            // Initial state, no file loaded yet
-            return 'No file selected or loaded.'
-          }
-        })()}
-      </p>
-      {/* Optional: Display the global error message more prominently */}
+      {/* Error Message Display */}
       {error && (
         <pre style={{ color: 'red', fontWeight: 'bold', marginTop: '10px' }}>
           {error}
@@ -284,6 +244,12 @@ const TouchstoneViewer: React.FC = () => {
           {/* File Information and Controls Section (Previously FileInfo Component) */}
           <div>
             <h3>File Information</h3>
+
+            {/* Action Buttons Section (Copy/Download) */}
+            <div style={{ marginTop: '20px' }}>
+              <CopyButton touchstone={touchstone} />
+              <DownloadButton touchstone={touchstone} filename={filename} />
+            </div>
 
             <FilenameEditor
               currentFilename={filename}
@@ -346,7 +312,6 @@ export default TouchstoneViewer
  * @returns The extracted filename or the original URL if no path is present.
  */
 const getFilenameFromUrl = (url: string): string => {
-  console.log('[DEBUG] getFilenameFromUrl called with url:', url)
   const lastSlash = url.lastIndexOf('/')
   return lastSlash !== -1 ? url.substring(lastSlash + 1) : url
 }
@@ -358,7 +323,6 @@ const getFilenameFromUrl = (url: string): string => {
  * @returns The number of ports, or null if not determinable from the extension.
  */
 const getNumberOfPorts = (filename: string): number | null => {
-  console.log('[DEBUG] getNumberOfPorts called with filename:', filename)
   const match = filename.match(/\.s(\d+)p$/i)
   if (match && match[1]) {
     return parseInt(match[1], 10)
@@ -373,7 +337,6 @@ const getNumberOfPorts = (filename: string): number | null => {
  * @throws An error if fetching or parsing fails.
  */
 const readUrl = async (url: string): Promise<Touchstone> => {
-  console.log('[DEBUG] readUrl called with url:', url)
   const response = await fetch(url)
   if (!response.ok) {
     throw new Error(`Failed to fetch file: ${response.statusText}`)
@@ -396,14 +359,6 @@ const readUrl = async (url: string): Promise<Touchstone> => {
  * @throws An error if reading or parsing fails.
  */
 const readFile = (file: File): Promise<Touchstone> => {
-  console.log(
-    '[DEBUG] readFile called with file - name:',
-    file.name,
-    'size:',
-    file.size,
-    'type:',
-    file.type
-  )
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
@@ -445,12 +400,6 @@ const readFile = (file: File): Promise<Touchstone> => {
  * @throws An error if parsing fails.
  */
 const readText = (textContent: string, nports: number): Touchstone => {
-  console.log(
-    '[DEBUG] readText called with textContent length:',
-    textContent.length,
-    'and nports:',
-    nports
-  )
   const ts = new Touchstone()
   ts.readContent(textContent, nports)
   return ts
