@@ -1,33 +1,36 @@
-import React, { useState } from 'react';
-import { TouchstoneFormat, TouchstoneFormats } from 'rf-touchstone';
+import React, { useState } from 'react'
+import { TouchstoneFormat, TouchstoneFormats } from 'rf-touchstone'
 
 interface DataFormatEditorProps {
-  currentFormat: TouchstoneFormat | undefined;
-  onFormatChange: (newFormat: TouchstoneFormat) => void;
-  disabled?: boolean;
+  currentFormat: TouchstoneFormat | undefined
+  onFormatChange: (newFormat: TouchstoneFormat) => void
+  disabled?: boolean
 }
 
-const DataFormatEditor: React.FC<DataFormatEditorProps> = ({ currentFormat, onFormatChange, disabled }) => {
-  const [localError, setLocalError] = useState<string | null>(null);
+const DataFormatEditor: React.FC<DataFormatEditorProps> = ({
+  currentFormat,
+  onFormatChange,
+  disabled,
+}) => {
+  const [localError, setLocalError] = useState<string | null>(null)
 
   const formatLabels: Record<TouchstoneFormat, string> = {
     RI: 'RI (Real/Imaginary)',
     MA: 'MA (Magnitude/Angle)',
     DB: 'DB (Decibel/Angle)',
-  };
+  }
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setLocalError(null); // Clear previous error
+    setLocalError(null) // Clear previous error
     try {
-      onFormatChange(event.target.value as TouchstoneFormat);
+      onFormatChange(event.target.value as TouchstoneFormat)
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : String(err));
+      setLocalError(err instanceof Error ? err.message : String(err))
     }
-  };
+  }
 
   return (
     <p>
-      <strong>Format:</strong>{' '}
       {currentFormat !== undefined ? (
         <select
           value={currentFormat || ''}
@@ -44,9 +47,13 @@ const DataFormatEditor: React.FC<DataFormatEditorProps> = ({ currentFormat, onFo
       ) : (
         'N/A'
       )}
-      {localError && <span style={{ color: 'red', marginLeft: '10px', fontSize: '0.9em' }}>Error: {localError}</span>}
+      {localError && (
+        <span style={{ color: 'red', marginLeft: '10px', fontSize: '0.9em' }}>
+          Error: {localError}
+        </span>
+      )}
     </p>
-  );
-};
+  )
+}
 
-export default DataFormatEditor;
+export default DataFormatEditor

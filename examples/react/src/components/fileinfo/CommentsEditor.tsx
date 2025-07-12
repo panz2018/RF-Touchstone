@@ -19,7 +19,6 @@ const CommentsEditor: React.FC<CommentsEditorProps> = ({ currentComments, onComm
 
   return (
     <div>
-      <strong>Comments:</strong>
       <textarea
         value={currentComments.join('\n')}
         onChange={handleTextChange}

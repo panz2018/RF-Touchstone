@@ -152,7 +152,6 @@ const DataTable: React.FC<DataTableProps> = ({
           marginBottom: '10px',
         }}
       >
-        <h3>Network Data</h3>
         <div>
           <input
             type="file"

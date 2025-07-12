@@ -57,7 +57,6 @@ const FilenameEditor: React.FC<FilenameEditorProps> = ({ currentFilename, onFile
 
   return (
     <p>
-      <strong>Filename:</strong>{' '}
       <input
         type="text"
         value={editableBaseName}

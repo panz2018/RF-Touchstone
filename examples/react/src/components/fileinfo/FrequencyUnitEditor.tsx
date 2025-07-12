@@ -1,27 +1,30 @@
-import React, { useState } from 'react';
-import { FrequencyUnits, type FrequencyUnit } from 'rf-touchstone';
+import React, { useState } from 'react'
+import { FrequencyUnits, type FrequencyUnit } from 'rf-touchstone'
 
 interface FrequencyUnitEditorProps {
-  currentUnit: FrequencyUnit | undefined;
-  onUnitChange: (newUnit: FrequencyUnit) => void;
-  disabled?: boolean;
+  currentUnit: FrequencyUnit | undefined
+  onUnitChange: (newUnit: FrequencyUnit) => void
+  disabled?: boolean
 }
 
-const FrequencyUnitEditor: React.FC<FrequencyUnitEditorProps> = ({ currentUnit, onUnitChange, disabled }) => {
-  const [localError, setLocalError] = useState<string | null>(null);
+const FrequencyUnitEditor: React.FC<FrequencyUnitEditorProps> = ({
+  currentUnit,
+  onUnitChange,
+  disabled,
+}) => {
+  const [localError, setLocalError] = useState<string | null>(null)
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setLocalError(null); // Clear previous error
+    setLocalError(null) // Clear previous error
     try {
-      onUnitChange(event.target.value as FrequencyUnit);
+      onUnitChange(event.target.value as FrequencyUnit)
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : String(err));
+      setLocalError(err instanceof Error ? err.message : String(err))
     }
-  };
+  }
 
   return (
     <p>
-      <strong>Frequency Unit:</strong>{' '}
       {currentUnit !== undefined ? (
         <select
           value={currentUnit || ''}
@@ -38,9 +41,13 @@ const FrequencyUnitEditor: React.FC<FrequencyUnitEditorProps> = ({ currentUnit, 
       ) : (
         'N/A'
       )}
-      {localError && <span style={{ color: 'red', marginLeft: '10px', fontSize: '0.9em' }}>Error: {localError}</span>}
+      {localError && (
+        <span style={{ color: 'red', marginLeft: '10px', fontSize: '0.9em' }}>
+          Error: {localError}
+        </span>
+      )}
     </p>
-  );
-};
+  )
+}
 
-export default FrequencyUnitEditor;
+export default FrequencyUnitEditor

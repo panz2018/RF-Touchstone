@@ -221,90 +221,147 @@ const TouchstoneViewer: React.FC = () => {
   }
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <label>Upload a Touchstone (.sNp) file: </label>
-        {/* File Input Section */}
-        <FileLoader uploadFile={uploadFile} />
-        {/* URL Loader Section */}
-        <UrlLoader onUrlSubmit={loadUrl} />
-      </div>
-
-      {/* Error Message Display */}
-      {error && (
-        <pre style={{ color: 'red', fontWeight: 'bold', marginTop: '10px' }}>
-          {error}
-        </pre>
-      )}
-
-      {/* Conditional Rendering for Touchstone Data */}
-      {touchstone && (
-        <>
-          {/* File Information and Controls Section (Previously FileInfo Component) */}
-          <div>
-            <h2>File Information</h2>
-
-            {/* Action Buttons Section (Copy/Download) */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-              }}
-            >
-              <strong>Download Touchstone file: </strong>
-              <DownloadButton touchstone={touchstone} filename={filename} />
-              <CopyButton touchstone={touchstone} />
+    <table className="TouchstoneViewer">
+      <tbody>
+        {/* Row for File Upload/URL Load */}
+        <tr>
+          <td>Upload a Touchstone (.sNp) file:</td>
+          <td>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {/* File Input Section */}
+              <FileLoader uploadFile={uploadFile} />
+              {/* URL Loader Section */}
+              <UrlLoader onUrlSubmit={loadUrl} />
             </div>
+          </td>
+        </tr>
 
-            <FilenameEditor
-              currentFilename={filename}
-              onFilenameChange={setFilename}
-            />
+        {/* Row for Error Message (conditionally rendered) */}
+        {error && (
+          <tr>
+            <td colSpan={2}>
+              <pre
+                style={{
+                  color: 'red',
+                  fontWeight: 'bold',
+                  marginTop: '10px',
+                }}
+              >
+                {error}
+              </pre>
+            </td>
+          </tr>
+        )}
 
-            {/* Display static port number and parameter type */}
-            <p>
-              <strong>Port number:</strong> {touchstone.nports ?? 'N/A'}
-            </p>
-            <p>
-              <strong>Parameter:</strong> {touchstone.parameter ?? 'N/A'}
-            </p>
+        {/* Conditional rendering for sections that depend on touchstone data */}
+        {touchstone && (
+          <>
+            {/* Row for Download/Copy Buttons */}
+            <tr>
+              <td>Download Touchstone file:</td>
+              <td>
+                {/* Action Buttons Section (Copy/Download) */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                >
+                  <DownloadButton touchstone={touchstone} filename={filename} />
+                  <CopyButton touchstone={touchstone} />
+                </div>
+              </td>
+            </tr>
 
-            <FrequencyUnitEditor
-              currentUnit={touchstone.frequency?.unit}
-              onUnitChange={setUnit}
-              disabled={!touchstone.frequency}
-            />
+            {/* Row for Filename Editor */}
+            <tr>
+              <td>
+                <label>Filename:</label>
+              </td>
+              <td>
+                <FilenameEditor
+                  currentFilename={filename}
+                  onFilenameChange={setFilename}
+                />
+              </td>
+            </tr>
 
-            <DataFormatEditor
-              currentFormat={touchstone.format}
-              onFormatChange={setFormat}
-              disabled={!touchstone.format}
-            />
+            {/* Row for Port Number */}
+            <tr>
+              <td>Port number:</td>
+              <td>{touchstone.nports ?? 'N/A'}</td>
+            </tr>
 
-            <ImpedanceEditor
-              currentImpedance={touchstone.impedance}
-              onImpedanceChange={setImpedance}
-            />
+            {/* Row for Parameter */}
+            <tr>
+              <td>Parameter:</td>
+              <td>{touchstone.parameter ?? 'N/A'}</td>
+            </tr>
 
-            <CommentsEditor
-              currentComments={touchstone.comments || []}
-              onCommentsChange={setComments}
-            />
-          </div>
+            {/* Row for Frequency Unit Editor */}
+            <tr>
+              <td>
+                <label>Frequency unit:</label>
+              </td>
+              <td>
+                <FrequencyUnitEditor
+                  currentUnit={touchstone.frequency?.unit}
+                  onUnitChange={setUnit}
+                  disabled={!touchstone.frequency}
+                />
+              </td>
+            </tr>
 
-          {/* Add a separator if needed between File Info and Data Table */}
-          <hr style={{ margin: '20px 0' }} />
+            {/* Row for Data Format Editor */}
+            <tr>
+              <td>Format:</td>
+              <td>
+                <DataFormatEditor
+                  currentFormat={touchstone.format}
+                  onFormatChange={setFormat}
+                  disabled={!touchstone.format}
+                />
+              </td>
+            </tr>
 
-          {/* Data Table Component */}
-          <DataTable
-            touchstone={touchstone}
-            filename={filename} // For CSV download naming
-            updateMatrixFrequency={updateMatrixFrequency} // For CSV upload to update matrix/frequencies
-          />
-        </>
-      )}
-    </div>
+            {/* Row for Impedance Editor */}
+            <tr>
+              <td>Impedance (Ohms):</td>
+              <td>
+                <ImpedanceEditor
+                  currentImpedance={touchstone.impedance}
+                  onImpedanceChange={setImpedance}
+                />
+              </td>
+            </tr>
+
+            {/* Row for Comments Editor */}
+            <tr>
+              <td>Comments:</td>
+              <td>
+                <CommentsEditor
+                  currentComments={touchstone.comments || []}
+                  onCommentsChange={setComments}
+                />
+              </td>
+            </tr>
+
+            {/* Row for Data Table (spans two columns) */}
+            <tr>
+              <td>Network matrix:</td>
+              <td>
+                <DataTable
+                  touchstone={touchstone}
+                  filename={filename} // For CSV download naming
+                  updateMatrixFrequency={updateMatrixFrequency} // For CSV upload to update matrix/frequencies
+                />
+              </td>
+            </tr>
+          </>
+        )}
+      </tbody>
+    </table>
   )
 }
 

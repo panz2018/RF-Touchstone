@@ -9,26 +9,6 @@
   color: white;
 }
 
-table {
-  margin: 20px auto;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
-}
-
-th {
-  background-color: #f2f2f2;
-}
-
-input[type='file'] {
-  margin: 10px;
-}
-
 /* DataTable specific styles */
 .dataTableContainer {
   max-height: 500px; /* Or any desired height */
@@ -38,15 +18,14 @@ input[type='file'] {
 }
 
 .dataTableContainer table {
-  width: 100%; /* Make table take full width of container */
-  /* border-collapse: collapse; /* Already defined globally, but ensure it's what we want */
+  margin: 20px auto;
+  border-collapse: collapse;
 }
 
 .dataTableContainer th,
 .dataTableContainer td {
-  /* padding: 8px; */ /* Already defined globally */
-  /* text-align: center; */ /* Already defined globally */
-  /* border: 1px solid #ddd; */ /* Already defined globally */
+  padding: 8px;
+  border: 1px solid #ddd;
   white-space: nowrap; /* Prevent text wrapping in cells, good for sticky */
 }
 
@@ -137,4 +116,29 @@ input[type='file'] {
 
 .prime-button.secondary:focus {
   box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+}
+
+.TouchstoneViewer {
+  table-layout: fixed;
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid #ddd;
+  border-collapse: collapse; /* Often good to add for tables used for layout */
+  margin: 20px 0 20px 0 !important;
+}
+
+.TouchstoneViewer td,
+.TouchstoneViewer th {
+  border: 1px solid #ddd;
+}
+
+.TouchstoneViewer td:first-child,
+.TouchstoneViewer th:first-child {
+  width: 230px;
+  white-space: nowrap;
+  padding-right: 10px; /* Optional: Add some padding to the right for spacing */
+  padding-top: 0; /* Remove or reduce top padding */
+  padding-bottom: 0; /* Remove or reduce bottom padding */
+  padding-left: 0; /* Remove or reduce left padding */
+  min-width: min-content;
 }
