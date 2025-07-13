@@ -71,18 +71,16 @@ const ImpedanceEditor: React.FC<ImpedanceEditorProps> = ({
   }
 
   return (
-    <p>
-      <input
-        type="text"
-        value={editableImpedanceStr}
-        onChange={handleImpedanceStrChange}
-        onBlur={handleImpedanceBlur}
-        onKeyPress={handleKeyPress}
-        style={{ marginLeft: '5px', padding: '2px', width: '150px' }}
-        title="Enter number or comma-separated numbers for multi-port"
-        aria-label="Editable Impedance"
-      />
-    </p>
+    <input
+      type="text"
+      value={editableImpedanceStr}
+      onChange={handleImpedanceStrChange}
+      onBlur={handleImpedanceBlur}
+      onKeyPress={handleKeyPress}
+      style={{ marginLeft: '0px', padding: '2px', width: '150px' }}
+      title="Enter number or comma-separated numbers for multi-port"
+      aria-label="Editable Impedance"
+    />
   )
 }
 

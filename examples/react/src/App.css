@@ -18,7 +18,6 @@
 }
 
 .dataTableContainer table {
-  margin: 20px auto;
   border-collapse: collapse;
 }
 
@@ -122,6 +121,7 @@
   table-layout: fixed;
   width: 100%;
   max-width: 100%;
+  min-width: 550px;
   border: 1px solid #ddd;
   border-collapse: collapse; /* Often good to add for tables used for layout */
   margin: 20px 0 20px 0 !important;

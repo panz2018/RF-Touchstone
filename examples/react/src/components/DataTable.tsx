@@ -148,7 +148,7 @@ const DataTable: React.FC<DataTableProps> = ({
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center',
+          alignItems: 'left',
           marginBottom: '10px',
         }}
       >

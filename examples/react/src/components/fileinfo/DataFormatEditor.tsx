@@ -30,7 +30,7 @@ const DataFormatEditor: React.FC<DataFormatEditorProps> = ({
   }
 
   return (
-    <p>
+    <>
       {currentFormat !== undefined ? (
         <select
           value={currentFormat || ''}
@@ -52,7 +52,7 @@ const DataFormatEditor: React.FC<DataFormatEditorProps> = ({
           Error: {localError}
         </span>
       )}
-    </p>
+    </>
   )
 }
 

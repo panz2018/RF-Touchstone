@@ -24,7 +24,7 @@ const FrequencyUnitEditor: React.FC<FrequencyUnitEditorProps> = ({
   }
 
   return (
-    <p>
+    <>
       {currentUnit !== undefined ? (
         <select
           value={currentUnit || ''}
@@ -46,7 +46,7 @@ const FrequencyUnitEditor: React.FC<FrequencyUnitEditorProps> = ({
           Error: {localError}
         </span>
       )}
-    </p>
+    </>
   )
 }
 
