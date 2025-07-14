@@ -16,6 +16,7 @@ import ImpedanceEditor from './components/fileinfo/ImpedanceEditor'
 import DataFormatEditor from './components/fileinfo/DataFormatEditor'
 import CommentsEditor from './components/fileinfo/CommentsEditor'
 import DataTable from './components/DataTable'
+import './TouchstoneViewer.css'
 
 /**
  * TouchstoneViewer component.
@@ -41,38 +42,21 @@ const TouchstoneViewer: React.FC = () => {
    * @param url The URL of the Touchstone file to load.
    */
   const loadUrl = async (url: string) => {
-    let activeFilename = '' // Stores the filename if successfully extracted before further processing.
-    try {
-      setError(null) // Clear previous errors before new load attempt.
-
-      // 1. Extract filename from URL
-      const nameOnly = getFilenameFromUrl(url)
-
-      // 2. Validate filename
-      if (!nameOnly || nameOnly.trim() === '') {
-        // Specific error for filename parsing failure
-        throw new Error(`Could not determine a valid filename from URL: ${url}`)
-      }
-
-      activeFilename = nameOnly // Store valid filename
-      setFilename(activeFilename)
-
-      // 3. Read content from URL (readUrl throws errors)
-      const ts = await readUrl(url)
-
-      // 4. If successful, update state with loaded data
-      setTouchstone(ts)
-    } catch (err) {
-      // --- Unified error handling ---
-      console.error(`Error processing URL ${url}:`, err)
-      setError(
-        err instanceof Error
-          ? `Error loading ${activeFilename || url}: ${err.message}` // Include filename in error message
-          : `An unknown error occurred while loading ${activeFilename || url}.`
-      )
-      // Clear data on error
-      setTouchstone(null)
+    // Clear previous errors before new load attempt.
+    setError(null)
+    // Extract filename from URL
+    const filename = getFilenameFromUrl(url)
+    // Validate filename
+    if (!filename || filename.trim() === '') {
+      // Specific error for filename parsing failure
+      throw new Error(`Could not determine a valid filename from URL: ${url}`)
     }
+    // Set the filename
+    setFilename(filename)
+    // Read content from URL (readUrl throws errors)
+    const ts = await readUrl(url)
+    // If successful, update state with loaded data
+    setTouchstone(ts)
   }
 
   /**
@@ -231,7 +215,7 @@ const TouchstoneViewer: React.FC = () => {
               {/* File Input Section */}
               <FileLoader uploadFile={uploadFile} />
               {/* URL Loader Section */}
-              <UrlLoader onUrlSubmit={loadUrl} />
+              <UrlLoader loadUrl={loadUrl} />
             </div>
           </td>
         </tr>

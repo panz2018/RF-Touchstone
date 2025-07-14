@@ -1,6 +1,7 @@
 import React, { JSX } from 'react'
 import type { TouchstoneMatrix } from 'rf-touchstone'
 import { Touchstone, abs, arg } from 'rf-touchstone'
+import './DataTable.css'
 
 /**
  * Props for the DataTable component.

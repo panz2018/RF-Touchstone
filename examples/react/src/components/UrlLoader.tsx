@@ -1,10 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 
 interface UrlLoaderProps {
-  onUrlSubmit: (url: string) => void
-  // Optional: A callback to inform the parent about an error during the fetch attempt within UrlLoader
-  // This is if we decide to put the initial fetch validation (e.g., URL format) here.
-  // onError?: (errorMessage: string) => void;
+  loadUrl: (url: string) => void
 }
 
 /**
@@ -13,19 +10,27 @@ interface UrlLoaderProps {
  * Includes an "Open from URL" button that toggles a text input and a "Load URL" button.
  * Handles basic URL validation (non-empty, valid format).
  */
-const UrlLoader: React.FC<UrlLoaderProps> = ({ onUrlSubmit }) => {
+const UrlLoader: React.FC<UrlLoaderProps> = ({ loadUrl }) => {
   const [url, setUrl] = useState<string>('')
-  const [showInput, setShowInput] = useState<boolean>(false)
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+  const urlInputRef = useRef<HTMLTextAreaElement | null>(null)
 
-  const handleToggleInput = () => {
-    setShowInput(!showInput)
+  const handleOpenModal = () => {
+    setIsModalOpen(true)
     setError(null) // Clear error when toggling
-    if (showInput) {
-      // If we are hiding the input, also clear the url
-      setUrl('')
-    }
+    setUrl('') // Clear URL when opening modal
   }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+  }
+
+  useEffect(() => {
+    if (isModalOpen && urlInputRef.current) {
+      urlInputRef.current.focus()
+    }
+  }, [isModalOpen])
 
   const handleSubmit = () => {
     if (!url.trim()) {
@@ -40,37 +45,105 @@ const UrlLoader: React.FC<UrlLoaderProps> = ({ onUrlSubmit }) => {
       return
     }
     setError(null) // Clear error before submitting
-    onUrlSubmit(url)
-    // Optionally, clear URL and hide input after successful submission attempt
-    // setUrl('');
-    // setShowInput(false);
+    loadUrl(url)
+  }
+
+  const handleModalSubmit = () => {
+    handleSubmit() // This will update the error state
+    if (!error) {
+      // If handleSubmit cleared the error, it means validation passed
+      loadUrl(url)
+      setIsModalOpen(false) // Close modal on successful submit
+    }
   }
 
   return (
     <div>
-      <button className="prime-button" onClick={handleToggleInput}>
-        {showInput ? 'Cancel URL Load' : 'Open from URL'}
+      <button className="prime-button" onClick={handleOpenModal}>
+        Open from URL
       </button>
-      {showInput && (
+
+      {isModalOpen && (
         <div
-          style={{ marginTop: '10px', display: 'flex', alignItems: 'center' }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent overlay
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000, // Ensure modal is on top
+          }}
         >
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => {
-              setUrl(e.target.value)
-              if (error) setError(null) // Clear error on new input
+          <div
+            style={{
+              backgroundColor: '#fff',
+              padding: '20px',
+              borderRadius: '8px',
+              position: 'relative',
+              height: 'auto' /* Allow height to adjust based on content */,
+              width: 'auto',
+              maxWidth: '90%',
             }}
-            placeholder="Enter Touchstone file URL"
-            style={{ marginRight: '10px', padding: '5px', width: '300px' }}
-          />
-          <button onClick={handleSubmit} style={{ padding: '5px 10px' }}>
-            Load URL
-          </button>
+          >
+            <button
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '1.2em',
+              }}
+              onClick={handleCloseModal}
+            >
+              &times;
+            </button>
+            <h2>Load Touchstone File from URL</h2>
+            {error && (
+              <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>
+            )}
+            <textarea
+              ref={urlInputRef}
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="Enter Touchstone file URL"
+              rows={1}
+              style={{
+                width: '100%',
+                padding: '10px', // Increased padding
+                boxSizing: 'border-box',
+                maxHeight: '200px' /* Constrain max height */,
+                overflowY:
+                  'auto' /* Add scrollbar when content exceeds max height */,
+                fontFamily: 'inherit', // Use inherited font
+                fontSize: 'inherit', // Use inherited font size
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+              }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                marginTop: '20px',
+              }}
+            >
+              <button
+                onClick={handleCloseModal}
+                style={{ marginRight: '10px' }}
+              >
+                Cancel
+              </button>
+              <button onClick={handleModalSubmit}>Load URL</button>
+            </div>
+          </div>
         </div>
       )}
-      {error && <p style={{ color: 'red', marginTop: '5px' }}>{error}</p>}
     </div>
   )
 }
