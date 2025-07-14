@@ -12,25 +12,25 @@ interface UrlLoaderProps {
  */
 const UrlLoader: React.FC<UrlLoaderProps> = ({ loadUrl }) => {
   const [url, setUrl] = useState<string>('')
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const urlInputRef = useRef<HTMLTextAreaElement | null>(null)
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true)
+  const openDialog = () => {
+    setIsDialogOpen(true)
     setError(null) // Clear error when toggling
     setUrl('') // Clear URL when opening modal
   }
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
+  const closeDialog = () => {
+    setIsDialogOpen(false)
   }
 
   useEffect(() => {
-    if (isModalOpen && urlInputRef.current) {
+    if (isDialogOpen && urlInputRef.current) {
       urlInputRef.current.focus()
     }
-  }, [isModalOpen])
+  }, [isDialogOpen])
 
   const handleSubmit = () => {
     if (!url.trim()) {
@@ -48,22 +48,22 @@ const UrlLoader: React.FC<UrlLoaderProps> = ({ loadUrl }) => {
     loadUrl(url)
   }
 
-  const handleModalSubmit = () => {
+  const submitURL = () => {
     handleSubmit() // This will update the error state
     if (!error) {
       // If handleSubmit cleared the error, it means validation passed
       loadUrl(url)
-      setIsModalOpen(false) // Close modal on successful submit
+      setIsDialogOpen(false) // Close modal on successful submit
     }
   }
 
   return (
     <div>
-      <button className="prime-button" onClick={handleOpenModal}>
-        Open from URL
+      <button className="prime-button" onClick={openDialog}>
+        Load from URL
       </button>
 
-      {isModalOpen && (
+      {isDialogOpen && (
         <div
           style={{
             position: 'fixed',
@@ -77,8 +77,12 @@ const UrlLoader: React.FC<UrlLoaderProps> = ({ loadUrl }) => {
             alignItems: 'center',
             zIndex: 1000, // Ensure modal is on top
           }}
+          // Add onClick handler to close dialog when clicking outside
+          onClick={closeDialog}
         >
           <div
+            // Stop propagation so clicks inside the dialog don't close it
+            onClick={(e) => e.stopPropagation()}
             style={{
               backgroundColor: '#fff',
               padding: '20px',
@@ -97,16 +101,13 @@ const UrlLoader: React.FC<UrlLoaderProps> = ({ loadUrl }) => {
                 border: 'none',
                 background: 'none',
                 cursor: 'pointer',
-                fontSize: '1.2em',
+                fontSize: '2em',
               }}
-              onClick={handleCloseModal}
+              onClick={closeDialog}
             >
               &times;
             </button>
             <h2>Load Touchstone File from URL</h2>
-            {error && (
-              <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>
-            )}
             <textarea
               ref={urlInputRef}
               value={url}
@@ -126,6 +127,9 @@ const UrlLoader: React.FC<UrlLoaderProps> = ({ loadUrl }) => {
                 borderRadius: '4px',
               }}
             />
+            {error && (
+              <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>
+            )}
             <div
               style={{
                 display: 'flex',
@@ -133,13 +137,10 @@ const UrlLoader: React.FC<UrlLoaderProps> = ({ loadUrl }) => {
                 marginTop: '20px',
               }}
             >
-              <button
-                onClick={handleCloseModal}
-                style={{ marginRight: '10px' }}
-              >
+              <button onClick={closeDialog} style={{ marginRight: '10px' }}>
                 Cancel
               </button>
-              <button onClick={handleModalSubmit}>Load URL</button>
+              <button onClick={submitURL}>Confirm</button>
             </div>
           </div>
         </div>
