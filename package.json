@@ -30,7 +30,7 @@
     "matrix",
     "impedance"
   ],
-  "packageManager": "yarn@4.9.2",
+  "packageManager": "yarn@4.12.0",
   "scripts": {
     "test": "run-p --print-label lint format test:unit test:coverage build docs:md && run-s docs:build",
     "lint": "eslint . --fix",
