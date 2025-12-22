@@ -4753,9 +4753,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mathjs@npm:14.5.2":
-  version: 14.5.2
-  resolution: "mathjs@npm:14.5.2"
+"mathjs@npm:15.1.0":
+  version: 15.1.0
+  resolution: "mathjs@npm:15.1.0"
   dependencies:
     "@babel/runtime": "npm:^7.26.10"
     complex.js: "npm:^2.2.5"
@@ -4768,7 +4768,7 @@ __metadata:
     typed-function: "npm:^4.2.1"
   bin:
     mathjs: bin/cli.js
-  checksum: 10c0/11eca2d88229ed4a5b0a934a96dd205332468db869d029a5a6ee52d41267bf789e3df7e9ed9b94027760a5b01944611c24c1290d6c79afcd0ef41feed8157570
+  checksum: 10c0/119de0d6f3ecb9b053e49ae5082f949982ecd2418a50f98d6f5f960a4d0b20311dacdad95e79d33be4baf38b9a441ebde80bb0653fd5f5137228e5199ce8e316
   languageName: node
   linkType: hard
 
@@ -5714,7 +5714,7 @@ __metadata:
     globals: "npm:16.2.0"
     happy-dom: "npm:17.6.3"
     markdown-it-mathjax3: "npm:4.3.2"
-    mathjs: "npm:14.5.2"
+    mathjs: "npm:15.1.0"
     npm-run-all: "npm:4.1.5"
     prettier: "npm:3.5.3"
     rollup-plugin-visualizer: "npm:6.0.1"
