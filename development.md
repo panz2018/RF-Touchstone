@@ -10,7 +10,13 @@
 node -v
 ```
 
-### Install yarn
+### Install yarn globally
+
+```sh
+npm install -g yarn
+```
+
+### Install newest version of yarn
 
 ```sh
 yarn set version stable
@@ -25,7 +31,7 @@ yarn -v
 ### Install packages
 
 ```sh
-yarn
+yarn install
 ```
 
 ### Check for outdated packages, and upgrade packages
@@ -43,10 +49,16 @@ yarn upgrade-interactive
 `uv` is a fast Python package installer and virtual environment manager. You can install `uv` by running the following command:
 
 ```sh
+# On macOS and Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-#### Add the `uv` executable to your system's PATH
+```sh
+# On Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+#### Add the `uv` executable to your system's PATH (Linux)
 
 Source the appropriate environment file for your shell:
 
@@ -58,6 +70,12 @@ source $HOME/.local/bin/env.fish
 ```
 
 You may need to restart your shell or open a new terminal session for the changes to take effect.
+
+#### Check `uv` version
+
+```sh
+uv --version
+```
 
 #### Create and Use Virtual Environments with uv
 
