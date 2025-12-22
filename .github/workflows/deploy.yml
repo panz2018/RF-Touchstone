@@ -42,7 +42,7 @@ jobs:
         run: corepack enable
 
       - name: Install Node.js dependencies
-        run: yarn
+        run: yarn install
 
       - name: Build VitePress docs
         run: yarn docs:md && yarn docs:build

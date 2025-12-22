@@ -10,10 +10,12 @@
 node -v
 ```
 
-### Install yarn globally
+### Enable corepack
+
+This is a one-time setup per computer. It activates the built-in managers so you don't need to use `npm install -g yarn` anymore.
 
 ```sh
-npm install -g yarn
+corepack enable
 ```
 
 ### Install newest version of yarn
@@ -34,7 +36,7 @@ yarn -v
 yarn install
 ```
 
-### Check for outdated packages, and upgrade packages
+### Upgrade packages (Optional/Maintenance)
 
 ```sh
 yarn upgrade-interactive
