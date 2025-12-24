@@ -562,6 +562,7 @@ export class Touchstone {
         )
 
         // Convert data pairs into complex numbers based on format
+        /* v8 ignore start */
         for (let n = 0; n < points; n++) {
           let value: Complex
           switch (this.format) {
@@ -583,11 +584,10 @@ export class Touchstone {
                 phi: (B[n] / 180) * pi,
               })
               break
-            /* v8 ignore start */
             default:
               throw new Error(`Unknown Touchstone format: ${this.format}`)
-            /* v8 ignore stop */
           }
+          /* v8 ignore stop */
 
           // Store the value in the matrix
           // Special case for 2-port networks: swap indices

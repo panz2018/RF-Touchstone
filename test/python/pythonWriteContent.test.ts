@@ -1,9 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { random, round } from 'mathjs'
 import { Touchstone } from '@/touchstone'
-import type { TouchstoneFormat } from '@/touchstone'
+import type { TouchstoneFormat, TouchstoneMatrix } from '@/touchstone'
 import { Frequency } from '@/frequency'
-import { pythonWriteContent } from './pythonWriteContent'
+import {
+  pythonWriteContent,
+  generateImpedanceString,
+  validateMatrix,
+} from './pythonWriteContent'
 import { createRandomTouchstoneMatrix } from './randomTouchstoneMatrix'
 
 /**
@@ -67,7 +71,7 @@ describe('pythonWriteContent.ts', () => {
   }
 
   /**
-   * Test case 1: 2-port network with Real-Imaginary format
+   * Test case: 2-port network with Real-Imaginary format
    * Tests writing and reading back a 2-port S-parameter network
    */
   it('2-port network, RI format, S-parameters', async () => {
@@ -83,7 +87,7 @@ describe('pythonWriteContent.ts', () => {
   })
 
   /**
-   * Test case 2: 3-port network with Decibel-Angle format
+   * Test case: 3-port network with Decibel-Angle format
    * Tests writing and reading back a 3-port S-parameter network
    */
   it('3-port network, DB format, S-parameters', async () => {
@@ -96,5 +100,60 @@ describe('pythonWriteContent.ts', () => {
     target.readContent(content, source.nports!)
     validateNetworkConfig(source, target)
     validateNetworkMatrix(source, target)
+  })
+
+  it('Touchstone: Null', async () => {
+    // We cast to any to bypass TypeScript's static check for the test
+    const action = () => pythonWriteContent(null as unknown as Touchstone)
+    // Verify it rejects with the exact error message from image_0f9965.png
+    await expect(action()).rejects.toThrow('Touchstone instance is not defined')
+  })
+})
+
+describe('generateImpedanceString', () => {
+  it('should return a single z0 string for a number', () => {
+    expect(generateImpedanceString(50)).toBe(', z0=50')
+  })
+
+  it('should return a z0 array string for an array of numbers', () => {
+    const input = [50, 75]
+    expect(generateImpedanceString(input)).toBe(`, z0=[${input}]`)
+  })
+
+  it('should return an empty string for unexpected types', () => {
+    expect(generateImpedanceString(null as unknown as number)).toBe('')
+    expect(generateImpedanceString('invalid' as unknown as number)).toBe('')
+  })
+})
+
+describe('validateMatrix', () => {
+  it('should throw if matrix is not defined', () => {
+    expect(() => validateMatrix(null as unknown as TouchstoneMatrix)).toThrow(
+      'Touchstone matrix is not defined'
+    )
+  })
+
+  it('should throw if dimensions are not square', () => {
+    const matrix = [[1], [1, 2]] // Row 0 length 1 != total rows 2
+    expect(() => validateMatrix(matrix as unknown as TouchstoneMatrix)).toThrow(
+      'Input and output dimensions of Touchstone matrix is not the same'
+    )
+  })
+
+  it('should throw if matrix has missing values', () => {
+    const matrix = [
+      [
+        [1, 2],
+        [1, 2],
+      ],
+      [[1, 2], [1]], // Missing a point in the second port
+    ]
+    expect(() => validateMatrix(matrix as unknown as TouchstoneMatrix)).toThrow(
+      'Touchstone matrix has missing values'
+    )
+  })
+
+  it('should throw if matrix is empty', () => {
+    expect(() => validateMatrix([])).toThrow('Touchstone matrix is empty')
   })
 })

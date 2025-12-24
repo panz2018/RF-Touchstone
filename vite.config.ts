@@ -27,7 +27,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      reporter: ['json-summary', 'html'], // Added json-summary format
+      reporter: ['text', 'json-summary', 'html'], // Added json-summary format
       thresholds: {
         // Enforce 100% test coverage across all metrics
         lines: 100,
@@ -36,6 +36,7 @@ export default defineConfig({
         statements: 100,
       },
       include: ['src/**/*.ts', 'test/**/*.ts'],
+      exclude: ['**/*.test.ts'],
     },
   },
   build: {

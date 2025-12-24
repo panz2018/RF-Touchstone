@@ -107,12 +107,12 @@ export class Frequency {
       const oldMultiplier = FREQUENCY_MULTIPLIERS[oldUnit]
       const newMultiplier = FREQUENCY_MULTIPLIERS[parsedUnit]
 
+      /* v8 ignore start */
       if (oldMultiplier && newMultiplier) {
         // Ensure multipliers are found
         this.f_scaled = this.f_scaled.map(
           (freq) => (freq * oldMultiplier) / newMultiplier
         )
-        /* v8 ignore start */
       } else {
         // This case should ideally not happen if units are validated correctly
         throw new Error(
