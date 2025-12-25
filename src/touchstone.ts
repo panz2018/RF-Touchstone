@@ -172,7 +172,7 @@ export type TouchstoneMatrix = Complex[][][]
  */
 export class Touchstone {
   /**
-   * Comments in the file header with "!" symbol at the beginning of each row
+   * Comments in the file header with `!` symbol at the beginning of each row
    */
   public comments: string[] = []
 
