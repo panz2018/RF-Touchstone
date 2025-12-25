@@ -13,7 +13,7 @@ const filesToCopy = [
     destination: 'development.md',
   },
   {
-    source: 'LICENSE',
+    source: 'LICENSE.md',
     destination: 'LICENSE.md',
   },
   {
