@@ -11,6 +11,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: npm_publish
     permissions:
       contents: read
       id-token: write # Must for OIDC authentication
