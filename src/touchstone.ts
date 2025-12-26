@@ -521,10 +521,21 @@ export class Touchstone {
     }
     const points = data.length / countColumn
     // f[n] = TokenList[n * countColumn]
-    this.frequency.f_scaled = subset(
+    const rawScaled = subset(
       data,
       index(multiply(range(0, points), countColumn))
     )
+    /* v8 ignore start */
+    if (Array.isArray(rawScaled)) {
+      this.frequency.f_scaled = rawScaled
+    } else if (typeof rawScaled === 'number') {
+      this.frequency.f_scaled = [rawScaled]
+    } else {
+      throw new Error(
+        `Unknown frequency.f_scaled type: ${typeof rawScaled}, and its value: ${rawScaled}`
+      )
+    }
+    /* v8 ignore stop */
 
     // Initialize matrix with the correct dimensions:
     // - First dimension: output ports (nports)

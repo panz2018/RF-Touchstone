@@ -77,6 +77,11 @@ describe('frequency.ts', () => {
     // frequency.f_scaled
     expect(frequency.unit).toBe('GHz')
     expect(frequency.f_scaled).toStrictEqual([])
+    expect(() => {
+      frequency.f_scaled = 3 as unknown as number[]
+    }).toThrow('Frequency value must be an array')
+    frequency.f_scaled = [3]
+    expect(frequency.f_scaled).toStrictEqual([3])
     frequency.f_scaled = [2, 4, 6]
     expect(frequency.f_scaled).toStrictEqual([2, 4, 6])
     frequency.unit = 'Hz'

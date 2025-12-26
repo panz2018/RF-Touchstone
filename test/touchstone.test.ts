@@ -280,6 +280,40 @@ describe('touchstone.ts', () => {
       touchstone.matrix![0][0].map((c) => round((arg(c) / pi) * 180, 5))
     ).toStrictEqual([-4, -22, -45])
   })
+  it('readContent: single frequency point', () => {
+    const string = `
+      ! 1-port S-parameter file
+      # MHz S MA
+      100 0.99 -4
+    `
+    const touchstone = new Touchstone()
+    touchstone.readContent(string, 1)
+    expect(touchstone.comments).toStrictEqual(['1-port S-parameter file'])
+    expect(touchstone.format).toBe('MA')
+    expect(touchstone.parameter).toBe('S')
+    expect(touchstone.impedance).toBe(50)
+    expect(touchstone.nports).toBe(1)
+    // Check frequency
+    expect(touchstone.frequency).toBeTruthy()
+    expect(touchstone.frequency!.unit).toBe('MHz')
+    expect(touchstone.frequency!.f_scaled).toStrictEqual([100])
+    // Check matrix
+    expect(touchstone.matrix).toBeTruthy()
+    expect(touchstone.matrix!.length).toBe(1)
+    touchstone.matrix!.forEach((array) => {
+      expect(array.length).toBe(1)
+      array.forEach((a) => {
+        expect(a.length).toBe(1)
+      })
+    })
+    // S11
+    expect(touchstone.matrix![0][0].map((c) => round(abs(c), 5))).toStrictEqual(
+      [0.99]
+    )
+    expect(
+      touchstone.matrix![0][0].map((c) => round((arg(c) / pi) * 180, 5))
+    ).toStrictEqual([-4])
+  })
   it('readContent: 3-port S-parameter file, three impedances', () => {
     const string = `
       ! 3-port S-parameter file
