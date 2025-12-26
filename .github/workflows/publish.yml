@@ -11,6 +11,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Must for OIDC authentication
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,34 +33,48 @@ jobs:
       - name: Build package
         run: yarn build
 
-      - name: Get package version
-        id: get_version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      - name: Get package info
+        id: pkg_info
+        run: |
+          # Extract name and version from package.json
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
 
-      - name: Check if version already exists on npm
+          # Set outputs for subsequent steps
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+
+          # Debug output to GitHub Actions logs
+          echo "Debug: Package name is [$PACKAGE_NAME]"
+          echo "Debug: Current version is [$PACKAGE_VERSION]"
+
+      - name: Check if version exists on npm
         id: check_version
         run: |
-          package_name=$(node -p "require('./package.json').name")
-          current_version=${{ steps.get_version.outputs.version }}
-          echo "Debug: Package name = $package_name"
-          echo "Debug: Current version = $current_version"
-          # Use npm view to get published versions and extract the JSON array
-          published_versions=$(npm view $package_name versions --json 2>/dev/null || echo "[]")
-          echo "Debug: Published versions raw = $published_versions"
-          # Extract versions using grep and sed to remove quotes and brackets
-          if echo "$published_versions" | grep -o "\"[^\"]*\"" | sed 's/"//g' | grep -q "^$current_version$"; then
+          PACKAGE_NAME="${{ steps.pkg_info.outputs.name }}"
+          CURRENT_VERSION="${{ steps.pkg_info.outputs.version }}"
+
+          echo "Checking if $PACKAGE_NAME@$CURRENT_VERSION exists on npm..."
+
+          # Use npm view to fetch specific version. 
+          # Redirecting stdout and stderr to hide potential "404 Not Found" errors
+          if npm view "${PACKAGE_NAME}@${CURRENT_VERSION}" version >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Status: Version $CURRENT_VERSION already published."
           else
             echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Status: Version $CURRENT_VERSION is new. Ready to publish."
           fi
+        # Set to continue if package has never been published before (npm view might error)
         continue-on-error: true
 
       - name: Publish to npm
+        # Only run if version does not exist
         if: steps.check_version.outputs.exists == 'false'
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # Trusted Publisher: No need for NPM_TOKEN secret if OIDC is configured in npmjs.com
+        run: npm publish --provenance --access public
 
       - name: Skip publish message
         if: steps.check_version.outputs.exists == 'true'
-        run: echo "Version ${{ steps.get_version.outputs.version }} already exists on npm. Skipping publish."
+        run: |
+          echo "Debug: Skipping publish because version ${{ steps.pkg_info.outputs.version }} is already on npm."
