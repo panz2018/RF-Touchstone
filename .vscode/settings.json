@@ -6,8 +6,7 @@
   "editor.formatOnType": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[python]": {
-    "editor.defaultFormatter": "mikoz.black-py"
+    "editor.defaultFormatter": "charliermarsh.ruff"
   },
-  "IDX.aI.enableInlineCompletion": true,
-  "IDX.aI.enableCodebaseIndexing": true
+  "terminal.integrated.defaultProfile.windows": "Command Prompt"
 }
