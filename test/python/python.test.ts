@@ -1,29 +1,14 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
-import { dedent, run } from './python'
+import { describe, it, expect, vi } from 'vitest'
+import { dedent, run, getPythonBin } from './python'
 
 describe('pythonBin Branch Coverage', () => {
-  const originalPlatform = process.platform
-
-  afterEach(() => {
-    // Restore the original platform and clear module cache
-    Object.defineProperty(process, 'platform', { value: originalPlatform })
-    vi.resetModules()
-  })
-
   it('should use Scripts/python on Windows', async () => {
-    // Simulate Windows environment
-    Object.defineProperty(process, 'platform', { value: 'win32' })
-
-    // Re-import the module to re-evaluate the top-level constant
-    const { pythonBin } = await import('./python')
+    const pythonBin = getPythonBin('win32')
     expect(pythonBin).toBe('Scripts/python')
   })
 
   it('should use bin/python on non-Windows platforms', async () => {
-    // Simulate Linux environment
-    Object.defineProperty(process, 'platform', { value: 'linux' })
-
-    const { pythonBin } = await import('./python')
+    const pythonBin = getPythonBin('linux')
     expect(pythonBin).toBe('bin/python')
   })
 })

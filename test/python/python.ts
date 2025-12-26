@@ -2,10 +2,12 @@ import { spawn } from 'child_process'
 import path from 'path'
 
 // Calculate python path
-const isWindows = process.platform === 'win32'
+export function getPythonBin(platform: string = process.platform) {
+  const isWindows = platform === 'win32'
+  return isWindows ? 'Scripts/python' : 'bin/python'
+}
 const venvDir = path.resolve(process.cwd(), './.venv')
-export const pythonBin = isWindows ? 'Scripts/python' : 'bin/python'
-const pythonPath = path.join(venvDir, pythonBin)
+const pythonPath = path.join(venvDir, getPythonBin())
 
 export async function run(program: string): Promise<string> {
   return new Promise((resolve, reject) => {
