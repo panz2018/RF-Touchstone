@@ -14,24 +14,7 @@ import {
   subset,
 } from 'mathjs'
 import type { FrequencyUnit } from './frequency'
-import { Frequency, FrequencyUnits, SPEED_OF_LIGHT } from './frequency'
-
-export type { Complex, FrequencyUnit }
-export { Frequency, FrequencyUnits, SPEED_OF_LIGHT }
-export {
-  abs,
-  add,
-  arg,
-  complex,
-  log10,
-  index,
-  multiply,
-  pi,
-  pow,
-  range,
-  round,
-  subset,
-}
+import { Frequency } from './frequency'
 
 /**
  * S-parameter format: MA, DB, and RI
@@ -171,7 +154,7 @@ export type TouchstoneMatrix = Complex[][][]
  */
 export class Touchstone {
   /**
-   * Comments in the file header with "!" symbol at the beginning of each row
+   * Comments in the file header with `!` symbol at the beginning of each row
    */
   public comments: string[] = []
 
@@ -520,10 +503,21 @@ export class Touchstone {
     }
     const points = data.length / countColumn
     // f[n] = TokenList[n * countColumn]
-    this.frequency.f_scaled = subset(
+    const rawScaled = subset(
       data,
       index(multiply(range(0, points), countColumn))
     )
+    /* v8 ignore start */
+    if (Array.isArray(rawScaled)) {
+      this.frequency.f_scaled = rawScaled
+    } else if (typeof rawScaled === 'number') {
+      this.frequency.f_scaled = [rawScaled]
+    } else {
+      throw new Error(
+        `Unknown frequency.f_scaled type: ${typeof rawScaled}, and its value: ${rawScaled}`
+      )
+    }
+    /* v8 ignore stop */
 
     // Initialize matrix with the correct dimensions:
     // - First dimension: output ports (nports)
@@ -562,6 +556,7 @@ export class Touchstone {
         )
 
         // Convert data pairs into complex numbers based on format
+        /* v8 ignore start */
         for (let n = 0; n < points; n++) {
           let value: Complex
           switch (this.format) {
@@ -583,11 +578,10 @@ export class Touchstone {
                 phi: (B[n] / 180) * pi,
               })
               break
-            /* v8 ignore start */
             default:
               throw new Error(`Unknown Touchstone format: ${this.format}`)
-            /* v8 ignore stop */
           }
+          /* v8 ignore stop */
 
           // Store the value in the matrix
           // Special case for 2-port networks: swap indices

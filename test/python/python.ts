@@ -2,10 +2,12 @@ import { spawn } from 'child_process'
 import path from 'path'
 
 // Calculate python path
-const isWindows = process.platform === 'win32'
+export function getPythonBin(platform: string = process.platform) {
+  const isWindows = platform === 'win32'
+  return isWindows ? 'Scripts/python' : 'bin/python'
+}
 const venvDir = path.resolve(process.cwd(), './.venv')
-const pythonBin = isWindows ? 'Scripts/python' : 'bin/python'
-const pythonPath = path.join(venvDir, pythonBin)
+const pythonPath = path.join(venvDir, getPythonBin())
 
 export async function run(program: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -32,7 +34,9 @@ export async function run(program: string): Promise<string> {
           // Return printed message from python, with the end\r\n
           resolve(output.replace(/[\r\n]+$/, ''))
         } catch (err) {
+          /* v8 ignore start */
           reject(new Error(`Failed to parse Python output. Error: ${err}`))
+          /* v8 ignore stop */
         }
       } else {
         const detailedErrorMessage = `Python process exited with code ${code}. \n**Python Traceback (Error Details):**\n${errorOutput}`

@@ -1,6 +1,6 @@
 .App {
   font-family: sans-serif;
-  text-align: center;
+  text-align: left;
 }
 
 .App-header {
@@ -9,22 +9,47 @@
   color: white;
 }
 
-table {
-  margin: 20px auto;
-  border-collapse: collapse;
+/* Basic PrimeVue/PrimeReact-like button style */
+.prime-button {
+  background-color: #007bff; /* Primary blue */
+  color: white;
+  padding: 0.5rem 1rem;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition:
+    background-color 0.2s ease-in-out,
+    border-color 0.2s ease-in-out;
 }
 
-th,
-td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: center;
+.prime-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  border-color: #004085;
 }
 
-th {
-  background-color: #f2f2f2;
+.prime-button:focus {
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
-input[type='file'] {
-  margin: 10px;
+.prime-button:disabled {
+  background-color: #cccccc;
+  border-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Optional: Secondary button style */
+.prime-button.secondary {
+  background-color: #6c757d; /* Gray */
+  border-color: #6c757d;
+}
+
+.prime-button.secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.prime-button.secondary:focus {
+  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
 }

@@ -27,7 +27,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      reporter: ['json-summary', 'html'], // Added json-summary format
+      reporter: ['text', 'json-summary', 'html'], // Added json-summary format
       thresholds: {
         // Enforce 100% test coverage across all metrics
         lines: 100,
@@ -36,13 +36,14 @@ export default defineConfig({
         statements: 100,
       },
       include: ['src/**/*.ts', 'test/**/*.ts'],
+      exclude: ['**/*.test.ts'],
     },
   },
   build: {
     minify: 'esbuild',
     target: 'esnext', // Ensure modern JavaScript features are supported
     lib: {
-      entry: './src/touchstone.ts', // Main library entry point
+      entry: './src/index.ts', // Main library entry point
       name: 'Touchstone', // Global variable name when used in browser
       fileName: (format) => `Touchstone.${format}.js`, // Generate different bundles for each format
       formats: ['umd', 'cjs', 'es'], // Support ESM, CommonJS, and Universal Module Definition
@@ -65,15 +66,7 @@ export default defineConfig({
       // Specify the main entry file to generate a single .d.ts file
       entryRoot: 'src',
       tsconfigPath: 'tsconfig.json', // Path to your tsconfig.json
-      rollupTypes: true, // Rollup all declaration files into a single file
-      beforeWriteFile: (filePath, content) => {
-        // Optional: Modify the file path or content before writing
-        // For example, you can rename the output file
-        return {
-          filePath: filePath.replace('src/', ''), // Remove 'src/' from the path
-          content,
-        }
-      },
+      rollupTypes: false, // Generate individual files to ensure all types are preserved
     }),
     // Generate build visualization report
     visualizer({

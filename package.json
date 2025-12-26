@@ -1,16 +1,16 @@
 {
   "name": "rf-touchstone",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Javascript/TypeScript library for reading, manipulating, and writing Touchstone files (.snp files) used in radio frequency (RF) and microwave engineering.",
   "main": "dist/Touchstone.cjs.js",
   "module": "dist/Touchstone.es.js",
-  "types": "dist/touchstone.d.ts",
+  "types": "dist/index.d.ts",
   "files": [
     "./dist",
+    "./src",
     "./readme.md",
-    "./development.md",
-    "./LICENSE",
+    "./LICENSE.md",
     "./coverage/coverage-badge.svg"
   ],
   "license": "MIT",
@@ -31,9 +31,9 @@
     "matrix",
     "impedance"
   ],
-  "packageManager": "yarn@4.9.2",
+  "packageManager": "yarn@4.12.0",
   "scripts": {
-    "test": "run-p --print-label lint format test:unit test:coverage build docs:md && run-s docs:build",
+    "test": "run-p --print-label lint format test:unit test:coverage build && run-s docs:md docs:build",
     "lint": "eslint . --fix",
     "format": "prettier --write .",
     "test:watch": "vitest",
@@ -46,30 +46,30 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "mathjs": "^14.5.2"
+    "mathjs": "15.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.28.0",
-    "@types/eslint-config-prettier": "^6.11.3",
-    "@types/node": "^22.15.30",
-    "@vitest/coverage-v8": "^3.2.2",
-    "coverage-badges-cli": "^2.1.0",
-    "eslint": "^9.28.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-prettier": "^5.4.1",
-    "globals": "^16.2.0",
-    "happy-dom": "^17.6.3",
-    "markdown-it-mathjax3": "^4.3.2",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^3.5.3",
-    "rollup-plugin-visualizer": "^6.0.1",
-    "typedoc": "^0.28.5",
-    "typedoc-plugin-markdown": "^4.6.4",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1",
-    "vite": "^6.3.5",
-    "vite-plugin-dts": "^4.5.4",
-    "vitepress": "^1.6.3",
-    "vitest": "^3.2.2"
+    "@eslint/js": "9.39.2",
+    "@types/eslint-config-prettier": "6.11.3",
+    "@types/node": "25.0.3",
+    "@vitest/coverage-v8": "4.0.16",
+    "coverage-badges-cli": "2.2.0",
+    "eslint": "9.39.2",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-prettier": "5.5.4",
+    "globals": "16.5.0",
+    "happy-dom": "20.0.11",
+    "markdown-it-mathjax3": "5.2.0",
+    "npm-run-all": "4.1.5",
+    "prettier": "3.7.4",
+    "rollup-plugin-visualizer": "6.0.5",
+    "typedoc": "0.28.15",
+    "typedoc-plugin-markdown": "4.9.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.50.1",
+    "vite": "7.3.0",
+    "vite-plugin-dts": "4.5.4",
+    "vitepress": "1.6.4",
+    "vitest": "4.0.16"
   }
 }

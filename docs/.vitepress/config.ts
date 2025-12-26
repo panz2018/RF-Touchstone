@@ -30,7 +30,12 @@ export default defineConfig({
       { text: 'Home', link: '/' },
       { text: 'Introduction', link: '/introduction' },
       { text: 'Development', link: '/development' },
-      { text: 'API Reference', link: '/api/README' },
+      { text: 'API Reference', link: '/api/modules' },
+      {
+        text: 'Changelog',
+        link: 'https://github.com/panz2018/RF-Touchstone/releases',
+        target: '_blank',
+      },
     ],
 
     // Automatically generated sidebar from API documentation

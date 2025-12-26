@@ -64,7 +64,9 @@ export const pythonWriteContent = async (
  * @param impedance - Single impedance value or array of port impedances
  * @returns Formatted impedance string for Python code
  */
-const generateImpedanceString = (impedance: number | number[]): string => {
+export const generateImpedanceString = (
+  impedance: number | number[]
+): string => {
   if (typeof impedance === 'number') {
     return `, z0=${impedance}`
   }
@@ -118,7 +120,7 @@ const convertMatrixPythonString = (matrix: TouchstoneMatrix): string => {
  * @param matrix - Matrix to validate
  * @throws {Error} If matrix is invalid
  */
-const validateMatrix = (matrix: TouchstoneMatrix): void => {
+export const validateMatrix = (matrix: TouchstoneMatrix): void => {
   if (!matrix) {
     throw new Error('Touchstone matrix is not defined')
   }

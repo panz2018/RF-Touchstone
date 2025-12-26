@@ -35,6 +35,7 @@ RF-Touchstone currently supports versions 1.0 and 1.1 of the Touchstone specific
 - Format conversions: RI (Real/Imaginary), MA (Magnitude/Angle), DB (Decibel/Angle)
 - TypeScript implementation with strong typing
 - Comprehensive test suite
+- Published on NPM: [rf-touchstone](https://www.npmjs.com/package/rf-touchstone)
 
 ## Installation
 
@@ -75,6 +76,7 @@ For detailed documentation, please visit:
 
 - [Project Website](https://panz2018.github.io/RF-Touchstone/)
 - [DeepWiki Documentation](https://deepwiki.com/panz2018/RF-Touchstone) - Interactive AI documentation that allows you to converse and ask questions about this repository
+- [Changelog](https://github.com/panz2018/RF-Touchstone/releases)
 
 ## Development
 
@@ -82,4 +84,4 @@ For information on setting up a development environment and contributing to the 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
