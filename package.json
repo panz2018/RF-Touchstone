@@ -5,9 +5,10 @@
   "description": "A Javascript/TypeScript library for reading, manipulating, and writing Touchstone files (.snp files) used in radio frequency (RF) and microwave engineering.",
   "main": "dist/Touchstone.cjs.js",
   "module": "dist/Touchstone.es.js",
-  "types": "dist/touchstone.d.ts",
+  "types": "dist/index.d.ts",
   "files": [
     "./dist",
+    "./src",
     "./readme.md",
     "./LICENSE.md",
     "./coverage/coverage-badge.svg"

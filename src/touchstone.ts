@@ -2,37 +2,19 @@ import {
   abs,
   add,
   arg,
-  complex as _complex,
+  complex,
   Complex,
   log10,
   index,
   multiply,
   pi,
   pow,
-  range as _range,
+  range,
   round,
   subset,
 } from 'mathjs'
-export { abs, add, arg, log10, index, multiply, pi, pow, round, subset }
-
-/**
- * Creates a complex value or converts a value to a complex value.
- *
- * @see {@link https://mathjs.org/docs/reference/functions/complex.html | Math.js documentation for complex}
- */
-export const complex = _complex
-
-/**
- * Create an array or matrix with a range of numbers.
- *
- * @see {@link https://mathjs.org/docs/reference/functions/range.html | Math.js documentation for range}
- */
-export const range = _range
-
 import type { FrequencyUnit } from './frequency'
-import { Frequency, FrequencyUnits, SPEED_OF_LIGHT } from './frequency'
-export type { Complex, FrequencyUnit }
-export { Frequency, FrequencyUnits, SPEED_OF_LIGHT }
+import { Frequency } from './frequency'
 
 /**
  * S-parameter format: MA, DB, and RI
