@@ -22,8 +22,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: 'https://registry.npmjs.org/'
+
+      - name: Update npm to latest
+        run: npm install -g npm@latest # Ensures npm >=10.8.3 or higher for 2025 changes
 
       - name: Enable Corepack
         run: corepack enable
@@ -68,6 +71,9 @@ jobs:
           fi
         # Set to continue if package has never been published before (npm view might error)
         continue-on-error: true
+
+      - name: Debug npm config
+        run: npm config list
 
       - name: Publish to npm
         # Only run if version does not exist
