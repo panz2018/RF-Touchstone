@@ -15,7 +15,10 @@
   ],
   "license": "MIT",
   "author": "https://github.com/panz2018",
-  "repository": "https://github.com/panz2018/RF-Touchstone",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/panz2018/RF-Touchstone.git"
+  },
   "keywords": [
     "rf",
     "touchstone",
