@@ -1,7 +1,7 @@
 {
   "name": "rf-touchstone",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Javascript/TypeScript library for reading, manipulating, and writing Touchstone files (.snp files) used in radio frequency (RF) and microwave engineering.",
   "main": "dist/Touchstone.cjs.js",
   "module": "dist/Touchstone.es.js",
