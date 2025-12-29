@@ -42,21 +42,31 @@ const TouchstoneViewer: React.FC = () => {
    * @param url The URL of the Touchstone file to load.
    */
   const loadUrl = async (url: string) => {
-    // Clear previous errors before new load attempt.
-    setError(null)
-    // Extract filename from URL
-    const filename = getFilenameFromUrl(url)
-    // Validate filename
-    if (!filename || filename.trim() === '') {
-      // Specific error for filename parsing failure
-      throw new Error(`Could not determine a valid filename from URL: ${url}`)
+    setError(null) // Clear previous errors before new load attempt
+
+    try {
+      // Extract filename from URL
+      const filename = getFilenameFromUrl(url)
+      // Validate filename
+      if (!filename || filename.trim() === '') {
+        // Specific error for filename parsing failure
+        throw new Error(`Could not determine a valid filename from URL: ${url}`)
+      }
+      // Set the filename
+      setFilename(filename)
+      // Read content from URL (readUrl throws errors)
+      const ts = await readUrl(url)
+      // If successful, update state with loaded data
+      setTouchstone(ts)
+    } catch (err) {
+      console.error('Error loading Touchstone file from URL:', err)
+      setError(
+        err instanceof Error
+          ? `Error loading from URL: ${err.message}`
+          : `An unknown error occurred while loading from URL: ${url}.`
+      )
+      setTouchstone(null) // Clear data on error
     }
-    // Set the filename
-    setFilename(filename)
-    // Read content from URL (readUrl throws errors)
-    const ts = await readUrl(url)
-    // If successful, update state with loaded data
-    setTouchstone(ts)
   }
 
   /**
