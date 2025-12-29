@@ -359,7 +359,7 @@ const getUnitNames = (
 const formatDataValues = (
   param: Complex | undefined,
   format: string | undefined,
-  precision: number = 4
+  precision = 4
 ): { value1: string; value2: string } => {
   if (!param || format === undefined) {
     return { value1: 'N/A', value2: 'N/A' }

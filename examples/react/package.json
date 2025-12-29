@@ -6,7 +6,7 @@
   "packageManager": "yarn@4.9.2",
   "scripts": {
     "dev": "vite",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --fix --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "test:unit": "vitest run --environment happy-dom",
     "test:watch": "vitest --environment happy-dom",
