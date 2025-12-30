@@ -45,7 +45,10 @@ describe('DataTable Component', () => {
     )
 
     mockTouchstone = new Touchstone()
-    mockTouchstone.frequency = new Frequency([1e9, 2e9], 'Hz')
+    const freq = new Frequency()
+    freq.unit = 'Hz'
+    freq.f_scaled = [1e9, 2e9]
+    mockTouchstone.frequency = freq
     mockTouchstone.format = 'RI'
     mockTouchstone.parameter = 'S'
     mockTouchstone.impedance = 50
@@ -108,7 +111,7 @@ describe('DataTable Component', () => {
 
     it('generates correct CSV content for MA format (GHz)', () => {
       mockTouchstone.format = 'MA'
-      mockTouchstone.frequency.unit = 'GHz' // f_scaled will be 1, 2
+      mockTouchstone.frequency!.unit = 'GHz' // f_scaled will be 1, 2
       renderTable()
       fireEvent.click(screen.getByRole('button', { name: /Download CSV/i }))
 
@@ -148,7 +151,10 @@ describe('DataTable Component', () => {
 
     beforeEach(() => {
       currentTouchstone = new Touchstone()
-      currentTouchstone.frequency = new Frequency([1e9], 'Hz')
+      const freq = new Frequency()
+      freq.unit = 'Hz'
+      freq.f_scaled = [1e9]
+      currentTouchstone.frequency = freq
       currentTouchstone.format = 'RI'
       currentTouchstone.parameter = 'S'
       currentTouchstone.nports = 1

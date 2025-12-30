@@ -226,8 +226,17 @@ const parseCSV = (
     .filter((line) => line)
 
   const currentFormat = currentTouchstone.format
-  const currentUnit = currentTouchstone.frequency.unit
+  const frequency = currentTouchstone.frequency
   const nports = currentTouchstone.nports
+
+  if (!frequency) {
+    throw new Error('Touchstone data is missing frequency information.')
+  }
+  if (nports === undefined || nports === null) {
+    throw new Error('Touchstone data is missing number of ports information.')
+  }
+
+  const currentUnit = frequency.unit
 
   // --- Validate Headers ---
   const actualHeaders = headerLine.split(',')
