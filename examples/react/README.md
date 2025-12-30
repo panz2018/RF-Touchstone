@@ -1,7 +1,8 @@
 # React Example for rf-touchstone
 
+<!--
 [![React Example Tests](https://github.com/mjcaprani/rf-touchstone/actions/workflows/test-react-example.yml/badge.svg)](https://github.com/mjcaprani/rf-touchstone/actions/workflows/test-react-example.yml)
-[![React Example Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](#) <!-- Placeholder until actual coverage report URL is available -->
+[![React Example Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](#) Placeholder until actual coverage report URL is available -->
 
 This example demonstrates how to use the `rf-touchstone` library in a simple React application built with Vite and TypeScript. It allows users to upload a Touchstone file (e.g., `.s1p`, `.s2p`) and view its parsed contents.
 

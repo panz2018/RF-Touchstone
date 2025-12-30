@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 
 interface UrlLoaderProps {
-  loadUrl: (url: string) => void
+  loadUrl: (_url: string) => void
 }
 
 /**
@@ -40,7 +40,7 @@ const UrlLoader: React.FC<UrlLoaderProps> = ({ loadUrl }) => {
     // Basic URL validation (can be improved)
     try {
       new URL(url) // Check if the URL is valid
-    } catch (_) {
+    } catch {
       setError('Invalid URL format.')
       return
     }

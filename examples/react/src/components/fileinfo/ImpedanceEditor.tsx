@@ -3,7 +3,7 @@ import { TouchstoneImpedance } from 'rf-touchstone'
 
 interface ImpedanceEditorProps {
   currentImpedance: TouchstoneImpedance | undefined
-  onImpedanceChange: (newImpedance: TouchstoneImpedance) => void
+  onImpedanceChange: (_newImpedance: TouchstoneImpedance) => void
 }
 
 const ImpedanceEditor: React.FC<ImpedanceEditorProps> = ({

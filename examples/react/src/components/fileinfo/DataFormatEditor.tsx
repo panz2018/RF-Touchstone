@@ -3,7 +3,7 @@ import { TouchstoneFormat, TouchstoneFormats } from 'rf-touchstone'
 
 interface DataFormatEditorProps {
   currentFormat: TouchstoneFormat | undefined
-  onFormatChange: (newFormat: TouchstoneFormat) => void
+  onFormatChange: (_newFormat: TouchstoneFormat) => void
   disabled?: boolean
 }
 
