@@ -5,8 +5,10 @@ import { describe, it, expect, vi } from 'vitest'
 import CommentsEditor from '../../../src/components/fileinfo/CommentsEditor'
 
 describe('CommentsEditor Component', () => {
+  const mockOnCommentsChange = vi.fn()
+
   it('renders with initial comments and calls onCommentsChange', () => {
-    const mockOnCommentsChange = vi.fn()
+    mockOnCommentsChange.mockClear()
     const initialComments = ['Comment 1', 'Line 2']
     render(
       <CommentsEditor
@@ -30,6 +32,7 @@ describe('CommentsEditor Component', () => {
   })
 
   it('displays error when onCommentsChange throws', () => {
+    mockOnCommentsChange.mockClear()
     const errMsg = 'Parent error on comments change'
     mockOnCommentsChange.mockImplementation(() => {
       throw new Error(errMsg)

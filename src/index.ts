@@ -1,17 +1,4 @@
-import {
-  abs,
-  add,
-  arg,
-  complex as _complex,
-  log10,
-  index,
-  multiply,
-  pi,
-  pow,
-  range as _range,
-  round,
-  subset,
-} from 'mathjs'
+import { complex as _complex, range as _range } from 'mathjs'
 
 /**
  * Creates a complex value or converts a value to a complex value.
@@ -27,7 +14,19 @@ export const complex = _complex
  */
 export const range = _range
 
-export { abs, add, arg, log10, index, multiply, pi, pow, round, subset }
+export {
+  abs,
+  add,
+  arg,
+  log10,
+  index,
+  multiply,
+  pi,
+  pow,
+  round,
+  subset,
+} from 'mathjs'
+export type { Complex } from 'mathjs'
 
 export * from './frequency'
 export * from './touchstone'

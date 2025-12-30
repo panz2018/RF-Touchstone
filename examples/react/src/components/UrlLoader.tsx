@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 
 interface UrlLoaderProps {
-  loadUrl: (url: string) => void
+  loadUrl: (_url: string) => void
 }
 
 /**

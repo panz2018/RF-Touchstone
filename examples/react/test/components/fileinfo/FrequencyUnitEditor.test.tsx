@@ -3,11 +3,13 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi } from 'vitest'
 import FrequencyUnitEditor from '../../../src/components/fileinfo/FrequencyUnitEditor'
-import { FrequencyUnits, type FrequencyUnit } from 'rf-touchstone'
+// import { FrequencyUnits, type FrequencyUnit } from 'rf-touchstone'
 
 describe('FrequencyUnitEditor Component', () => {
+  const mockOnUnitChange = vi.fn()
+
   it('renders with initial unit and calls onUnitChange', () => {
-    const mockOnUnitChange = vi.fn()
+    mockOnUnitChange.mockClear()
     render(
       <FrequencyUnitEditor
         currentUnit="GHz"
@@ -26,6 +28,7 @@ describe('FrequencyUnitEditor Component', () => {
   })
 
   it('displays error when onUnitChange throws', () => {
+    mockOnUnitChange.mockClear()
     const errMsg = 'Parent error on unit change'
     mockOnUnitChange.mockImplementation(() => {
       throw new Error(errMsg)

@@ -1,19 +1,19 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import ImpedanceEditor from '../../../src/components/fileinfo/ImpedanceEditor'
 import { TouchstoneImpedance } from 'rf-touchstone'
 
 describe('ImpedanceEditor Component', () => {
-  let mockOnImpedanceChange: ReturnType<typeof vi.fn>
+  let mockOnImpedanceChange: Mock<(_newImpedance: TouchstoneImpedance) => void>
 
   beforeEach(() => {
     mockOnImpedanceChange = vi.fn()
   })
 
   const renderEditor = (currentImpedance?: TouchstoneImpedance) => {
-    render(
+    return render(
       <ImpedanceEditor
         currentImpedance={currentImpedance}
         onImpedanceChange={mockOnImpedanceChange}

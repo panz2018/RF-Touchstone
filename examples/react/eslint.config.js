@@ -17,8 +17,10 @@ const fixGlobals = (obj) => {
 const browserGlobals = fixGlobals(globals.browser)
 const nodeGlobals = fixGlobals(globals.node)
 
+const tsPlugin = tseslint.plugin
+
 /** @type {import('eslint').Linter.Config[]} */
-export default [
+export default tseslint.config(
   {
     name: 'app/files-to-lint',
     files: ['**/*.{js,ts,mts,tsx,vue}'],
@@ -27,19 +29,12 @@ export default [
     name: 'app/files-to-ignore',
     ignores: [
       '**/dist/**',
-      '**/dist-ssr/**',
       '**/.yarn/**',
       '**/coverage/**',
       '**/node_modules/**',
       '**/.venv/**',
       '**/docs/**',
     ],
-  },
-  {
-    files: ['**/*.{js,mjs,cjs,ts,tsx}'],
-    rules: {
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    },
   },
   {
     // Exclude JS config files from TypeScript project-based linting
@@ -49,32 +44,24 @@ export default [
     },
   },
   {
-    // Configure TypeScript config files with basic linting (no project-based parsing)
-    files: ['*.config.ts'],
-    languageOptions: {
-      globals: { ...browserGlobals, ...nodeGlobals },
-      parser: tseslint.parser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        project: false,
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-    rules: {
-      ...tseslint.configs.recommended[0].rules,
-    },
+    // JS Recommended
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
+    ...pluginJs.configs.recommended,
   },
-  // Apply TypeScript-specific rules
+  // Apply TypeScript Recommended
   ...tseslint.configs.recommended.map((config) => ({
     ...config,
-    files: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}'],
+    files: ['**/*.ts', '**/*.tsx'],
   })),
   {
     // Apply TypeScript project-based linting to source and test files
     files: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}'],
     languageOptions: {
-      globals: { ...browserGlobals, ...nodeGlobals },
+      globals: {
+        ...browserGlobals,
+        ...nodeGlobals,
+        ...fixGlobals(globals.jest),
+      },
       parserOptions: {
         project: ['./tsconfig.json', './tsconfig.node.json'],
         tsconfigRootDir: import.meta.dirname,
@@ -83,6 +70,7 @@ export default [
     plugins: {
       'react-hooks': eslintPluginReactHooks,
       'react-refresh': eslintPluginReactRefresh,
+      '@typescript-eslint': tsPlugin,
     },
     rules: {
       'react-refresh/only-export-components': [
@@ -93,7 +81,39 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
     },
   },
-  pluginJs.configs.recommended,
+  {
+    // Custom Rule Overrides for TypeScript
+    files: ['**/*.ts', '**/*.tsx'],
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  {
+    // Custom Rule Overrides for JavaScript
+    files: ['**/*.{js,mjs,cjs}'],
+    rules: {
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
   {
     plugins: {
       prettier: prettierPlugin,
@@ -107,5 +127,5 @@ export default [
       ],
     },
   },
-  prettierConfig,
-]
+  prettierConfig
+)

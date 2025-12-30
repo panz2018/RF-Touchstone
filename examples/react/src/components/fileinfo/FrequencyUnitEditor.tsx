@@ -3,7 +3,7 @@ import { FrequencyUnits, type FrequencyUnit } from 'rf-touchstone'
 
 interface FrequencyUnitEditorProps {
   currentUnit: FrequencyUnit | undefined
-  onUnitChange: (newUnit: FrequencyUnit) => void
+  onUnitChange: (_newUnit: FrequencyUnit) => void
   disabled?: boolean
 }
 

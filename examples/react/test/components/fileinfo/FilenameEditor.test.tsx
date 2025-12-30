@@ -5,8 +5,10 @@ import { describe, it, expect, vi } from 'vitest'
 import FilenameEditor from '../../../src/components/fileinfo/FilenameEditor'
 
 describe('FilenameEditor Component', () => {
+  const mockOnFilenameChange = vi.fn()
+
   it('renders with initial filename and calls onFilenameChange', () => {
-    const mockOnFilenameChange = vi.fn()
+    mockOnFilenameChange.mockClear()
     render(
       <FilenameEditor
         currentFilename="test.s2p"
@@ -26,6 +28,7 @@ describe('FilenameEditor Component', () => {
   })
 
   it('displays error if onFilenameChange throws', () => {
+    mockOnFilenameChange.mockClear()
     const errMsg = 'Parent error on filename change'
     mockOnFilenameChange.mockImplementation(() => {
       throw new Error(errMsg)

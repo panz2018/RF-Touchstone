@@ -1,10 +1,11 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import UrlLoader from './UrlLoader'
+import { describe, test, expect, vi, beforeEach } from 'vitest'
+import UrlLoader from '../src/components/UrlLoader'
 
 describe('UrlLoader Component', () => {
-  const mockOnUrlSubmit = jest.fn()
+  const mockOnUrlSubmit = vi.fn()
 
   beforeEach(() => {
     // Reset mocks before each test
@@ -12,14 +13,14 @@ describe('UrlLoader Component', () => {
   })
 
   test('renders "Open from URL" button initially', () => {
-    render(<UrlLoader onUrlSubmit={mockOnUrlSubmit} />)
+    render(<UrlLoader loadUrl={mockOnUrlSubmit} />)
     expect(
       screen.getByRole('button', { name: /Open from URL/i })
     ).toBeInTheDocument()
   })
 
   test('shows URL input and "Load URL" button when "Open from URL" is clicked', () => {
-    render(<UrlLoader onUrlSubmit={mockOnUrlSubmit} />)
+    render(<UrlLoader loadUrl={mockOnUrlSubmit} />)
     const openButton = screen.getByRole('button', { name: /Open from URL/i })
     fireEvent.click(openButton)
 
@@ -35,7 +36,7 @@ describe('UrlLoader Component', () => {
   })
 
   test('hides URL input and "Load URL" button when "Cancel URL Load" is clicked', () => {
-    render(<UrlLoader onUrlSubmit={mockOnUrlSubmit} />)
+    render(<UrlLoader loadUrl={mockOnUrlSubmit} />)
     const openButton = screen.getByRole('button', { name: /Open from URL/i })
     fireEvent.click(openButton) // Show inputs
 
@@ -56,7 +57,7 @@ describe('UrlLoader Component', () => {
   })
 
   test('updates URL input value on change', () => {
-    render(<UrlLoader onUrlSubmit={mockOnUrlSubmit} />)
+    render(<UrlLoader loadUrl={mockOnUrlSubmit} />)
     fireEvent.click(screen.getByRole('button', { name: /Open from URL/i }))
 
     const urlInput = screen.getByPlaceholderText(
@@ -69,7 +70,7 @@ describe('UrlLoader Component', () => {
   })
 
   test('calls onUrlSubmit with the URL when "Load URL" is clicked with a valid URL', () => {
-    render(<UrlLoader onUrlSubmit={mockOnUrlSubmit} />)
+    render(<UrlLoader loadUrl={mockOnUrlSubmit} />)
     fireEvent.click(screen.getByRole('button', { name: /Open from URL/i }))
 
     const urlInput = screen.getByPlaceholderText(/Enter Touchstone file URL/i)
@@ -85,7 +86,7 @@ describe('UrlLoader Component', () => {
   })
 
   test('shows error if URL is empty when "Load URL" is clicked', () => {
-    render(<UrlLoader onUrlSubmit={mockOnUrlSubmit} />)
+    render(<UrlLoader loadUrl={mockOnUrlSubmit} />)
     fireEvent.click(screen.getByRole('button', { name: /Open from URL/i }))
 
     const loadButton = screen.getByRole('button', { name: /Load URL/i })
@@ -96,7 +97,7 @@ describe('UrlLoader Component', () => {
   })
 
   test('shows error if URL is invalid when "Load URL" is clicked', () => {
-    render(<UrlLoader onUrlSubmit={mockOnUrlSubmit} />)
+    render(<UrlLoader loadUrl={mockOnUrlSubmit} />)
     fireEvent.click(screen.getByRole('button', { name: /Open from URL/i }))
 
     const urlInput = screen.getByPlaceholderText(/Enter Touchstone file URL/i)
@@ -110,7 +111,7 @@ describe('UrlLoader Component', () => {
   })
 
   test('clears error message when input changes after an error was shown', () => {
-    render(<UrlLoader onUrlSubmit={mockOnUrlSubmit} />)
+    render(<UrlLoader loadUrl={mockOnUrlSubmit} />)
     fireEvent.click(screen.getByRole('button', { name: /Open from URL/i }))
 
     const loadButton = screen.getByRole('button', { name: /Load URL/i })
@@ -123,7 +124,7 @@ describe('UrlLoader Component', () => {
   })
 
   test('clears URL and error when "Cancel URL Load" is clicked after an error', () => {
-    render(<UrlLoader onUrlSubmit={mockOnUrlSubmit} />)
+    render(<UrlLoader loadUrl={mockOnUrlSubmit} />)
     const openButton = screen.getByRole('button', { name: /Open from URL/i })
     fireEvent.click(openButton) // Show inputs
 

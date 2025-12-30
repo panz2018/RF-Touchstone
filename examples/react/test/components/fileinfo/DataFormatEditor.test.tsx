@@ -3,11 +3,13 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { describe, it, expect, vi } from 'vitest'
 import DataFormatEditor from '../../../src/components/fileinfo/DataFormatEditor'
-import { type TouchstoneFormat } from 'rf-touchstone'
+// import { type TouchstoneFormat } from 'rf-touchstone'
 
 describe('DataFormatEditor Component', () => {
+  const mockOnFormatChange = vi.fn()
+
   it('renders with initial format and calls onFormatChange', () => {
-    const mockOnFormatChange = vi.fn()
+    mockOnFormatChange.mockClear()
     render(
       <DataFormatEditor
         currentFormat="RI"
@@ -26,6 +28,7 @@ describe('DataFormatEditor Component', () => {
   })
 
   it('displays error when onFormatChange throws', () => {
+    mockOnFormatChange.mockClear()
     const errMsg = 'Parent error on format change'
     mockOnFormatChange.mockImplementation(() => {
       throw new Error(errMsg)

@@ -1,7 +1,14 @@
-import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  type Mock,
+} from 'vitest'
 import CopyButton from '../src/components/CopyButton'
 import { Touchstone } from 'rf-touchstone'
 
@@ -14,19 +21,19 @@ Object.defineProperty(navigator, 'clipboard', {
 })
 
 describe('CopyButton Component', () => {
-  let mockWriteText: ReturnType<typeof vi.fn>
+  let mockWriteText: Mock
   let mockTouchstone: Touchstone | null
 
   beforeEach(() => {
     vi.useFakeTimers() // Use fake timers for setTimeout
-    mockWriteText = navigator.clipboard.writeText as vi.Mock
+    mockWriteText = navigator.clipboard.writeText as unknown as Mock
     mockWriteText.mockReset() // Reset mock before each test
 
     // Default mock touchstone instance
     mockTouchstone = new Touchstone()
     mockTouchstone.comments = ['Test comment']
     // Simple toString implementation for testing
-    vi.spyOn(mockTouchstone, 'toString').mockImplementation(
+    vi.spyOn(mockTouchstone as any, 'toString').mockImplementation(
       () => '! Touchstone Data\n# HZ S RI R 50\n1000 0.1 0.2 0.3 0.4'
     )
   })
@@ -34,8 +41,11 @@ describe('CopyButton Component', () => {
   afterEach(() => {
     vi.runOnlyPendingTimers()
     vi.useRealTimers() // Restore real timers
-    if (mockTouchstone && (mockTouchstone.toString as any).mockRestore) {
-      ;(mockTouchstone.toString as any).mockRestore() // Restore spy if it exists
+    if (
+      mockTouchstone &&
+      (mockTouchstone.toString as unknown as Mock).mockRestore
+    ) {
+      ;(mockTouchstone.toString as unknown as Mock).mockRestore() // Restore spy if it exists
     }
   })
 
@@ -116,8 +126,6 @@ describe('CopyButton Component', () => {
     // We can't directly call handleCopyData as it's internal.
     // So we rely on the disabled attribute, but test the message if it were to be called.
     // A more direct way:
-    const instance = new CopyButton({ touchstone: null })
-    // instance.handleCopyData(); // This doesn't work as it's not how React components are typically tested for internal methods.
     // Instead, we'll check the status message part, assuming the click could happen.
 
     // Let's ensure the button is disabled first.

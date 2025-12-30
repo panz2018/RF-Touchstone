@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 interface CommentsEditorProps {
   currentComments: string[]
-  onCommentsChange: (newComments: string[]) => void
+  onCommentsChange: (_newComments: string[]) => void
 }
 
 const CommentsEditor: React.FC<CommentsEditorProps> = ({

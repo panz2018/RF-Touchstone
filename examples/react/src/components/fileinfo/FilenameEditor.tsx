@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 interface FilenameEditorProps {
   currentFilename: string
-  onFilenameChange: (newFilename: string) => void
+  onFilenameChange: (_newFilename: string) => void
 }
 
 const FilenameEditor: React.FC<FilenameEditorProps> = ({

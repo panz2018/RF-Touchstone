@@ -1,41 +1,36 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import DataTable from '../src/components/DataTable'
 import {
   Touchstone,
-  Complex,
   Frequency,
-  FrequencyUnits,
-  TouchstoneFormat,
+  type TouchstoneMatrix as _TouchstoneMatrix,
 } from 'rf-touchstone'
+import { complex as createComplex } from 'rf-touchstone'
 
 // Mock document.createElement for download link
 const mockLinkClick = vi.fn()
-const mockAppendChild = vi
-  .spyOn(document.body, 'appendChild')
-  .mockImplementation(() => ({}) as Node)
-const mockRemoveChild = vi
-  .spyOn(document.body, 'removeChild')
-  .mockImplementation(() => ({}) as Node)
 const mockCreateObjectURL = vi.fn(() => 'blob:http://localhost/mock-blob-url')
 const mockRevokeObjectURL = vi.fn()
 
 describe('DataTable Component', () => {
   let mockTouchstone: Touchstone
-  let mockSetMatrix: ReturnType<typeof vi.fn>
+  let mockUpdateMatrixFrequency: Mock
   // mockSetFilename is removed as DataTable no longer uses this prop
   const initialFilename = 'test_data.s2p'
 
   beforeEach(() => {
     vi.clearAllMocks()
-    global.URL.createObjectURL = mockCreateObjectURL
-    global.URL.revokeObjectURL = mockRevokeObjectURL
+    vi.stubGlobal('URL', {
+      createObjectURL: mockCreateObjectURL,
+      revokeObjectURL: mockRevokeObjectURL,
+    })
 
     vi.spyOn(document, 'createElement').mockImplementation(
-      (tagName: string) => {
-        if (tagName === 'a') {
+      (_tagName: string) => {
+        if (_tagName === 'a') {
           const link = {
             href: '',
             download: '',
@@ -45,7 +40,7 @@ describe('DataTable Component', () => {
           } as unknown as HTMLAnchorElement
           return link
         }
-        return document.createElement(tagName)
+        return document.createElement(_tagName)
       }
     )
 
@@ -59,28 +54,27 @@ describe('DataTable Component', () => {
       // [to][from][freq]
       [
         // S1x
-        [new Complex(0.1, -0.1), new Complex(0.15, -0.15)], // S11 for 1GHz, 2GHz
-        [new Complex(0.7, -0.05), new Complex(0.65, -0.08)], // S12 for 1GHz, 2GHz
+        [createComplex(0.1, -0.1), createComplex(0.15, -0.15)], // S11 for 1GHz, 2GHz
+        [createComplex(0.7, -0.05), createComplex(0.65, -0.08)], // S12 for 1GHz, 2GHz
       ],
       [
         // S2x
-        [new Complex(2.0, -0.5), new Complex(1.9, -0.45)], // S21 for 1GHz, 2GHz
-        [new Complex(0.2, -0.2), new Complex(0.25, -0.25)], // S22 for 1GHz, 2GHz
+        [createComplex(2.0, -0.5), createComplex(1.9, -0.45)], // S21 for 1GHz, 2GHz
+        [createComplex(0.2, -0.2), createComplex(0.25, -0.25)], // S22 for 1GHz, 2GHz
       ],
     ]
     mockTouchstone.comments = ['Test data for DataTable']
 
-    mockSetMatrix = vi.fn()
+    mockUpdateMatrixFrequency = vi.fn()
     // mockSetFilename = vi.fn(); // Removed
   })
 
   const renderTable = (ts = mockTouchstone, filename = initialFilename) => {
-    render(
+    return render(
       <DataTable
         touchstone={ts}
         filename={filename}
-        setMatrix={mockSetMatrix}
-        // setFilename prop is no longer passed
+        updateMatrixFrequency={mockUpdateMatrixFrequency}
       />
     )
   }
@@ -91,7 +85,7 @@ describe('DataTable Component', () => {
       fireEvent.click(screen.getByRole('button', { name: /Download CSV/i }))
 
       expect(mockCreateObjectURL).toHaveBeenCalledTimes(1)
-      const blob = mockCreateObjectURL.mock.calls[0][0] as Blob
+      const blob = (mockCreateObjectURL as any).mock.calls[0][0] as Blob
       const reader = new FileReader()
 
       return new Promise<void>((resolve) => {
@@ -118,7 +112,7 @@ describe('DataTable Component', () => {
       renderTable()
       fireEvent.click(screen.getByRole('button', { name: /Download CSV/i }))
 
-      const blob = mockCreateObjectURL.mock.calls[0][0] as Blob
+      const blob = (mockCreateObjectURL as any).mock.calls[0][0] as Blob
       const reader = new FileReader()
       return new Promise<void>((resolve) => {
         reader.onload = (e) => {
@@ -161,7 +155,6 @@ describe('DataTable Component', () => {
     })
 
     it('parseCSV successfully parses valid RI CSV string', () => {
-      const csvString = `Frequency (Hz),S11 (Real),S11 (Imaginary)\n1000000000,0.5,-0.5`
       // Need to access parseCSV. It's not exported. For this test, we'd ideally export it or test via handleCsvFileSelectInternal.
       // For now, this test is conceptual for what parseCSV should do.
       // If parseCSV were exported:
@@ -173,7 +166,6 @@ describe('DataTable Component', () => {
     })
 
     it('parseCSV throws error for header mismatch', () => {
-      const csvString = `Freq (Hz),S11 R,S11 I\n1000000000,0.5,-0.5`
       // If parseCSV were exported:
       // expect(() => parseCSV(csvString, currentTouchstone)).toThrow(/CSV header mismatch/);
       expect(true).toBe(true) // Placeholder
@@ -181,22 +173,22 @@ describe('DataTable Component', () => {
 
     // Test for handleCsvFileSelectInternal would require mocking FileReader
     it('handleCsvFileSelectInternal calls setMatrix on successful parse', async () => {
-      const validCsvContent = `Frequency (Hz),S11 (Real),S11 (Imaginary)\n1000000000,0.1,-0.2`
-      const file = new File([validCsvContent], 'test.csv', { type: 'text/csv' })
+      // const validCsvContent = `Frequency (Hz),S11 (Real),S11 (Imaginary)\n1000000000,0.1,-0.2`
+      // const file = new File([validCsvContent], 'test.csv', { type: 'text/csv' })
 
       // Mocking parseCSV for this specific test of handleCsvFileSelectInternal
-      const mockParseResult = {
-        matrix: [[[new Complex(0.1, -0.2)]]] as Complex[][][],
-        frequencies: [1e9],
-      }
-      const actualParseCSV = vi.fn().mockReturnValue(mockParseResult)
+      // const mockParseResult = {
+      //   matrix: [[[new Complex(0.1, -0.2)]]] as Complex[][][],
+      //   frequencies: [1e9],
+      // }
+      // const actualParseCSV = vi.fn().mockReturnValue(mockParseResult)
 
       // This is tricky because parseCSV is in the same module.
       // A full test would require deeper mocking or refactoring parseCSV out.
       // For now, we'll assume if parseCSV works, handleCsvFileSelectInternal calls the props.
 
       renderTable(currentTouchstone) // Pass the configured touchstone
-      const input = screen.getByTestId('csvUploadInput')
+      // const input = screen.getByTestId('csvUploadInput')
 
       // To spy on parseCSV within the same module, it's complex.
       // We are testing the handler's interaction with props.

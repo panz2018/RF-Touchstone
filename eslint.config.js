@@ -31,7 +31,6 @@ export default [
     name: 'app/files-to-ignore',
     ignores: [
       '**/dist/**',
-      '**/dist-ssr/**',
       '**/.yarn/**',
       '**/coverage/**',
       '**/node_modules/**',

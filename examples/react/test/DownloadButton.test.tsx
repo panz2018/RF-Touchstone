@@ -1,7 +1,15 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  type Mock,
+} from 'vitest'
 import DownloadButton from '../src/components/DownloadButton'
 import { Touchstone } from 'rf-touchstone'
 
@@ -10,30 +18,33 @@ describe('DownloadButton Component', () => {
   const mockFilename = 'testfile.s2p'
 
   // Mocks for URL.createObjectURL, revokeObjectURL and link element
-  let mockCreateObjectURL: ReturnType<typeof vi.fn>
-  let mockRevokeObjectURL: ReturnType<typeof vi.fn>
-  let mockLinkClick: ReturnType<typeof vi.fn>
-  let mockAppendChild: ReturnType<typeof vi.spyOn>
-  let mockRemoveChild: ReturnType<typeof vi.spyOn>
+  let mockCreateObjectURL: Mock
+  let mockRevokeObjectURL: Mock
+  let mockLinkClick: Mock
+  let mockAppendChild: Mock
+  let mockRemoveChild: Mock
 
   beforeEach(() => {
     mockTouchstone = new Touchstone()
-    vi.spyOn(mockTouchstone, 'toString').mockImplementation(
+
+    vi.spyOn(mockTouchstone as any, 'toString').mockImplementation(
       () => '! Mock Touchstone Content for Download'
     )
 
     mockCreateObjectURL = vi.fn(() => 'blob:http://localhost/mock-blob-url')
     mockRevokeObjectURL = vi.fn()
-    global.URL.createObjectURL = mockCreateObjectURL
-    global.URL.revokeObjectURL = mockRevokeObjectURL
+    vi.stubGlobal('URL', {
+      createObjectURL: mockCreateObjectURL,
+      revokeObjectURL: mockRevokeObjectURL,
+    })
 
     mockLinkClick = vi.fn()
     mockAppendChild = vi
       .spyOn(document.body, 'appendChild')
-      .mockImplementation(() => ({}) as Node)
+      .mockImplementation(() => ({}) as unknown as Node)
     mockRemoveChild = vi
       .spyOn(document.body, 'removeChild')
-      .mockImplementation(() => ({}) as Node)
+      .mockImplementation(() => ({}) as unknown as Node)
 
     vi.spyOn(document, 'createElement').mockImplementation(
       (tagName: string) => {
@@ -55,8 +66,8 @@ describe('DownloadButton Component', () => {
 
   afterEach(() => {
     vi.restoreAllMocks() // Restores all spies and original implementations
-    if (mockTouchstone && (mockTouchstone.toString as any).mockRestore) {
-      ;(mockTouchstone.toString as any).mockRestore()
+    if (mockTouchstone && (mockTouchstone.toString as Mock).mockRestore) {
+      ;(mockTouchstone.toString as Mock).mockRestore()
     }
   })
 

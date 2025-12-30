@@ -1,6 +1,7 @@
 import React, { JSX } from 'react'
 import type { TouchstoneMatrix } from 'rf-touchstone'
-import { Touchstone, abs, arg } from 'rf-touchstone'
+import type { Complex } from 'mathjs'
+import { Touchstone, abs, arg, complex } from 'rf-touchstone'
 import './DataTable.css'
 
 /**
@@ -301,23 +302,25 @@ const parseCSV = (
             re = val1
             im = val2
             break
-          case 'MA':
+          case 'MA': {
             const angleRadMA = (val2 * Math.PI) / 180
             re = val1 * Math.cos(angleRadMA)
             im = val1 * Math.sin(angleRadMA)
             break
-          case 'DB':
+          }
+          case 'DB': {
             const magnitudeDB = Math.pow(10, val1 / 20)
             const angleRadDB = (val2 * Math.PI) / 180
             re = magnitudeDB * Math.cos(angleRadDB)
             im = magnitudeDB * Math.sin(angleRadDB)
             break
+          }
           default:
             throw new Error(
               `Unsupported format for CSV parsing: ${currentFormat}`
             )
         }
-        matrixData[outPortIdx][inPortIdx].push(new Complex(re, im))
+        matrixData[outPortIdx][inPortIdx].push(complex(re, im))
       }
     }
   }
@@ -375,20 +378,22 @@ const formatDataValues = (
         value1: formatNumber(param.re as unknown as number),
         value2: formatNumber(param.im as unknown as number),
       }
-    case 'MA':
+    case 'MA': {
       const magnitude = abs(param) as unknown as number
       const angle = (arg(param) * 180) / Math.PI
       return {
         value1: formatNumber(magnitude),
         value2: formatNumber(angle),
       }
-    case 'DB':
+    }
+    case 'DB': {
       const dbValue = 20 * Math.log10(abs(param) as unknown as number)
       const dbAngle = (arg(param) * 180) / Math.PI
       return {
         value1: formatNumber(dbValue),
         value2: formatNumber(dbAngle),
       }
+    }
     default:
       return { value1: 'N/A', value2: 'N/A' }
   }

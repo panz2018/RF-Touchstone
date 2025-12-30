@@ -1,7 +1,7 @@
 import React from 'react'
 
 interface FileLoaderProps {
-  uploadFile: (file: File) => void
+  uploadFile: (_file: File) => void
 }
 
 const FileLoader: React.FC<FileLoaderProps> = ({ uploadFile }) => {
