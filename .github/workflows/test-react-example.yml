@@ -1,4 +1,4 @@
-name: Test React Example
+name: test-react-example
 
 on:
   pull_request:
@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-react-app:
+  test-react-example:
     runs-on: ubuntu-latest
     defaults:
       run:
