@@ -27,7 +27,9 @@ const FileLoader: React.FC<FileLoaderProps> = ({ uploadFile }) => {
   return (
     <div>
       {/* Button to trigger the file input */}
-      <button className="prime-button" onClick={handleButtonClick}>Upload</button>
+      <button className="prime-button" onClick={handleButtonClick}>
+        Upload
+      </button>
       {/* Hidden file input */}
       <input
         ref={fileInputRef} // Attach the ref

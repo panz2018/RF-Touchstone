@@ -3,14 +3,24 @@ import pluginJs from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import prettierConfig from 'eslint-config-prettier'
 import prettierPlugin from 'eslint-plugin-prettier'
-import path from 'path'
+
+// Helper to fix potential whitespace issues in the globals package
+const fixGlobals = (obj) => {
+  if (!obj) return {}
+  return Object.fromEntries(
+    Object.entries(obj).map(([key, value]) => [key.trim(), value])
+  )
+}
+
+const browserGlobals = fixGlobals(globals.browser)
+const nodeGlobals = fixGlobals(globals.node)
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
     files: ['**/*.{js,mjs,cjs,ts}'],
     rules: {
-      'no-unused-vars': ['error'],
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
   {
@@ -34,14 +44,14 @@ export default [
     // Exclude JS config files from TypeScript project-based linting
     files: ['*.config.js', '*.config.mjs', '*.config.cjs'],
     languageOptions: {
-      globals: { ...globals.browser, ...globals.node },
+      globals: { ...browserGlobals, ...nodeGlobals },
     },
   },
   {
     // Configure TypeScript config files with basic linting (no project-based parsing)
     files: ['*.config.ts'],
     languageOptions: {
-      globals: { ...globals.browser, ...globals.node },
+      globals: { ...browserGlobals, ...nodeGlobals },
       parser: tseslint.parser,
       parserOptions: {
         ecmaVersion: 'latest',
@@ -63,9 +73,9 @@ export default [
     // Apply TypeScript project-based linting to source and test files
     files: ['src/**/*.ts', 'test/**/*.ts'],
     languageOptions: {
-      globals: { ...globals.browser, ...globals.node },
+      globals: { ...browserGlobals, ...nodeGlobals },
       parserOptions: {
-        project: path.resolve(import.meta.dirname, './tsconfig.json'),
+        project: ['./tsconfig.json'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
