@@ -1,38 +1,23 @@
 name: Test React Example
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'examples/react/**'
-      - '.github/workflows/test-react-example.yml'
-      - 'package.json' # Root package.json
-      - 'yarn.lock' # Root yarn.lock
-      - '.yarnrc.yml' # Root yarnrc.yml
   pull_request:
-    branches:
-      - main
-    paths:
-      - 'examples/react/**'
-      - '.github/workflows/test-react-example.yml'
-      - 'package.json'
-      - 'yarn.lock'
-      - '.yarnrc.yml'
-  workflow_run:
-    workflows: ['Publish Package to npm'] # Name of the workflow that publishes to npm
-    types:
-      - completed
-    branches:
-      - main
+    branches: ['main']
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test-react-app:
-    # Only run on workflow_run if the triggering workflow was successful
-    if: false # 禁用此 job
-    # if: github.event_name != 'workflow_run' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: ./examples/react
@@ -44,26 +29,13 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          cache: 'yarn' # Cache Yarn dependencies globally
+          node-version: 24
 
-      - name: Install Yarn
-        run: |
-          corepack enable
-          corepack prepare yarn@stable --activate # Ensures latest Yarn 4.x is used
-          yarn --version # Verify Yarn version
-        working-directory: . # Run this at the root level
+      - name: Enable Corepack
+        run: corepack enable
 
-      - name: Install Dependencies for React Example
-        run: yarn install --immutable
-        # The --immutable flag is good practice for CI to ensure yarn.lock isn't changed.
+      - name: Install Node.js dependencies
+        run: yarn install
 
-      - name: Run Tests and Generate Coverage
-        run: yarn test:coverage
-
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: react-example-coverage-report
-          path: examples/react/coverage/ # Path to the coverage report directory
-          if-no-files-found: error # Error if coverage report is not found
+      - name: Run tests and build
+        run: yarn test
