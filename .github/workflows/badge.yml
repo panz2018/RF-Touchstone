@@ -3,10 +3,6 @@ name: Update Coverage Badge
 on:
   push:
     branches: ['main']
-    paths:
-      - 'src/**'
-      - 'test/**'
-      - 'package.json'
   workflow_dispatch:
 
 permissions:
