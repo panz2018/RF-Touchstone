@@ -32,8 +32,11 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Install Node.js dependencies
+      - name: Install Node.js dependencies (Root)
         run: yarn install
+
+      - name: Install Node.js dependencies (React Example)
+        run: yarn --cwd examples/react install
 
       - name: Set Up Python
         uses: actions/setup-python@v4
