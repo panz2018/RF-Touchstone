@@ -1,0 +1,54 @@
+name: Update Coverage Badge
+
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'src/**'
+      - 'test/**'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Node.js dependencies
+        run: yarn install
+
+      - name: Run coverage and generate badge
+        run: yarn test:coverage
+
+      - name: Commit and push coverage badge
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add coverage/coverage-badge.svg
+          if ! git diff --staged --quiet; then
+            git commit -m "ci: update coverage badge [skip ci]"
+            git push origin HEAD:main
+          else
+            echo "No changes to coverage badge."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
