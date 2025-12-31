@@ -5,10 +5,6 @@ A Javascript/TypeScript library for reading, manipulating, and writing Touchston
 [![Tests](https://github.com/panz2018/RF-Touchstone/actions/workflows/test.yml/badge.svg)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test.yml)
 [![Coverage](coverage/coverage-badge.svg)](coverage/coverage-badge.svg)
 
-<!--
-[![React Example Tests](https://github.com/mjcaprani/rf-touchstone/actions/workflows/test-react-example.yml/badge.svg)](https://github.com/mjcaprani/rf-touchstone/actions/workflows/test-react-example.yml)
--->
-
 ## Overview
 
 RF-Touchstone provides a complete solution for working with S-parameters and other network parameters in JavaScript/TypeScript environments. This library allows you to:
