@@ -1,8 +1,11 @@
 name: Update Coverage Badge
 
 on:
+  # Runs on pushes targeting the default branch
   push:
     branches: ['main']
+
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 permissions:
@@ -31,6 +34,37 @@ jobs:
 
       - name: Install Node.js dependencies
         run: yarn install
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Cache uv global directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv # Default uv cache path on Linux
+          key: ${{ runner.os }}-uv-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Install uv and Python dependencies
+        shell: bash
+        run: |
+          # Install uv
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          # The installer script should add uv to PATH. If not, source the cargo env or add manually.
+          # Example if installed via cargo (common for Rust tools):
+          source "$HOME/.cargo/env"
+
+          # Create virtual environment using uv, explicitly using the Python from setup-python
+          uv venv .venv --python $(which python)
+
+          # Activate virtual environment for this script block
+          source .venv/bin/activate
+
+          # Install packages using uv
+          uv pip install -r requirements.txt --keyring-provider=disabled
 
       - name: Run coverage and generate badge
         run: yarn test:coverage
