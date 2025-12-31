@@ -2,7 +2,7 @@
 
 A Javascript/TypeScript library for reading, manipulating, and writing Touchstone files (.snp files) used in radio frequency (RF) and microwave engineering.
 
-[![Tests](https://github.com/panz2018/RF-Touchstone/actions/workflows/test.yml/badge.svg)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test.yml)
+[![Tests](https://github.com/panz2018/RF-Touchstone/actions/workflows/test.yml/badge.svg?event=pull_request)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test.yml)
 [![Coverage](coverage/coverage-badge.svg)](coverage/coverage-badge.svg)
 
 ## Overview
