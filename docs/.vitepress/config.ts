@@ -30,6 +30,16 @@ export default defineConfig({
       { text: 'Home', link: '/' },
       { text: 'Introduction', link: '/introduction' },
       { text: 'Development', link: '/development' },
+      {
+        text: 'Online Demo',
+        items: [
+          {
+            text: 'Touchstone Converter (React)',
+            link: '/examples/react/index.html',
+            target: '_blank',
+          },
+        ],
+      },
       { text: 'API Reference', link: '/api/modules' },
       {
         text: 'Changelog',

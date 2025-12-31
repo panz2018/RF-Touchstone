@@ -2,7 +2,6 @@ import globals from 'globals'
 import pluginJs from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import prettierConfig from 'eslint-config-prettier'
-import prettierPlugin from 'eslint-plugin-prettier'
 
 // Helper to fix potential whitespace issues in the globals package
 const fixGlobals = (obj) => {
@@ -80,18 +79,5 @@ export default [
     },
   },
   pluginJs.configs.recommended,
-  {
-    plugins: {
-      prettier: prettierPlugin,
-    },
-    rules: {
-      'prettier/prettier': [
-        'error',
-        {
-          endOfLine: 'auto',
-        },
-      ],
-    },
-  },
   prettierConfig,
 ]

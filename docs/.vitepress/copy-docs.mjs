@@ -17,15 +17,19 @@ const filesToCopy = [
     destination: 'LICENSE.md',
   },
   {
-    source: path.join('coverage', 'coverage-badge.svg'), // Source relative to rootDir
-    destination: path.join('coverage', 'coverage-badge.svg'), // Destination relative to docsDir
+    source: path.join('coverage', 'coverage-badge.svg'),
+    destination: path.join('coverage', 'coverage-badge.svg'),
+  },
+  {
+    source: path.join('examples', 'react', 'dist'),
+    destination: path.join('public', 'examples', 'react'),
   },
 ]
 
-// Helper function to copy a file
-async function copyFile(source, destination) {
+// Helper function to copy a file or directory
+async function copyItem(source, destination) {
   try {
-    await fs.copyFile(source, destination)
+    await fs.copy(source, destination)
     console.log(`Successfully copied '${source}' to '${destination}'`)
   } catch (copyError) {
     console.error(`Error copying '${source}' to '${destination}':`, copyError)
@@ -62,7 +66,7 @@ async function prepareDocuments() {
   for (const file of filesToCopy) {
     const sourcePath = path.join(rootDir, file.source)
     const destinationPath = path.join(docsDir, file.destination)
-    await copyFile(sourcePath, destinationPath)
+    await copyItem(sourcePath, destinationPath)
   }
 }
 
