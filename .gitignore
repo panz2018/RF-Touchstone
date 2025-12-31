@@ -43,6 +43,7 @@ coverage/*
 
 # TypeDocs
 docs/api
+docs/public/examples
 
 # Vite build visualizer
 build
