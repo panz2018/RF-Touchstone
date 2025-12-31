@@ -1,8 +1,10 @@
-# React Example for rf-touchstone
+# React Example: Touchstone Converter
+
+**[🚀 View Live Demo](https://panz2018.github.io/RF-Touchstone/examples/react/index.html)**
 
 [![React Example Tests](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-react-example.yml/badge.svg?event=pull_request)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-react-example.yml)
 
-This example demonstrates how to use the `rf-touchstone` library in a simple React application built with Vite and TypeScript. It allows users to upload a Touchstone file (e.g., `.s1p`, `.s2p`) and view its parsed contents.
+This example demonstrates how to build a complete **Touchstone Converter** using the `rf-touchstone` library. Built with React 19, Vite, and TypeScript. It allows users to upload a Touchstone file (e.g., `.s1p`, `.s2p`) and view its parsed contents.
 
 ## Overview
 

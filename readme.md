@@ -58,13 +58,20 @@ const sParameters = touchstone.matrix
 const newContent = touchstone.writeContent()
 ```
 
-<!--
+## Online Demo
+
+Experience the library in action with our [Touchstone Converter (React)](https://panz2018.github.io/RF-Touchstone/examples/react/index.html). It allows you to:
+
+- Load local or remote `.snp` files
+- Inspect metadata and network data
+- Convert formats and units on the fly
+- Download modified Touchstone files
+
 ## Examples
 
 This repository includes examples to demonstrate the usage of `rf-touchstone` in different contexts.
 
-- **[React Example](https://github.com/panz2018/RF-Touchstone/tree/main/examples/react)**: A simple standalone React application (using Vite and TypeScript) that showcases how to import and use `rf-touchstone` from npm to parse and display Touchstone file data. Includes comprehensive tests and a GitHub Action for CI.
--->
+- **[React Example](https://github.com/panz2018/RF-Touchstone/tree/main/examples/react)**: A complete web application (using Vite and TypeScript) that showcases how to build a Touchstone file viewer/converter. You can try the **[Live Demo](https://panz2018.github.io/RF-Touchstone/examples/react/index.html)**.
 
 ## Documentation
 
