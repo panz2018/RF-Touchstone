@@ -11,9 +11,13 @@ const pythonPath = path.join(venvDir, getPythonBin())
 
 export async function run(program: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const pythonProcess = spawn(pythonPath, ['-c', dedent(program)], {
+    const pythonProcess = spawn(pythonPath, ['-'], {
       stdio: ['pipe', 'pipe', 'pipe'], // stdin, stdout, stderr
     })
+
+    const dedentedProgram = dedent(program)
+    pythonProcess.stdin.write(dedentedProgram)
+    pythonProcess.stdin.end()
 
     // Record outputs from python
     let output = ''
