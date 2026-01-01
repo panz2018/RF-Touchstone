@@ -160,14 +160,20 @@ export class Touchstone {
    * @returns The filename part of the string
    */
   public static getFilename(pathOrUrl: string): string {
+    let filename: string | undefined
     try {
       // Try parsing as a URL first
       const url = new URL(pathOrUrl)
-      return url.pathname.split('/').pop() || pathOrUrl
+      filename = url.pathname.split(/[/\\]/).pop()
     } catch {
       // Fallback for simple strings/paths
-      return pathOrUrl.split(/[/\\]/).pop() || pathOrUrl
+      filename = pathOrUrl.split(/[/\\]/).pop()
     }
+
+    if (!filename) {
+      throw new Error(`Could not determine filename from: ${pathOrUrl}`)
+    }
+    return filename
   }
 
   /**
@@ -199,41 +205,54 @@ export class Touchstone {
 
   /**
    * Fetches a Touchstone file from a URL, parses it, and returns a Touchstone instance.
-   * The number of ports is automatically determined from the filename in the URL.
    *
    * @param url - The URL of the Touchstone file to load
+   * @param nports - The number of ports. If not provided, it is automatically determined from the filename in the URL.
    * @returns A Promise that resolves to a Touchstone instance
    * @throws An error if fetching or parsing fails, or if nports cannot be determined
    */
-  public static async fromUrl(url: string): Promise<Touchstone> {
+  public static async fromUrl(
+    url: string,
+    nports?: number | null
+  ): Promise<Touchstone> {
     const response = await fetch(url)
     if (!response.ok) {
       throw new Error(`Failed to fetch file: ${response.statusText}`)
     }
     const textContent = await response.text()
 
-    const filename = this.getFilename(url)
-    const nports = this.parsePorts(filename)
-    if (nports === null) {
+    let determinedNports: number | null = nports ?? null
+    if (determinedNports === null) {
+      const filename = this.getFilename(url)
+      determinedNports = this.parsePorts(filename)
+    }
+
+    if (determinedNports === null) {
       throw new Error(
         `Could not determine number of ports from URL: ${url}. Please provide nports manually.`
       )
     }
-    return this.fromText(textContent, nports)
+    return this.fromText(textContent, determinedNports)
   }
 
   /**
    * Reads a File object (e.g., from a file input), parses its content, and returns a Touchstone instance.
-   * The number of ports is automatically determined from the file name.
    *
    * @param file - The File object to read
+   * @param nports - The number of ports. If not provided, it is automatically determined from the file name.
    * @returns A Promise that resolves to a Touchstone instance
    * @throws An error if reading or parsing fails, or if nports cannot be determined
    */
-  public static fromFile(file: File): Promise<Touchstone> {
+  public static fromFile(
+    file: File,
+    nports?: number | null
+  ): Promise<Touchstone> {
     return new Promise((resolve, reject) => {
-      const nports = this.parsePorts(file.name)
-      if (nports === null) {
+      let determinedNports: number | null = nports ?? null
+      if (determinedNports === null) {
+        determinedNports = this.parsePorts(file.name)
+      }
+      if (determinedNports === null) {
         return reject(
           new Error(
             `Could not determine number of ports from file name: ${file.name}`
@@ -249,7 +268,7 @@ export class Touchstone {
             reject(new Error('File content is empty'))
             return
           }
-          resolve(this.fromText(textContent, nports))
+          resolve(this.fromText(textContent, determinedNports))
         } catch (err) {
           reject(err)
         }

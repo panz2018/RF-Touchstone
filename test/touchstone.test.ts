@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import {
   abs,
   arg,
@@ -808,18 +808,229 @@ describe('touchstone.ts', () => {
     expect(touchstone.writeContent()).toBe(expected)
   })
 
-  // Generate touchstone string using Scikit-RF, then test readContent
-  // for (const format of TouchstoneFormats) {
-  //   for (const parameter of TouchstoneParameters) {
-  //     for (const impedance of [undefined, 'one', 'multiple']) {
-  //       for (const nports of [1, 2, 3, 4, 5, 9, 15]) {
-  //         for (const unit of FrequencyUnits) {
-  //           console.log(format, parameter, impedance, nports, unit)
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  describe('Static Methods', () => {
+    it('getFilename', () => {
+      expect(Touchstone.getFilename('sample.s2p')).toBe('sample.s2p')
+      expect(Touchstone.getFilename('/path/to/sample.s2p')).toBe('sample.s2p')
+      expect(Touchstone.getFilename('C:\\path\\to\\sample.s2p')).toBe(
+        'sample.s2p'
+      )
+      expect(Touchstone.getFilename('https://example.com/data/test.s3p')).toBe(
+        'test.s3p'
+      )
+      expect(
+        Touchstone.getFilename('https://example.com/test.s4p?query=1')
+      ).toBe('test.s4p')
+      expect(Touchstone.getFilename('https://example.com/test?query=1')).toBe(
+        'test'
+      )
+    })
+
+    it('getFilename error', () => {
+      expect(() => Touchstone.getFilename('')).toThrow(
+        'Could not determine filename from: '
+      )
+      expect(() => Touchstone.getFilename('/path/to/sample.s2p/')).toThrow(
+        'Could not determine filename from: /path/to/sample.s2p/'
+      )
+    })
+
+    it('parsePorts', () => {
+      expect(Touchstone.parsePorts('test.s1p')).toBe(1)
+      expect(Touchstone.parsePorts('test.s2p')).toBe(2)
+      expect(Touchstone.parsePorts('test.s10p')).toBe(10)
+      expect(Touchstone.parsePorts('test.snp')).toBe(null)
+      expect(Touchstone.parsePorts('test.txt')).toBe(null)
+      expect(Touchstone.parsePorts('test')).toBe(null)
+    })
+
+    it('fromText', () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const ts = Touchstone.fromText(content, 1)
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.format).toBe('MA')
+      expect(ts.parameter).toBe('S')
+      expect(ts.impedance).toBe(50)
+      expect(ts.nports).toBe(1)
+      expect(ts.frequency?.unit).toBe('MHz')
+      expect(ts.frequency?.f_scaled).toStrictEqual([100])
+      expect(ts.matrix![0][0]).toStrictEqual([
+        complex({ r: 0.9, phi: (-10 / 180) * pi }),
+      ])
+    })
+
+    it('fromUrl', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const mockResponse = {
+        ok: true,
+        text: () => Promise.resolve(content),
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      const ts = await Touchstone.fromUrl('https://example.com/sample.s1p')
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.format).toBe('MA')
+      expect(ts.parameter).toBe('S')
+      expect(ts.impedance).toBe(50)
+      expect(ts.nports).toBe(1)
+      expect(ts.frequency?.unit).toBe('MHz')
+      expect(ts.frequency?.f_scaled).toStrictEqual([100])
+      expect(ts.matrix![0][0]).toStrictEqual([
+        complex({ r: 0.9, phi: (-10 / 180) * pi }),
+      ])
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromUrl with wrong nports', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const mockResponse = {
+        ok: true,
+        text: () => Promise.resolve(content),
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      await expect(
+        Touchstone.fromUrl('https://example.com/sample.s1p', 2)
+      ).rejects.toThrow(
+        'Touchstone invalid data number: 3, which should be multiple of 9'
+      )
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromUrl with explicit nports', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const mockResponse = {
+        ok: true,
+        text: () => Promise.resolve(content),
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      // URL doesn't have port info, but we provide it explicitly
+      const ts = await Touchstone.fromUrl('https://example.com/data.txt', 1)
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.format).toBe('MA')
+      expect(ts.parameter).toBe('S')
+      expect(ts.impedance).toBe(50)
+      expect(ts.nports).toBe(1)
+      expect(ts.frequency?.unit).toBe('MHz')
+      expect(ts.frequency?.f_scaled).toStrictEqual([100])
+      expect(ts.matrix![0][0]).toStrictEqual([
+        complex({ r: 0.9, phi: (-10 / 180) * pi }),
+      ])
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromUrl error: 404', async () => {
+      const mockResponse = {
+        ok: false,
+        statusText: 'Not Found',
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      await expect(
+        Touchstone.fromUrl('https://example.com/404.s1p')
+      ).rejects.toThrow('Failed to fetch file: Not Found')
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromUrl error: invalid ports', async () => {
+      const mockResponse = {
+        ok: true,
+        text: () => Promise.resolve('# MHz S MA R 50\n100 0.9 -10'),
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      await expect(
+        Touchstone.fromUrl('https://example.com/test.txt')
+      ).rejects.toThrow('Could not determine number of ports from URL')
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromFile', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const file = new File([content], 'sample.s1p', { type: 'text/plain' })
+
+      const ts = await Touchstone.fromFile(file)
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.format).toBe('MA')
+      expect(ts.parameter).toBe('S')
+      expect(ts.impedance).toBe(50)
+      expect(ts.nports).toBe(1)
+      expect(ts.frequency?.unit).toBe('MHz')
+      expect(ts.frequency?.f_scaled).toStrictEqual([100])
+      expect(ts.matrix![0][0]).toStrictEqual([
+        complex({ r: 0.9, phi: (-10 / 180) * pi }),
+      ])
+    })
+
+    it('fromFile with explicit nports', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      // Filename doesn't have port info, but we provide it explicitly
+      const file = new File([content], 'data.txt', { type: 'text/plain' })
+
+      const ts = await Touchstone.fromFile(file, 1)
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.format).toBe('MA')
+      expect(ts.parameter).toBe('S')
+      expect(ts.impedance).toBe(50)
+      expect(ts.nports).toBe(1)
+      expect(ts.frequency?.unit).toBe('MHz')
+      expect(ts.frequency?.f_scaled).toStrictEqual([100])
+      expect(ts.matrix![0][0]).toStrictEqual([
+        complex({ r: 0.9, phi: (-10 / 180) * pi }),
+      ])
+    })
+
+    it('fromFile error: empty content', async () => {
+      const file = new File([''], 'sample.s1p', { type: 'text/plain' })
+      await expect(Touchstone.fromFile(file)).rejects.toThrow(
+        'File content is empty'
+      )
+    })
+
+    it('fromFile error: invalid ports', async () => {
+      const file = new File([''], 'test.txt', { type: 'text/plain' })
+      await expect(Touchstone.fromFile(file)).rejects.toThrow(
+        'Could not determine number of ports from file name'
+      )
+    })
+
+    it('fromFile error: read failure', async () => {
+      const file = new File([''], 'sample.s1p', { type: 'text/plain' })
+
+      // Mock FileReader class to trigger onerror
+      class MockFileReader {
+        onerror?: () => void
+        readAsText(_: File) {
+          if (this.onerror) {
+            this.onerror()
+          }
+        }
+      }
+      vi.stubGlobal('FileReader', MockFileReader)
+
+      await expect(Touchstone.fromFile(file)).rejects.toThrow(
+        'Failed to read file: sample.s1p'
+      )
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromFile with wrong nports', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      // Filename doesn't have port info, but we provide it explicitly
+      const file = new File([content], 'data.s1p', { type: 'text/plain' })
+
+      await expect(Touchstone.fromFile(file, 2)).rejects.toThrow(
+        'Touchstone invalid data number: 3, which should be multiple of 9'
+      )
+    })
+  })
 })
 
 /**
