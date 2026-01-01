@@ -46,13 +46,18 @@ yarn add rf-touchstone
 ```typescript
 import { Touchstone } from 'rf-touchstone'
 
-// Read a Touchstone file
-const touchstone = new Touchstone()
-touchstone.readContent(fileContent, 2) // assuming a 2-port network
+// Read from a URL (nports automatically determined from .s2p)
+const touchstone = await Touchstone.fromUrl('https://example.com/device.s2p')
+
+// Or from a File object (e.g., from a file input)
+const touchstoneFromFile = await Touchstone.fromFile(file)
+
+// Or from a raw text string
+const touchstoneFromText = Touchstone.fromText(fileContent, 2)
 
 // Access data
-const frequencies = touchstone.frequency.f_scaled
-const sParameters = touchstone.matrix
+console.log(touchstone.frequency.f_scaled)
+console.log(touchstone.matrix)
 
 // Write back to Touchstone format
 const newContent = touchstone.writeContent()
