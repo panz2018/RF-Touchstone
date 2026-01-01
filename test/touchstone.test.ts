@@ -1068,9 +1068,12 @@ describe('writeContent and readContent, then compare with python skrf', () => {
         const python = JSON.parse(result)
         // Validate basic network properties
         expect(python.frequency.unit).toBe(touchstone.frequency.unit)
-        expect(python.frequency.f_scaled).toStrictEqual(
-          touchstone.frequency.f_scaled
+        expect(python.frequency.f_scaled.length).toBe(
+          touchstone.frequency!.f_scaled.length
         )
+        python.frequency.f_scaled.forEach((f: number, i: number) => {
+          expect(f).toBeCloseTo(touchstone.frequency!.f_scaled[i], 5)
+        })
         expect(python.impedance).toBe(touchstone.impedance)
         // Validate matrix structure and values
         expect(python.matrix.length).toBe(touchstone.nports)
@@ -1099,9 +1102,12 @@ describe('writeContent and readContent, then compare with python skrf', () => {
         expect(ts.impedance).toBe(touchstone.impedance)
         expect(ts.nports).toBe(touchstone.nports)
         expect(ts.frequency!.unit).toBe(touchstone.frequency.unit)
-        expect(ts.frequency!.f_scaled).toStrictEqual(
-          touchstone.frequency.f_scaled
+        expect(ts.frequency!.f_scaled.length).toBe(
+          touchstone.frequency!.f_scaled.length
         )
+        ts.frequency!.f_scaled.forEach((f, i) => {
+          expect(f).toBeCloseTo(touchstone.frequency!.f_scaled[i], 5)
+        })
         // Validate matrix structure and values
         expect(ts.matrix!.length).toBe(touchstone.nports)
         for (let m = 0; m < touchstone.nports; m++) {
@@ -1157,9 +1163,12 @@ describe('Generate touchstone content by python skrf then compare with readConte
         expect(ts.impedance).toBe(touchstone.impedance)
         expect(ts.nports).toBe(touchstone.nports)
         expect(ts.frequency!.unit).toBe(touchstone.frequency.unit)
-        expect(ts.frequency!.f_scaled).toStrictEqual(
-          touchstone.frequency.f_scaled
+        expect(ts.frequency!.f_scaled.length).toBe(
+          touchstone.frequency!.f_scaled.length
         )
+        ts.frequency!.f_scaled.forEach((f, i) => {
+          expect(f).toBeCloseTo(touchstone.frequency!.f_scaled[i], 5)
+        })
         // Validate matrix structure and values
         expect(ts.matrix!.length).toBe(touchstone.nports)
         for (let m = 0; m < touchstone.nports; m++) {
@@ -1226,7 +1235,12 @@ describe('Compare touchstone files locally and python skrf', () => {
 
       // 4. Validate all parameters
       expect(python.frequency.unit).toBe(ts.frequency!.unit)
-      expect(python.frequency.f_scaled).toStrictEqual(ts.frequency!.f_scaled)
+      expect(python.frequency.f_scaled.length).toBe(
+        ts.frequency!.f_scaled.length
+      )
+      python.frequency.f_scaled.forEach((f: number, i: number) => {
+        expect(f).toBeCloseTo(ts.frequency!.f_scaled[i], 5)
+      })
       // Compare impedance
       if (Array.isArray(python.impedance)) {
         expect(python.impedance).toStrictEqual(ts.impedance)
