@@ -1184,57 +1184,72 @@ describe('Generate touchstone content by python skrf then compare with readConte
 })
 
 /**
- * Generate random touchstone matrix, and test by python skrf
- * Test suite for validating Touchstone format compatibility with scikit-rf
- * Tests all combinations of:
- * - Network formats (RI/MA/DB)
- * - Number of ports (1,2,3,15)
+ * Test suite for validating local Touchstone samples against scikit-rf
+ * This test iterates through all .sNp files in the ./samples directory,
+ * parses them using RF-Touchstone, and compares the results with scikit-rf.
  */
 describe('Compare touchstone files locally and python skrf', () => {
-  it('fromFile vs python: Compare local sample Agilent_E5071B.s4p', async () => {
-    const filePath = path.resolve(__dirname, './samples/Agilent_E5071B.s4p')
-    // 1. Prepare data
-    const buffer = fs.readFileSync(filePath)
-    const content = buffer.toString('utf-8')
-    const file = new File([buffer], 'Agilent_E5071B.s4p')
-    // 2. Parse with Touchstone.ts (fromFile)
-    const ts = await Touchstone.fromFile(file)
-    const nports = ts.nports as number
-    expect(nports).not.toBeNull()
-    expect(nports).toBeTypeOf('number')
-    const parameter = ts.parameter as TouchstoneParameter
-    expect(parameter).not.toBeNull()
-    expect(TouchstoneParameters).toContain(parameter)
+  const samplesDir = path.resolve(__dirname, './samples')
+  const files = fs
+    .readdirSync(samplesDir)
+    .filter((file) => file.match(/\.s\d+p$/i))
+    .map((filename) => ({
+      name: filename,
+      path: path.join(samplesDir, filename),
+    }))
 
-    // 3. Parse with Python scikit-rf
-    const result = await pythonReadContent(content, nports, parameter)
-    const python = JSON.parse(result)
+  // Add sample from React example
+  files.push({
+    name: 'sample.s2p',
+    path: path.resolve(__dirname, '../examples/react/public/sample.s2p'),
+  })
 
-    // 4. Validate all parameters
-    expect(python.frequency.unit).toBe(ts.frequency!.unit)
-    expect(python.frequency.f_scaled).toStrictEqual(ts.frequency!.f_scaled)
-    // Compare impedance
-    if (Array.isArray(python.impedance)) {
-      expect(python.impedance).toStrictEqual(ts.impedance)
-    } else {
-      expect(python.impedance).toBe(ts.impedance)
-    }
-    // Validate matrix structure and values
-    expect(python.matrix.length).toBe(nports)
-    for (let m = 0; m < nports; m++) {
-      // Verify port dimensions
-      expect(python.matrix[m].length).toBe(nports)
-      for (let n = 0; n < nports; n++) {
-        // Verify frequency points dimension
-        const points = ts.frequency!.f_scaled.length
-        expect(python.matrix[m][n].length).toBe(points)
-        for (let p = 0; p < points; p++) {
-          const expected = ts.matrix![m][n][p]
-          const actual = python.matrix[m][n][p]
-          expect(actual.re).toBeCloseTo(expected.re, 5)
-          expect(actual.im).toBeCloseTo(expected.im, 5)
+  for (const { name, path: filePath } of files) {
+    it(`Touchstone file: ${name}`, async () => {
+      // 1. Prepare data
+      const buffer = fs.readFileSync(filePath)
+      const content = buffer.toString('utf-8')
+      const file = new File([buffer], path.basename(filePath))
+
+      // 2. Parse with Touchstone.ts (fromFile)
+      const ts = await Touchstone.fromFile(file)
+      const nports = ts.nports as number
+      expect(nports).not.toBeNull()
+      expect(nports).toBeTypeOf('number')
+      const parameter = ts.parameter as TouchstoneParameter
+      expect(parameter).not.toBeNull()
+      expect(TouchstoneParameters).toContain(parameter)
+
+      // 3. Parse with Python scikit-rf
+      const result = await pythonReadContent(content, nports, parameter)
+      const python = JSON.parse(result)
+
+      // 4. Validate all parameters
+      expect(python.frequency.unit).toBe(ts.frequency!.unit)
+      expect(python.frequency.f_scaled).toStrictEqual(ts.frequency!.f_scaled)
+      // Compare impedance
+      if (Array.isArray(python.impedance)) {
+        expect(python.impedance).toStrictEqual(ts.impedance)
+      } else {
+        expect(python.impedance).toBe(ts.impedance)
+      }
+      // Validate matrix structure and values
+      expect(python.matrix.length).toBe(nports)
+      for (let m = 0; m < nports; m++) {
+        // Verify port dimensions
+        expect(python.matrix[m].length).toBe(nports)
+        for (let n = 0; n < nports; n++) {
+          // Verify frequency points dimension
+          const points = ts.frequency!.f_scaled.length
+          expect(python.matrix[m][n].length).toBe(points)
+          for (let p = 0; p < points; p++) {
+            const expected = ts.matrix![m][n][p]
+            const actual = python.matrix[m][n][p]
+            expect(actual.re).toBeCloseTo(expected.re, 5)
+            expect(actual.im).toBeCloseTo(expected.im, 5)
+          }
         }
       }
-    }
-  })
+    })
+  }
 })
