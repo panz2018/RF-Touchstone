@@ -613,14 +613,14 @@ describe('touchstone.ts', () => {
     )
     touchstone.matrix = [[], []]
     expect(() => touchstone.writeContent()).toThrow(
-      `Touchstone matrix at row #0 has 0 columns, but expected 2`
+      `Touchstone matrix at row index 0 has 0 columns, but expected 2`
     )
     touchstone.matrix = [
       [[], []],
       [[], []],
     ]
     expect(() => touchstone.writeContent()).toThrow(
-      `Touchstone matrix at row #0 column #0 has 0 points, but expected 5`
+      `Touchstone matrix at row 0, column 0 has 0 points, but expected 5`
     )
     touchstone.matrix = [
       [

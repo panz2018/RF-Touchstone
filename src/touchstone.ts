@@ -17,23 +17,23 @@ import type { FrequencyUnit } from './frequency'
 import { Frequency } from './frequency'
 
 /**
- * S-parameter format: MA, DB, and RI
- * - RI: real and imaginary, i.e. $A + j \cdot B$
- * - MA: magnitude and angle (in degrees), i.e. $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
- * - DB: decibels and angle (in degrees), i.e. $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
+ * Supported Touchstone data formats.
+ * - RI: Real and Imaginary, i.e., $A + j \cdot B$
+ * - MA: Magnitude and Angle (degrees), i.e., $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
+ * - DB: Decibel (20*log10) and Angle (degrees), i.e., $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
  */
 export const TouchstoneFormats = ['RI', 'MA', 'DB'] as const
 
 /**
- * S-parameter format: MA, DB, and RI
- * - RI: real and imaginary, i.e. $A + j \cdot B$
- * - MA: magnitude and angle (in degrees), i.e. $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
- * - DB: decibels and angle (in degrees), i.e. $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
+ * Type representing the Touchstone data format.
+ * - RI: Real and Imaginary, i.e., $A + j \cdot B$
+ * - MA: Magnitude and Angle (degrees), i.e., $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
+ * - DB: Decibel (20*log10) and Angle (degrees), i.e., $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
  */
 export type TouchstoneFormat = (typeof TouchstoneFormats)[number]
 
 /**
- * Type of network parameters
+ * Supported network parameter types in Touchstone files.
  * - S: Scattering parameters
  * - Y: Admittance parameters
  * - Z: Impedance parameters
@@ -43,12 +43,12 @@ export type TouchstoneFormat = (typeof TouchstoneFormats)[number]
 export const TouchstoneParameters = ['S', 'Y', 'Z', 'G', 'H']
 
 /**
- * Type of network parameters: 'S' | 'Y' | 'Z' | 'G' | 'H'
- * - S: Scattering parameters
- * - Y: Admittance parameters
- * - Z: Impedance parameters
- * - H: Hybrid-h parameters
- * - G: Hybrid-g parameters
+ * Type representing the network parameter type.
+ * - S: Scattering
+ * - Y: Admittance
+ * - Z: Impedance
+ * - H: Hybrid-h
+ * - G: Hybrid-g
  */
 export type TouchstoneParameter = (typeof TouchstoneParameters)[number]
 
@@ -82,91 +82,86 @@ export type TouchstoneImpedance = number | number[]
 export type TouchstoneMatrix = Complex[][][]
 
 /**
- * Touchstone class for reading and writing network parameter data in Touchstone format.
- * Supports both version 1.0 and 1.1 of the Touchstone specification.
+ * Represents a Touchstone file parser and generator.
+ * Supports reading, manipulating, and writing Touchstone (.snp) files
+ * following version 1.0 and 1.1 specifications.
  *
  * @remarks
  * #### Overview
  *
- * The **Touchstone file format** (also known as `.snp` files) is an industry-standard ASCII text format used to represent the n-port network parameters of electrical circuits. These files are commonly used in RF and microwave engineering to describe the behavior of devices such as filters, amplifiers, and interconnects.
- *
- * A Touchstone file contains data about network parameters (e.g., S-parameters, Y-parameters, Z-parameters) at specific frequencies.
+ * The **Touchstone file format** (typically with `.snp` extensions) is an industry-standard ASCII format
+ * for representing n-port network parameters. It is widely used in Electronic Design Automation (EDA)
+ * and by measurement equipment (like VNAs) to describe the performance of RF and microwave components.
  *
  * ##### Key Features:
- * - **File Extensions**: Traditionally, Touchstone files use extensions like `.s1p`, `.s2p`, `.s3p`, etc., where the number indicates the number of ports. For example, `.s2p` represents a 2-port network.
- * - **Case Insensitivity**: Touchstone files are case-insensitive, meaning keywords and values can be written in uppercase or lowercase.
- * - **Versioning**: **Only version 1.0 and 1.1 are supported in this class**
+ * - **File Extensions**: `.s1p`, `.s2p`, ... `.sNp` indicate a network with N ports.
+ * - **Case Insensitivity**: Keywords and identifiers are case-insensitive.
+ * - **Versions**: Full support for version 1.0 and 1.1. Version 2.0 is not currently supported.
  *
  * ---
  *
- * #### File Structure
+ * #### Touchstone File Structure
  *
- * A Touchstone file consists of several sections, each serving a specific purpose. Below is a breakdown of the structure:
+ * A file consists of a header (comments and option line) followed by network data.
  *
  * ##### 1. Header Section
  *
- * - **Comment Lines**: Lines starting with `!` are treated as comments and ignored during parsing.
- * - **Option Line**: Line starting with `#` defines global settings for the file, such as frequency units, parameter type, and data format. Example:
- *   ```plaintext
- *   # GHz S MA R 50
- *   ```
- *   - `GHz`: Frequency unit (can be `Hz`, `kHz`, `MHz`, or `GHz`).
+ * - **Comment Lines**: Lines starting with `!` are stored in the `comments` array.
+ * - **Option Line**: The line starting with `#` sets the global context.
+ *   Example: `# GHz S MA R 50`
+ *   - `GHz`: Frequency unit (`Hz`, `kHz`, `MHz`, or `GHz`).
  *   - `S`: Parameter type (`S`, `Y`, `Z`, `H`, or `G`).
  *   - `MA`: Data format (`MA` for magnitude-angle, `DB` for decibel-angle, or `RI` for real-imaginary).
+ *     - RI: $A + j \cdot B$
+ *     - MA: $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
+ *     - DB: $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
  *   - `R 50`: Reference resistance in ohms (default is 50 ohms if omitted).
  *
- * ##### 2. Network Data
+ * ##### 2. Network Data Section
  *
- * The core of the file contains the network parameter data, organized by frequency. Each frequency point is followed by its corresponding parameter values.
- *
- * - **Single-Ended Networks**: Data is arranged in a matrix format. For example, a 2-port network might look like this:
- *   ```plaintext
- *   <frequency> <N11> <N21> <N12> <N22>
- *   ```
+ * Data is listed frequency by frequency. For a 2-port network, the format is:
+ * `<frequency> <N11> <N21> <N12> <N22>` (where each NXx is a pair of values based on the format).
  *
  * ---
  *
  * #### References:
- * - {@link https://ibis.org/touchstone_ver2.1/touchstone_ver2_1.pdf Touchstone(R) File Format Specification (Version 2.1)}
+ * - {@link https://github.com/scikit-rf/scikit-rf scikit-rf: Open Source RF Engineering}
+ * - {@link https://github.com/Nubis-Communications/SignalIntegrity SignalIntegrity: Signal and Power Integrity Tools}
  * - {@link https://books.google.com/books/about/S_Parameters_for_Signal_Integrity.html?id=_dLKDwAAQBAJ S-Parameters for Signal Integrity}
- * - {@link https://github.com/scikit-rf/scikit-rf/blob/master/skrf/io/touchstone.py scikit-rf: Open Source RF Engineering}
- * - {@link https://github.com/Nubis-Communications/SignalIntegrity/blob/master/SignalIntegrity/Lib/SParameters/SParameters.py SignalIntegrity: Signal and Power Integrity Tools}
+ * - {@link https://ibis.org/touchstone_ver2.1/touchstone_ver2_1.pdf Touchstone(R) File Format Specification (Version 2.1)}
  *
  * @example
+ * #### Parsing a local file string
+ * ```typescript
+ * import { Touchstone } from 'rf-touchstone';
  *
- * #### Example 1: Simple 1-Port S-Parameter File
- * ```plaintext
- * ! 1-port S-parameter file
- * # MHz S MA R 50
- * 100 0.99 -4
- * 200 0.80 -22
- * 300 0.707 -45
- * ```
- *
- * #### Example 2: Simple 2-Port S-Parameter File
- * ```plaintext
- * ! Sample S2P File
- * # HZ S RI R 50
- * ! Freq S11(real) S11(imag) S21(real) S21(imag) S12(real) S12(imag) S22(real) S22(imag)
- * 1000000000 0.9 -0.1 0.01 0.02 0.01 0.02 0.8 -0.15
- * 2000000000 0.8 -0.2 0.02 0.03 0.02 0.03 0.7 -0.25
+ * const content = `
+ * ! Simple 1-port S-parameter data
+ * # MHz S RI R 50
+ * 100 0.9 -0.1
+ * 200 0.8 -0.2
+ * `;
+ * const ts = Touchstone.fromText(content, 1);
+ * console.log(ts.parameter); // 'S'
+ * console.log(ts.frequency.unit); // 'MHz'
  * ```
  */
 export class Touchstone {
   /**
-   * Extracts a filename from a URL or a file path string.
+   * Utility to extract a filename from a URL or a file path string.
    *
-   * @param pathOrUrl - The URL or path string
-   * @returns The filename part of the string
+   * @param pathOrUrl - The URL or string representation of a path.
+   * @returns The filename part of the string.
+   * @throws Error if the filename cannot be determined.
    */
   public static getFilename(pathOrUrl: string): string {
     let filename: string | undefined
     try {
-      // Try parsing as a URL first
+      // Attempt to parse as a URL
       const url = new URL(pathOrUrl)
       filename = url.pathname.split(/[/\\]/).pop()
     } catch {
-      // Fallback for simple strings/paths
+      // Fallback to simple string path logic
       filename = pathOrUrl.split(/[/\\]/).pop()
     }
 
@@ -177,10 +172,10 @@ export class Touchstone {
   }
 
   /**
-   * Helper to determine the number of ports from a filename extension (e.g., .s2p -> 2).
+   * Determines the number of ports based on the file extension (e.g., .s2p -> 2).
    *
-   * @param filename - The filename or URL to check
-   * @returns The number of ports, or null if not determinable from the extension
+   * @param filename - The filename or URL to inspect.
+   * @returns The number of ports, or null if it cannot be determined.
    */
   public static parsePorts(filename: string): number | null {
     const match = filename.match(/\.s(\d+)p$/i)
@@ -204,12 +199,12 @@ export class Touchstone {
   }
 
   /**
-   * Fetches a Touchstone file from a URL, parses it, and returns a Touchstone instance.
+   * Async helper to fetch, parse, and return a Touchstone instance from a URL.
    *
-   * @param url - The URL of the Touchstone file to load
-   * @param nports - The number of ports. If not provided, it is automatically determined from the filename in the URL.
-   * @returns A Promise that resolves to a Touchstone instance
-   * @throws An error if fetching or parsing fails, or if nports cannot be determined
+   * @param url - The URL of the Touchstone file.
+   * @param nports - The expected number of ports. If null, it attempts to parse from the URL.
+   * @returns A promise resolving to a Touchstone instance.
+   * @throws Error if the fetch fails, or the number of ports cannot be determined.
    */
   public static async fromUrl(
     url: string,
@@ -236,12 +231,12 @@ export class Touchstone {
   }
 
   /**
-   * Reads a File object (e.g., from a file input), parses its content, and returns a Touchstone instance.
+   * Reads a File object (typical in browser environments), parses it, and returns a Touchstone instance.
    *
-   * @param file - The File object to read
-   * @param nports - The number of ports. If not provided, it is automatically determined from the file name.
-   * @returns A Promise that resolves to a Touchstone instance
-   * @throws An error if reading or parsing fails, or if nports cannot be determined
+   * @param file - The HTML5 File object to read.
+   * @param nports - The expected number of ports. If null, it attempts to parse from the filename.
+   * @returns A promise resolving to a Touchstone instance.
+   * @throws Error if reading fails or the number of ports cannot be determined.
    */
   public static fromFile(
     file: File,
@@ -281,7 +276,7 @@ export class Touchstone {
   }
 
   /**
-   * Comments in the file header with `!` symbol at the beginning of each row
+   * Array of comment strings extracted from the Touchstone file header (lines starting with `!`).
    */
   public comments: string[] = []
 
@@ -291,13 +286,13 @@ export class Touchstone {
   private _format: TouchstoneFormat | undefined
 
   /**
-   * Set the Touchstone format: MA, DB, RI, or undefined
-   * - RI: real and imaginary, i.e. $A + j \cdot B$
-   * - MA: magnitude and angle (in degrees), i.e. $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
-   * - DB: decibels and angle (in degrees), i.e. $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
-   * @param format
-   * @returns
-   * @throws Will throw an error if the format is not valid
+   * Sets the Touchstone data format.
+   * - RI: Real and Imaginary, i.e., $A + j \cdot B$
+   * - MA: Magnitude and Angle (degrees), i.e., $A \cdot e^{j \cdot {\pi \over 180} \cdot B }$
+   * - DB: Decibel and Angle (degrees), i.e., $10^{A \over 20} \cdot e^{j \cdot {\pi \over 180} \cdot B}$
+   *
+   * @param format - The target format (RI, MA, or DB).
+   * @throws Error if the format is invalid.
    */
   set format(format: TouchstoneFormat | undefined | null) {
     if (format === undefined || format === null) {
@@ -336,15 +331,15 @@ export class Touchstone {
   private _parameter: TouchstoneParameter | undefined
 
   /**
-   * Set the type of network parameter
+   * Sets the type of network parameters.
    * - S: Scattering parameters
    * - Y: Admittance parameters
    * - Z: Impedance parameters
    * - H: Hybrid-h parameters
    * - G: Hybrid-g parameters
-   * @param parameter
-   * @returns
-   * @throws Will throw an error if the parameter is not valid
+   *
+   * @param parameter - The target parameter type (S, Y, Z, G, or H).
+   * @throws Error if the parameter type is invalid.
    */
   set parameter(parameter: TouchstoneParameter | undefined | null) {
     if (parameter === undefined || parameter === null) {
@@ -389,11 +384,11 @@ export class Touchstone {
   private _impedance: TouchstoneImpedance = 50
 
   /**
-   * Set the Touchstone impedance.
+   * Sets the reference impedance (resistance) in Ohms.
    * Default: 50Ω
-   * @param impedance
-   * @returns
-   * @throws Will throw an error if the impedance is not valid
+   *
+   * @param impedance - A single number for all ports, or an array of numbers (one per port).
+   * @throws Error if the impedance value is invalid.
    */
   set impedance(impedance: TouchstoneImpedance) {
     if (typeof impedance === 'number') {
@@ -426,10 +421,10 @@ export class Touchstone {
   private _nports: number | undefined
 
   /**
-   * Set the ports number
-   * @param nports
-   * @returns
-   * @throws Will throw an error if the number of ports is not valid
+   * Sets the number of ports for the network.
+   *
+   * @param nports - The integer number of ports (must be >= 1).
+   * @throws Error if the value is not a positive integer.
    */
   set nports(nports: number | undefined | null) {
     if (nports === undefined || nports === null) {
@@ -449,14 +444,14 @@ export class Touchstone {
   }
 
   /**
-   * Get the ports number
+   * The number of ports in the network.
    */
   get nports() {
     return this._nports
   }
 
   /**
-   * Frequency points
+   * Frequency metadata and point array.
    */
   public frequency: Frequency | undefined
 
@@ -470,12 +465,9 @@ export class Touchstone {
   private _matrix: TouchstoneMatrix | undefined
 
   /**
-   * Sets the network parameter matrix.
+   * Directly sets the network parameter matrix.
    *
-   * @param matrix - The 3D complex matrix to store, or undefined/null to clear
-   * @remarks
-   * This setter provides a way to directly assign the network parameter matrix.
-   * Setting to undefined or null will clear the existing matrix data.
+   * @param matrix - The 3D complex matrix to assign.
    */
   set matrix(matrix: TouchstoneMatrix | undefined | null) {
     if (matrix === undefined || matrix === null) {
@@ -606,12 +598,12 @@ export class Touchstone {
     }
 
     // Parse frequency data
-    const content = lines
+    const dataString = lines
       .filter((line) => !line.startsWith('!') && !line.startsWith('#'))
       .map((line) => {
         const index = line.indexOf('!')
         if (index !== -1) {
-          // If a comment is found in the line, remove it
+          // Remove inline comments
           return line.substring(0, index).trim()
         } else {
           return line.trim()
@@ -619,8 +611,11 @@ export class Touchstone {
       })
       .join(' ')
 
-    const data = content.split(/\s+/).map((d) => parseFloat(d))
+    // Split valid data tokens and parse as numbers
+    const data = dataString.split(/\s+/).map((d) => parseFloat(d))
     // countColumn(Columns count): 1 + 2 * nports^2
+
+    // The expected number of values in each frequency data row
     const countColumn = 2 * Math.pow(this.nports, 2) + 1
     if (data.length % countColumn !== 0) {
       throw new Error(
@@ -629,6 +624,8 @@ export class Touchstone {
     }
     const points = data.length / countColumn
     // f[n] = TokenList[n * countColumn]
+
+    // Extract the scaled frequency values (f[n] = TokenList[n * countColumn])
     const rawScaled = subset(
       data,
       index(multiply(range(0, points), countColumn))
@@ -640,7 +637,7 @@ export class Touchstone {
       this.frequency.f_scaled = [rawScaled]
     } else {
       throw new Error(
-        `Unknown frequency.f_scaled type: ${typeof rawScaled}, and its value: ${rawScaled}`
+        `Unexpected frequency f_scaled type: ${typeof rawScaled}, and its value: ${rawScaled}`
       )
     }
     /* v8 ignore stop */
@@ -766,9 +763,10 @@ export class Touchstone {
       throw new Error('Network parameter matrix is not defined')
     }
 
-    // Calculate points number in the network
+    // Get the number of frequency points
     const points = this.frequency.f_scaled.length
-    // Check the matrix size
+
+    // Validate matrix dimensions against nports and frequency points
     if (this.matrix.length !== this.nports) {
       throw new Error(
         `Touchstone matrix has ${this.matrix.length} rows, but expected ${this.nports}`
@@ -777,13 +775,13 @@ export class Touchstone {
     for (let outPort = 0; outPort < this.nports; outPort++) {
       if (this.matrix[outPort].length !== this.nports) {
         throw new Error(
-          `Touchstone matrix at row #${outPort} has ${this.matrix[outPort].length} columns, but expected ${this.nports}`
+          `Touchstone matrix at row index ${outPort} has ${this.matrix[outPort].length} columns, but expected ${this.nports}`
         )
       }
       for (let inPort = 0; inPort < this.nports; inPort++) {
         if (this.matrix[outPort][inPort].length !== points) {
           throw new Error(
-            `Touchstone matrix at row #${outPort} column #${inPort} has ${this.matrix[outPort][inPort].length} points, but expected ${points}`
+            `Touchstone matrix at row ${outPort}, column ${inPort} has ${this.matrix[outPort][inPort].length} points, but expected ${points}`
           )
         }
       }
@@ -844,12 +842,12 @@ export class Touchstone {
     // Generate Touchstone content lines
     const lines: string[] = []
 
-    // Add comments if they exist
+    // 1. Add comment lines
     if (this.comments.length > 0) {
       lines.push(...this.comments.map((comment) => `! ${comment}`))
     }
 
-    // Add option line
+    // 2. Add the option line (# ...)
     let optionLine = `# ${this.frequency!.unit} ${this.parameter} ${this.format}`
     if (Array.isArray(this.impedance)) {
       optionLine += ` R ${this.impedance.join(' ')}`
@@ -858,13 +856,14 @@ export class Touchstone {
     }
     lines.push(optionLine)
 
-    // Add network data
+    // 3. Add network parameter data
     for (let n = 0; n < points; n++) {
       const dataLine: string[] = [this.frequency!.f_scaled[n].toString()]
 
       // Add matrix data for this frequency point
       for (let outPort = 0; outPort < this.nports!; outPort++) {
         for (let inPort = 0; inPort < this.nports!; inPort++) {
+          // Special indexing for 2-port networks to match S11 S21 S12 S22 order
           const value =
             this.nports === 2
               ? this.matrix![inPort][outPort][n]
@@ -887,7 +886,7 @@ export class Touchstone {
             default:
               throw new Error(`Unknown Touchstone format: ${this.format}`)
           }
-          // Format numbers to avoid scientific notation and limit decimal places
+          // Limit precision and avoid scientific notation for better parser compatibility
           dataLine.push(round(A, 12).toString(), round(B, 12).toString())
         }
       }
