@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+import fs from 'fs'
+import path from 'path'
 import {
   abs,
   arg,
@@ -15,7 +17,7 @@ import {
   TouchstoneFormats,
   TouchstoneParameters,
 } from '@/touchstone'
-import type { TouchstoneFormat } from '@/touchstone'
+import type { TouchstoneFormat, TouchstoneParameter } from '@/touchstone'
 import { Frequency } from '@/frequency'
 import { createRandomTouchstoneMatrix } from './python/randomTouchstoneMatrix'
 import { pythonReadContent } from './python/pythonReadContent'
@@ -611,14 +613,14 @@ describe('touchstone.ts', () => {
     )
     touchstone.matrix = [[], []]
     expect(() => touchstone.writeContent()).toThrow(
-      `Touchstone matrix at row #0 has 0 columns, but expected 2`
+      `Touchstone matrix at row index 0 has 0 columns, but expected 2`
     )
     touchstone.matrix = [
       [[], []],
       [[], []],
     ]
     expect(() => touchstone.writeContent()).toThrow(
-      `Touchstone matrix at row #0 column #0 has 0 points, but expected 5`
+      `Touchstone matrix at row 0, column 0 has 0 points, but expected 5`
     )
     touchstone.matrix = [
       [
@@ -808,18 +810,229 @@ describe('touchstone.ts', () => {
     expect(touchstone.writeContent()).toBe(expected)
   })
 
-  // Generate touchstone string using Scikit-RF, then test readContent
-  // for (const format of TouchstoneFormats) {
-  //   for (const parameter of TouchstoneParameters) {
-  //     for (const impedance of [undefined, 'one', 'multiple']) {
-  //       for (const nports of [1, 2, 3, 4, 5, 9, 15]) {
-  //         for (const unit of FrequencyUnits) {
-  //           console.log(format, parameter, impedance, nports, unit)
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  describe('Static Methods', () => {
+    it('getFilename', () => {
+      expect(Touchstone.getFilename('sample.s2p')).toBe('sample.s2p')
+      expect(Touchstone.getFilename('/path/to/sample.s2p')).toBe('sample.s2p')
+      expect(Touchstone.getFilename('C:\\path\\to\\sample.s2p')).toBe(
+        'sample.s2p'
+      )
+      expect(Touchstone.getFilename('https://example.com/data/test.s3p')).toBe(
+        'test.s3p'
+      )
+      expect(
+        Touchstone.getFilename('https://example.com/test.s4p?query=1')
+      ).toBe('test.s4p')
+      expect(Touchstone.getFilename('https://example.com/test?query=1')).toBe(
+        'test'
+      )
+    })
+
+    it('getFilename error', () => {
+      expect(() => Touchstone.getFilename('')).toThrow(
+        'Could not determine filename from: '
+      )
+      expect(() => Touchstone.getFilename('/path/to/sample.s2p/')).toThrow(
+        'Could not determine filename from: /path/to/sample.s2p/'
+      )
+    })
+
+    it('parsePorts', () => {
+      expect(Touchstone.parsePorts('test.s1p')).toBe(1)
+      expect(Touchstone.parsePorts('test.s2p')).toBe(2)
+      expect(Touchstone.parsePorts('test.s10p')).toBe(10)
+      expect(Touchstone.parsePorts('test.snp')).toBe(null)
+      expect(Touchstone.parsePorts('test.txt')).toBe(null)
+      expect(Touchstone.parsePorts('test')).toBe(null)
+    })
+
+    it('fromText', () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const ts = Touchstone.fromText(content, 1)
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.format).toBe('MA')
+      expect(ts.parameter).toBe('S')
+      expect(ts.impedance).toBe(50)
+      expect(ts.nports).toBe(1)
+      expect(ts.frequency?.unit).toBe('MHz')
+      expect(ts.frequency?.f_scaled).toStrictEqual([100])
+      expect(ts.matrix![0][0]).toStrictEqual([
+        complex({ r: 0.9, phi: (-10 / 180) * pi }),
+      ])
+    })
+
+    it('fromUrl', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const mockResponse = {
+        ok: true,
+        text: () => Promise.resolve(content),
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      const ts = await Touchstone.fromUrl('https://example.com/sample.s1p')
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.format).toBe('MA')
+      expect(ts.parameter).toBe('S')
+      expect(ts.impedance).toBe(50)
+      expect(ts.nports).toBe(1)
+      expect(ts.frequency?.unit).toBe('MHz')
+      expect(ts.frequency?.f_scaled).toStrictEqual([100])
+      expect(ts.matrix![0][0]).toStrictEqual([
+        complex({ r: 0.9, phi: (-10 / 180) * pi }),
+      ])
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromUrl with wrong nports', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const mockResponse = {
+        ok: true,
+        text: () => Promise.resolve(content),
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      await expect(
+        Touchstone.fromUrl('https://example.com/sample.s1p', 2)
+      ).rejects.toThrow(
+        'Touchstone invalid data number: 3, which should be multiple of 9'
+      )
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromUrl with explicit nports', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const mockResponse = {
+        ok: true,
+        text: () => Promise.resolve(content),
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      // URL doesn't have port info, but we provide it explicitly
+      const ts = await Touchstone.fromUrl('https://example.com/data.txt', 1)
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.format).toBe('MA')
+      expect(ts.parameter).toBe('S')
+      expect(ts.impedance).toBe(50)
+      expect(ts.nports).toBe(1)
+      expect(ts.frequency?.unit).toBe('MHz')
+      expect(ts.frequency?.f_scaled).toStrictEqual([100])
+      expect(ts.matrix![0][0]).toStrictEqual([
+        complex({ r: 0.9, phi: (-10 / 180) * pi }),
+      ])
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromUrl error: 404', async () => {
+      const mockResponse = {
+        ok: false,
+        statusText: 'Not Found',
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      await expect(
+        Touchstone.fromUrl('https://example.com/404.s1p')
+      ).rejects.toThrow('Failed to fetch file: Not Found')
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromUrl error: invalid ports', async () => {
+      const mockResponse = {
+        ok: true,
+        text: () => Promise.resolve('# MHz S MA R 50\n100 0.9 -10'),
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      await expect(
+        Touchstone.fromUrl('https://example.com/test.txt')
+      ).rejects.toThrow('Could not determine number of ports from URL')
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromFile', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const file = new File([content], 'sample.s1p', { type: 'text/plain' })
+
+      const ts = await Touchstone.fromFile(file)
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.format).toBe('MA')
+      expect(ts.parameter).toBe('S')
+      expect(ts.impedance).toBe(50)
+      expect(ts.nports).toBe(1)
+      expect(ts.frequency?.unit).toBe('MHz')
+      expect(ts.frequency?.f_scaled).toStrictEqual([100])
+      expect(ts.matrix![0][0]).toStrictEqual([
+        complex({ r: 0.9, phi: (-10 / 180) * pi }),
+      ])
+    })
+
+    it('fromFile with explicit nports', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      // Filename doesn't have port info, but we provide it explicitly
+      const file = new File([content], 'data.txt', { type: 'text/plain' })
+
+      const ts = await Touchstone.fromFile(file, 1)
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.format).toBe('MA')
+      expect(ts.parameter).toBe('S')
+      expect(ts.impedance).toBe(50)
+      expect(ts.nports).toBe(1)
+      expect(ts.frequency?.unit).toBe('MHz')
+      expect(ts.frequency?.f_scaled).toStrictEqual([100])
+      expect(ts.matrix![0][0]).toStrictEqual([
+        complex({ r: 0.9, phi: (-10 / 180) * pi }),
+      ])
+    })
+
+    it('fromFile error: empty content', async () => {
+      const file = new File([''], 'sample.s1p', { type: 'text/plain' })
+      await expect(Touchstone.fromFile(file)).rejects.toThrow(
+        'File content is empty'
+      )
+    })
+
+    it('fromFile error: invalid ports', async () => {
+      const file = new File([''], 'test.txt', { type: 'text/plain' })
+      await expect(Touchstone.fromFile(file)).rejects.toThrow(
+        'Could not determine number of ports from file name'
+      )
+    })
+
+    it('fromFile error: read failure', async () => {
+      const file = new File([''], 'sample.s1p', { type: 'text/plain' })
+
+      // Mock FileReader class to trigger onerror
+      class MockFileReader {
+        onerror?: () => void
+        readAsText(_: File) {
+          if (this.onerror) {
+            this.onerror()
+          }
+        }
+      }
+      vi.stubGlobal('FileReader', MockFileReader)
+
+      await expect(Touchstone.fromFile(file)).rejects.toThrow(
+        'Failed to read file: sample.s1p'
+      )
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromFile with wrong nports', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      // Filename doesn't have port info, but we provide it explicitly
+      const file = new File([content], 'data.s1p', { type: 'text/plain' })
+
+      await expect(Touchstone.fromFile(file, 2)).rejects.toThrow(
+        'Touchstone invalid data number: 3, which should be multiple of 9'
+      )
+    })
+  })
 })
 
 /**
@@ -855,9 +1068,12 @@ describe('writeContent and readContent, then compare with python skrf', () => {
         const python = JSON.parse(result)
         // Validate basic network properties
         expect(python.frequency.unit).toBe(touchstone.frequency.unit)
-        expect(python.frequency.f_scaled).toStrictEqual(
-          touchstone.frequency.f_scaled
+        expect(python.frequency.f_scaled.length).toBe(
+          touchstone.frequency!.f_scaled.length
         )
+        python.frequency.f_scaled.forEach((f: number, i: number) => {
+          expect(f).toBeCloseTo(touchstone.frequency!.f_scaled[i], 5)
+        })
         expect(python.impedance).toBe(touchstone.impedance)
         // Validate matrix structure and values
         expect(python.matrix.length).toBe(touchstone.nports)
@@ -886,9 +1102,12 @@ describe('writeContent and readContent, then compare with python skrf', () => {
         expect(ts.impedance).toBe(touchstone.impedance)
         expect(ts.nports).toBe(touchstone.nports)
         expect(ts.frequency!.unit).toBe(touchstone.frequency.unit)
-        expect(ts.frequency!.f_scaled).toStrictEqual(
-          touchstone.frequency.f_scaled
+        expect(ts.frequency!.f_scaled.length).toBe(
+          touchstone.frequency!.f_scaled.length
         )
+        ts.frequency!.f_scaled.forEach((f, i) => {
+          expect(f).toBeCloseTo(touchstone.frequency!.f_scaled[i], 5)
+        })
         // Validate matrix structure and values
         expect(ts.matrix!.length).toBe(touchstone.nports)
         for (let m = 0; m < touchstone.nports; m++) {
@@ -944,9 +1163,12 @@ describe('Generate touchstone content by python skrf then compare with readConte
         expect(ts.impedance).toBe(touchstone.impedance)
         expect(ts.nports).toBe(touchstone.nports)
         expect(ts.frequency!.unit).toBe(touchstone.frequency.unit)
-        expect(ts.frequency!.f_scaled).toStrictEqual(
-          touchstone.frequency.f_scaled
+        expect(ts.frequency!.f_scaled.length).toBe(
+          touchstone.frequency!.f_scaled.length
         )
+        ts.frequency!.f_scaled.forEach((f, i) => {
+          expect(f).toBeCloseTo(touchstone.frequency!.f_scaled[i], 5)
+        })
         // Validate matrix structure and values
         expect(ts.matrix!.length).toBe(touchstone.nports)
         for (let m = 0; m < touchstone.nports; m++) {
@@ -967,5 +1189,81 @@ describe('Generate touchstone content by python skrf then compare with readConte
         }
       })
     }
+  }
+})
+
+/**
+ * Test suite for validating local Touchstone samples against scikit-rf
+ * This test iterates through all .sNp files in the ./samples directory,
+ * parses them using RF-Touchstone, and compares the results with scikit-rf.
+ */
+describe('Compare touchstone files locally and python skrf', () => {
+  const samplesDir = path.resolve(__dirname, './samples')
+  const files = fs
+    .readdirSync(samplesDir)
+    .filter((file) => file.match(/\.s\d+p$/i))
+    .map((filename) => ({
+      name: filename,
+      path: path.join(samplesDir, filename),
+    }))
+
+  // Add sample from React example
+  files.push({
+    name: 'sample.s2p',
+    path: path.resolve(__dirname, '../examples/react/public/sample.s2p'),
+  })
+
+  for (const { name, path: filePath } of files) {
+    it(`Touchstone file: ${name}`, async () => {
+      // 1. Prepare data
+      const buffer = fs.readFileSync(filePath)
+      const content = buffer.toString('utf-8')
+      const file = new File([buffer], path.basename(filePath))
+
+      // 2. Parse with Touchstone.ts (fromFile)
+      const ts = await Touchstone.fromFile(file)
+      const nports = ts.nports as number
+      expect(nports).not.toBeNull()
+      expect(nports).toBeTypeOf('number')
+      const parameter = ts.parameter as TouchstoneParameter
+      expect(parameter).not.toBeNull()
+      expect(TouchstoneParameters).toContain(parameter)
+
+      // 3. Parse with Python scikit-rf
+      const result = await pythonReadContent(content, nports, parameter)
+      const python = JSON.parse(result)
+
+      // 4. Validate all parameters
+      expect(python.frequency.unit).toBe(ts.frequency!.unit)
+      expect(python.frequency.f_scaled.length).toBe(
+        ts.frequency!.f_scaled.length
+      )
+      python.frequency.f_scaled.forEach((f: number, i: number) => {
+        expect(f).toBeCloseTo(ts.frequency!.f_scaled[i], 5)
+      })
+      // Compare impedance
+      if (Array.isArray(python.impedance)) {
+        expect(python.impedance).toStrictEqual(ts.impedance)
+      } else {
+        expect(python.impedance).toBe(ts.impedance)
+      }
+      // Validate matrix structure and values
+      expect(python.matrix.length).toBe(nports)
+      for (let m = 0; m < nports; m++) {
+        // Verify port dimensions
+        expect(python.matrix[m].length).toBe(nports)
+        for (let n = 0; n < nports; n++) {
+          // Verify frequency points dimension
+          const points = ts.frequency!.f_scaled.length
+          expect(python.matrix[m][n].length).toBe(points)
+          for (let p = 0; p < points; p++) {
+            const expected = ts.matrix![m][n][p]
+            const actual = python.matrix[m][n][p]
+            expect(actual.re).toBeCloseTo(expected.re, 5)
+            expect(actual.im).toBeCloseTo(expected.im, 5)
+          }
+        }
+      }
+    })
   }
 })

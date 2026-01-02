@@ -85,25 +85,6 @@ Lints the codebase using ESLint to identify and fix problems in the TypeScript a
 
 Formats the code using Prettier.
 
-## Using `rf-touchstone`
-
-This example imports `rf-touchstone` directly from npm (as specified in its `package.json`). The `TouchstoneViewer.tsx` component utilizes `Touchstone.fromString()` method from the library to parse the string content of a Touchstone file:
-
-```typescript
-import { Touchstone } from 'rf-touchstone';
-
-// Inside the component, when file content is available:
-try {
-  const fileTextContent = /* ... string content of the file ... */;
-  const touchstoneInstance = Touchstone.fromString(fileTextContent);
-  // Use touchstoneInstance to display data
-} catch (error) {
-  // Handle parsing errors
-}
-```
-
-The parsed `touchstoneInstance` provides access to all data within the file, including metadata, comments, and the network parameters, which are then rendered by the React component.
-
 ## Contributing
 
 Refer to the main repository's `DEVELOPMENT.md` for guidelines on contributing to the `rf-touchstone` project. For issues or suggestions specific to this React example, please open an issue on the GitHub repository.

@@ -68,6 +68,19 @@ export default [
     files: ['src/**/*.ts', 'test/**/*.ts'],
   })),
   {
+    // Apply TypeScript-specific rule overrides
+    files: ['src/**/*.ts', 'test/**/*.ts'],
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
     // Apply TypeScript project-based linting to source and test files
     files: ['src/**/*.ts', 'test/**/*.ts'],
     languageOptions: {

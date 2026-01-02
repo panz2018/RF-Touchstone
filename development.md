@@ -156,6 +156,10 @@ yarn format
 
 ### Unit test with [Vitest](https://vitest.dev/)
 
+#### Comparative Testing with scikit-rf
+
+Our comprehensive test suite includes comparative tests that validate our library's results against [scikit-rf](https://github.com/scikit-rf/scikit-rf). This ensures our parsing, unit scaling, and matrix manipulation logic remains consistent with industry-standard tools. To run these tests, you must have the [Python environment](#setup-python-environment) correctly configured.
+
 #### Interactive development
 
 Runs the tests in interactive watch mode:
