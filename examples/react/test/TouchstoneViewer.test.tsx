@@ -1,21 +1,20 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
-import * as TouchstoneUtils from '../src/utils/touchstoneUtils'
+
 import TouchstoneViewer from '../src/TouchstoneViewer'
 import { Touchstone, type TouchstoneMatrix } from 'rf-touchstone'
 
-// Mock specific functions from touchstoneUtils
-vi.mock('../src/utils/touchstoneUtils', () => ({
-  readUrl: vi.fn(),
-  readFile: vi.fn(),
-  getFilenameFromUrl: vi.fn(
-    (url: string) => url.substring(url.lastIndexOf('/') + 1) || url
-  ),
-  getNumberOfPorts: vi.fn((filename: string) => {
-    const match = filename.match(/\.s(\d+)p$/i)
-    return match ? parseInt(match[1], 10) : null
-  }),
-}))
+// Mock Touchstone static methods
+vi.mock('rf-touchstone', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('rf-touchstone')>()
+  return {
+    ...actual,
+    Touchstone: class extends (actual.Touchstone as any) {
+      static fromUrl = vi.fn()
+      static fromFile = vi.fn()
+    },
+  }
+})
 
 // --- Mock Child Components ---
 vi.mock('../src/components/UrlLoader', () => ({
@@ -163,8 +162,8 @@ const createTouchstoneFromString = (
 }
 
 describe('TouchstoneViewer Component', () => {
-  const mockedReadUrl = TouchstoneUtils.readUrl as Mock
-  const mockedReadFile = TouchstoneUtils.readFile as Mock
+  const mockedFromUrl = Touchstone.fromUrl as Mock
+  const mockedFromFile = Touchstone.fromFile as Mock
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -174,14 +173,14 @@ describe('TouchstoneViewer Component', () => {
       revokeObjectURL: vi.fn(),
     })
     const initialTs = createTouchstoneFromString(mockSampleS2PContent)
-    mockedReadUrl.mockImplementation(async (_url: string) => {
-      if (_url === '/sample.s2p') return initialTs
+    mockedFromUrl.mockImplementation(async (_url: string) => {
+      if (_url === '/sample.s2p' || _url === 'sample.s2p') return initialTs
       return Promise.reject(
-        new Error(`mockReadUrl received unexpected URL: ${_url}.`)
+        new Error(`mockedFromUrl received unexpected URL: ${_url}.`)
       )
     })
-    mockedReadFile.mockResolvedValue(
-      createTouchstoneFromString('! Mocked by readFile')
+    mockedFromFile.mockResolvedValue(
+      createTouchstoneFromString('! Mocked by fromFile')
     )
   })
 
@@ -191,7 +190,7 @@ describe('TouchstoneViewer Component', () => {
     expect(screen.getByTestId('mock-urlloader')).toBeInTheDocument()
 
     await waitFor(() => {
-      expect(mockedReadUrl).toHaveBeenCalledWith('/sample.s2p')
+      expect(mockedFromUrl).toHaveBeenCalledWith('sample.s2p')
       expect(
         screen.getByText(/Currently displaying: Data from sample.s2p/i)
       ).toBeInTheDocument()
@@ -210,7 +209,7 @@ describe('TouchstoneViewer Component', () => {
   it('handles filename change from FilenameEditor', async () => {
     render(<TouchstoneViewer />)
     await waitFor(() =>
-      expect(mockedReadUrl).toHaveBeenCalledWith('/sample.s2p')
+      expect(mockedFromUrl).toHaveBeenCalledWith('sample.s2p')
     )
 
     const newFilenameFromChild = 'userEditedName.s2p'
@@ -230,7 +229,7 @@ describe('TouchstoneViewer Component', () => {
   it('handles comments change from CommentsEditor', async () => {
     render(<TouchstoneViewer />)
     await waitFor(() =>
-      expect(mockedReadUrl).toHaveBeenCalledWith('/sample.s2p')
+      expect(mockedFromUrl).toHaveBeenCalledWith('sample.s2p')
     )
 
     fireEvent.click(screen.getByText('Mock Set Comments'))
@@ -246,20 +245,20 @@ describe('TouchstoneViewer Component', () => {
       type: 'text/plain',
     })
     const uploadedTs = createTouchstoneFromString(mockUploadedFileContent)
-    mockedReadFile.mockResolvedValue(uploadedTs)
+    mockedFromFile.mockResolvedValue(uploadedTs)
 
     render(<TouchstoneViewer />)
     await waitFor(() =>
-      expect(mockedReadUrl).toHaveBeenCalledWith('/sample.s2p')
+      expect(mockedFromUrl).toHaveBeenCalledWith('sample.s2p')
     )
-    mockedReadUrl.mockClear()
+    mockedFromUrl.mockClear()
 
     const fileLoader = screen.getByTestId('mock-fileloader')
     const fileInput = fileLoader.querySelector('input')!
     fireEvent.change(fileInput, { target: { files: [uploadedFile] } })
 
     await waitFor(() => {
-      expect(mockedReadFile).toHaveBeenCalledWith(uploadedFile)
+      expect(mockedFromFile).toHaveBeenCalledWith(uploadedFile)
       expect(
         screen.getByText(/Currently displaying: Data from uploaded.s2p/i)
       ).toBeInTheDocument()
@@ -271,7 +270,7 @@ describe('TouchstoneViewer Component', () => {
       '! From URL\n# MHZ S DB R 50\n100 0 -90 0 0',
       1
     )
-    mockedReadUrl.mockResolvedValueOnce(tsFromUrl)
+    mockedFromUrl.mockResolvedValueOnce(tsFromUrl)
 
     render(<TouchstoneViewer />)
     await waitFor(() => {
@@ -281,7 +280,7 @@ describe('TouchstoneViewer Component', () => {
     fireEvent.click(screen.getByText('Mock UrlLoader Submit'))
 
     await waitFor(() => {
-      expect(mockedReadUrl).toHaveBeenCalledWith(
+      expect(mockedFromUrl).toHaveBeenCalledWith(
         'http://default-mock-url.com/file.s2p'
       )
     })

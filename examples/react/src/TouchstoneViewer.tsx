@@ -46,16 +46,11 @@ const TouchstoneViewer: React.FC = () => {
 
     try {
       // Extract filename from URL
-      const filename = getFilenameFromUrl(url)
-      // Validate filename
-      if (!filename || filename.trim() === '') {
-        // Specific error for filename parsing failure
-        throw new Error(`Could not determine a valid filename from URL: ${url}`)
-      }
+      const filename = Touchstone.getFilename(url)
       // Set the filename
       setFilename(filename)
-      // Read content from URL (readUrl throws errors)
-      const ts = await readUrl(url)
+      // Read content from URL
+      const ts = await Touchstone.fromUrl(url)
       // If successful, update state with loaded data
       setTouchstone(ts)
     } catch (err) {
@@ -88,7 +83,7 @@ const TouchstoneViewer: React.FC = () => {
       setError(null) // Clear previous errors before starting upload
 
       try {
-        const ts = await readFile(file) // readFile throws errors
+        const ts = await Touchstone.fromFile(file)
         setTouchstone(ts)
       } catch (err) {
         console.error('Error processing uploaded Touchstone file:', err)
@@ -358,7 +353,5 @@ const TouchstoneViewer: React.FC = () => {
     </table>
   )
 }
-
-import { readUrl, readFile, getFilenameFromUrl } from './utils/touchstoneUtils'
 
 export default TouchstoneViewer
