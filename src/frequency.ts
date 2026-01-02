@@ -1,16 +1,15 @@
 /**
- * Frequency units: 'Hz', 'kHz', 'MHz', 'GHz'
- * Touchstone standard doesn't support THz as the frequency unit in Touchstone file
+ * Supported frequency units in the Touchstone specification.
+ * Note: THz is not officially supported as a file header unit in Touchstone v1.x/v2.x.
  */
 export const FrequencyUnits = ['Hz', 'kHz', 'MHz', 'GHz'] as const
 
 /**
- * Type definition for frequency units
- * - Hz: Hertz (cycles per second)
- * - kHz: Kilohertz (10³ Hz)
- * - MHz: Megahertz (10⁶ Hz)
- * - GHz: Gigahertz (10⁹ Hz)
- * Touchstone standard doesn't support THz as the frequency unit in Touchstone file
+ * Type representing the frequency unit.
+ * - Hz: Hertz ($10^0$ Hz)
+ * - kHz: Kilohertz ($10^3$ Hz)
+ * - MHz: Megahertz ($10^6$ Hz)
+ * - GHz: Gigahertz ($10^9$ Hz)
  */
 export type FrequencyUnit = (typeof FrequencyUnits)[number]
 
@@ -42,19 +41,29 @@ export const WAVELENGTH_MULTIPLIERS_TO_M: Record<string, number> = {
 }
 
 /**
- * Class representing frequency data in RF and microwave engineering
+ * Represents frequency data and provides utility methods for unit conversion and wavelength calculation.
  *
  * @remarks
- * The Frequency class manages frequency-related data, including:
- * - Frequency unit management
- * - Storage of frequency points
- * - Unit conversion capabilities
+ * The `Frequency` class is designed to handle frequency points commonly used in RF, microwave,
+ * and high-speed digital engineering. It maintains an internal unit and a set of frequency points,
+ * allowing for seamless conversion between different frequency and wavelength units.
+ *
+ * ##### Key Features:
+ * - **Unit Awareness**: Keeps track of whether frequencies are defined in Hz, MHz, GHz, etc.
+ * - **Automatic Conversion**: Automatically scales frequency points when the `unit` property is changed.
+ * - **Wavelength Utilities**: Provides getters and setters for wavelength ($\lambda = c/f$) in various metric units.
  *
  * @example
+ * #### Basic Usage
  * ```typescript
+ * import { Frequency } from 'rf-touchstone';
+ *
  * const freq = new Frequency();
  * freq.unit = 'GHz';
- * freq.f_scale = [1.0, 2.0, 3.0];
+ * freq.f_scaled = [1.0, 2.0, 5.0];
+ *
+ * console.log(freq.f_Hz); // [1e9, 2e9, 5e9]
+ * console.log(freq.wavelength_mm); // [299.79, 149.90, 59.96]
  * ```
  */
 export class Frequency {
@@ -65,16 +74,11 @@ export class Frequency {
   private _unit: FrequencyUnit = 'Hz'
 
   /**
-   * Sets the frequency unit for the instance
+   * Sets the frequency unit. If frequency points already exist, they will be
+   * automatically rescaled to the new unit.
    *
-   * @param newUnit - The frequency unit to set
-   * @throws {Error} If the provided unit is not one of the supported frequency units
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'MHz'; // Sets unit to Megahertz
-   * ```
+   * @param newUnit - The target frequency unit (Hz, kHz, MHz, or GHz).
+   * @throws Error if the provided unit is invalid.
    */
   set unit(newUnit: FrequencyUnit) {
     if (typeof newUnit !== 'string') {
@@ -126,15 +130,7 @@ export class Frequency {
   }
 
   /**
-   * Gets the current frequency unit
-   *
-   * @returns The current frequency unit
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * console.log(freq.unit); // Outputs: 'Hz'
-   * ```
+   * Gets the current frequency unit.
    */
   get unit(): FrequencyUnit {
     return this._unit
@@ -148,20 +144,10 @@ export class Frequency {
   private _f_scaled: number[] = []
 
   /**
-   * Array of frequency points in the current frequency unit
-   * Each element represents a discrete frequency point for measurement or analysis
+   * Sets the array of frequency points in the current frequency unit.
    *
-   * @param value - Array of frequency points
-   * @throws {Error} If the input is not an array
-   * @throws {Error} If any element in the array is not a number
-   * @throws {Error} If the array contains negative frequencies
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.f_scaled = [1.0, 1.5, 2.0]; // Sets frequency points in GHz
-   * ```
+   * @param value - Array of numerical frequency points.
+   * @throws Error if the input is not a non-negative number array.
    */
   set f_scaled(value: number[]) {
     // Validate input is an array
@@ -187,16 +173,7 @@ export class Frequency {
   }
 
   /**
-   * Gets the array of frequency points
-   * @returns Array of frequency points in the current unit
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'MHz';
-   * freq.f_scaled = [100, 200, 300];
-   * console.log(freq.f_scaled); // Outputs: [100, 200, 300]
-   * ```
+   * Gets the array of frequency points in the current unit.
    */
   get f_scaled(): number[] {
     return this._f_scaled
@@ -234,9 +211,9 @@ export class Frequency {
   }
 
   /**
-   * Private helper method to set frequency values from a source unit.
-   * @param values - Array of frequency points in the source unit.
-   * @param sourceUnit - The key of the source frequency unit in FREQUENCY_MULTIPLIERS.
+   * Internal helper to set frequency values from a source unit.
+   * @param values - Array of frequency points.
+   * @param sourceUnit - The source frequency unit key.
    */
   private _setFrequencyFromTargetUnit(
     values: number[],
@@ -279,160 +256,70 @@ export class Frequency {
   }
 
   /**
-   * Gets frequency points in Hz
-   * @returns Array of frequency points in Hz
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.f_scaled = [1, 2, 3]; // 1 GHz, 2 GHz, 3 GHz
-   * console.log(freq.f_Hz); // Outputs: [1e9, 2e9, 3e9]
-   * ```
+   * Gets the frequency points in Hertz (Hz).
    */
   get f_Hz(): number[] {
     return this._getFrequencyInTargetUnit('Hz')
   }
 
   /**
-   * Sets frequency points assuming input is in Hz
-   * @param values - Array of frequency points in Hz
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'MHz';
-   * freq.f_Hz = [1e9, 2e9, 3e9]; // Sets frequencies as 1 GHz, 2 GHz, 3 GHz
-   * console.log(freq.f_scaled); // Outputs: [1000, 2000, 3000] (in MHz)
-   * ```
+   * Sets the frequency points in Hertz (Hz).
    */
   set f_Hz(values: number[]) {
     this._setFrequencyFromTargetUnit(values, 'Hz')
   }
 
   /**
-   * Gets frequency points in kHz
-   * @returns Array of frequency points in kHz
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'Hz';
-   * freq.f_scaled = [1000, 2000, 3000]; // 1 kHz, 2 kHz, 3 kHz
-   * console.log(freq.f_kHz); // Outputs: [1, 2, 3]
-   * ```
+   * Gets the frequency points in Kilohertz (kHz).
    */
   get f_kHz(): number[] {
     return this._getFrequencyInTargetUnit('kHz')
   }
 
   /**
-   * Sets frequency points assuming input is in kHz
-   * @param values - Array of frequency points in kHz
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'Hz';
-   * freq.f_kHz = [1, 2, 3]; // Sets frequencies as 1 kHz, 2 kHz, 3 kHz
-   * console.log(freq.f_scaled); // Outputs: [1000, 2000, 3000] (in Hz)
-   * ```
+   * Sets the frequency points in Kilohertz (kHz).
    */
   set f_kHz(values: number[]) {
     this._setFrequencyFromTargetUnit(values, 'kHz')
   }
 
   /**
-   * Gets frequency points in MHz
-   * @returns Array of frequency points in MHz
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.f_scaled = [0.1, 0.2, 0.3]; // 0.1 GHz, 0.2 GHz, 0.3 GHz
-   * console.log(freq.f_MHz); // Outputs: [100, 200, 300]
-   * ```
+   * Gets the frequency points in Megahertz (MHz).
    */
   get f_MHz(): number[] {
     return this._getFrequencyInTargetUnit('MHz')
   }
 
   /**
-   * Sets frequency points assuming input is in MHz
-   * @param values - Array of frequency points in MHz
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.f_MHz = [100, 200, 300]; // Sets frequencies as 100 MHz, 200 MHz, 300 MHz
-   * console.log(freq.f_scaled); // Outputs: [0.1, 0.2, 0.3] (in GHz)
-   * ```
+   * Sets the frequency points in Megahertz (MHz).
    */
   set f_MHz(values: number[]) {
     this._setFrequencyFromTargetUnit(values, 'MHz')
   }
 
   /**
-   * Gets frequency points in GHz
-   * @returns Array of frequency points in GHz
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'MHz';
-   * freq.f_scaled = [1000, 2000, 3000]; // 1000 MHz, 2000 MHz, 3000 MHz
-   * console.log(freq.f_GHz); // Outputs: [1, 2, 3]
-   * ```
+   * Gets the frequency points in Gigahertz (GHz).
    */
   get f_GHz(): number[] {
     return this._getFrequencyInTargetUnit('GHz')
   }
 
   /**
-   * Sets frequency points assuming input is in GHz
-   * @param values - Array of frequency points in GHz
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'MHz';
-   * freq.f_GHz = [1, 2, 3]; // Sets frequencies as 1 GHz, 2 GHz, 3 GHz
-   * console.log(freq.f_scaled); // Outputs: [1000, 2000, 3000] (in MHz)
-   * ```
+   * Sets the frequency points in Gigahertz (GHz).
    */
   set f_GHz(values: number[]) {
     this._setFrequencyFromTargetUnit(values, 'GHz')
   }
 
   /**
-   * Gets frequency points in THz
-   * @returns Array of frequency points in THz
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.f_scaled = [1000, 2000, 3000]; // 1000 GHz, 2000 GHz, 3000 GHz
-   * console.log(freq.f_THz); // Outputs: [1, 2, 3]
-   * ```
+   * Gets the frequency points in Terahertz (THz).
    */
   get f_THz(): number[] {
     return this._getFrequencyInTargetUnit('THz')
   }
 
   /**
-   * Sets frequency points assuming input is in THz
-   * @param values - Array of frequency points in THz
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.f_THz = [1, 2, 3]; // Sets frequencies as 1 THz, 2 THz, 3 THz
-   * console.log(freq.f_scaled); // Outputs: [1000, 2000, 3000] (in GHz)
-   * ```
+   * Sets the frequency points in Terahertz (THz).
    */
   set f_THz(values: number[]) {
     this._setFrequencyFromTargetUnit(values, 'THz')
@@ -532,160 +419,71 @@ export class Frequency {
   }
 
   /**
-   * Gets wavelength in meters
-   * @returns Array of wavelength values in meters
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.f_scaled = [1, 2, 3]; // Frequencies in GHz
-   * console.log(freq.wavelength_m); // Outputs: Wavelengths in meters
-   * ```
+   * Gets the wavelength in meters (m).
    */
   get wavelength_m(): number[] {
     return this._getWavelengthInTargetUnit('m')
   }
 
   /**
-   * Sets wavelength in meters. Converts to frequency and stores.
-   * @param values - Array of wavelength values in meters
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.wavelength_m = [0.3, 0.15, 0.1]; // Wavelengths in meters
-   * console.log(freq.f_scaled); // Outputs: Frequencies in GHz
-   * ```
+   * Sets the wavelength in meters (m).
+   * Note: Changing wavelengths will update the underlying frequency points.
    */
   set wavelength_m(values: number[]) {
     this._setWavelengthFromTargetUnit(values, 'm')
   }
 
   /**
-   * Gets wavelength in centimeters
-   * @returns Array of wavelength values in centimeters
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.f_scaled = [10, 20, 30]; // Frequencies in GHz
-   * console.log(freq.wavelength_cm); // Outputs: Wavelengths in centimeters
-   * ```
+   * Gets the wavelength in centimeters (cm).
    */
   get wavelength_cm(): number[] {
     return this._getWavelengthInTargetUnit('cm')
   }
 
   /**
-   * Sets wavelength in centimeters. Converts to frequency and stores.
-   * @param values - Array of wavelength values in centimeters
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.wavelength_cm = [30, 15, 10]; // Wavelengths in centimeters
-   * console.log(freq.f_scaled); // Outputs: Frequencies in GHz
-   * ```
+   * Sets the wavelength in centimeters (cm).
    */
   set wavelength_cm(values: number[]) {
     this._setWavelengthFromTargetUnit(values, 'cm')
   }
 
   /**
-   * Gets wavelength in millimeters
-   * @returns Array of wavelength values in millimeters
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.f_scaled = [100, 200, 300]; // Frequencies in GHz
-   * console.log(freq.wavelength_mm); // Outputs: Wavelengths in millimeters
-   * ```
+   * Gets the wavelength in millimeters (mm).
    */
   get wavelength_mm(): number[] {
     return this._getWavelengthInTargetUnit('mm')
   }
 
   /**
-   * Sets wavelength in millimeters. Converts to frequency and stores.
-   * @param values - Array of wavelength values in millimeters
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.wavelength_mm = [300, 150, 100]; // Wavelengths in millimeters
-   * console.log(freq.f_scaled); // Outputs: Frequencies in GHz
-   * ```
+   * Sets the wavelength in millimeters (mm).
    */
   set wavelength_mm(values: number[]) {
     this._setWavelengthFromTargetUnit(values, 'mm')
   }
 
   /**
-   * Gets wavelength in micrometers
-   * @returns Array of wavelength values in micrometers
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.f_scaled = [1000, 2000, 3000]; // Frequencies in GHz
-   * console.log(freq.wavelength_um); // Outputs: Wavelengths in micrometers
-   * ```
+   * Gets the wavelength in micrometers (μm).
    */
   get wavelength_um(): number[] {
     return this._getWavelengthInTargetUnit('um')
   }
 
   /**
-   * Sets wavelength in micrometers. Converts to frequency and stores.
-   * @param values - Array of wavelength values in micrometers
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'GHz';
-   * freq.wavelength_um = [300000, 150000, 100000]; // Wavelengths in micrometers
-   * console.log(freq.f_scaled); // Outputs: Frequencies in GHz
-   * ```
+   * Sets the wavelength in micrometers (μm).
    */
   set wavelength_um(values: number[]) {
     this._setWavelengthFromTargetUnit(values, 'um')
   }
 
   /**
-   * Gets wavelength in nanometers
-   * @returns Array of wavelength values in nanometers
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'THz';
-   * freq.f_scaled = [100, 200, 300]; // Frequencies in THz
-   * console.log(freq.wavelength_nm); // Outputs: Wavelengths in nanometers
-   * ```
+   * Gets the wavelength in nanometers (nm).
    */
   get wavelength_nm(): number[] {
     return this._getWavelengthInTargetUnit('nm')
   }
 
   /**
-   * Sets wavelength in nanometers. Converts to frequency and stores.
-   * @param values - Array of wavelength values in nanometers
-   *
-   * @example
-   * ```typescript
-   * const freq = new Frequency();
-   * freq.unit = 'THz';
-   * freq.wavelength_nm = [300, 150, 100]; // Wavelengths in nanometers
-   * console.log(freq.f_scaled); // Outputs: Frequencies in THz
-   * ```
+   * Sets the wavelength in nanometers (nm).
    */
   set wavelength_nm(values: number[]) {
     this._setWavelengthFromTargetUnit(values, 'nm')

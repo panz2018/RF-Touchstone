@@ -1,5 +1,4 @@
 import { run } from './python'
-import { abs } from 'mathjs'
 import { Touchstone, TouchstoneMatrix } from '@/touchstone'
 
 /**
@@ -20,10 +19,11 @@ export const pythonWriteContent = async (
 
   // Generate impedance initialization code for Python
   const impedanceString = generateImpedanceString(touchstone.impedance)
+  const matrixLiteral = convertMatrixPythonString(touchstone.matrix!)
 
   // Python script to generate Touchstone file
   const code = `
-    import io, pathlib, skrf, uuid
+    import io, pathlib, skrf, uuid, os
     import numpy as np
 
     # Create network frequency points
@@ -32,8 +32,9 @@ export const pythonWriteContent = async (
       unit='${touchstone.frequency!.unit}'
     )
 
-    # Convert network parameters to numpy array
-    data = np.array(${convertMatrixPythonString(touchstone.matrix!)})
+    # Convert network parameters to complex numpy array
+    # Using explicit complex literals to ensure scikit-rf receives numeric data
+    data = np.array(${matrixLiteral}, dtype=np.complex128)
 
     # Initialize network with parameters
     ntwk = skrf.Network(
@@ -41,18 +42,20 @@ export const pythonWriteContent = async (
       ${touchstone.parameter!.toLowerCase()}=data${impedanceString}
     )
 
-    # Setup temporary file path
-    folder = pathlib.Path.cwd() / 'test' / 'python' / 'temp'
-    folder.mkdir(parents=True, exist_ok=True)
-    file = folder / f"{str(uuid.uuid4())}.s${touchstone.nports}p"
+    # Setup temporary file path in a robust way
+    temp_dir = pathlib.Path.cwd() / 'test' / 'python' / 'temp'
+    os.makedirs(temp_dir, exist_ok=True)
+    file_path = temp_dir / f"{str(uuid.uuid4())}.s${touchstone.nports}p"
 
-    # Write and read Touchstone file
-    ntwk.write_touchstone(file, form='${touchstone.format}')
-    with open(file, "r") as f:
-      content = f.read()
-    
-    # Cleanup temporary file
-    file.unlink()
+    try:
+        # Write and read Touchstone file
+        ntwk.write_touchstone(str(file_path), form='${touchstone.format}')
+        with open(file_path, "r", encoding='utf-8') as f:
+            content = f.read()
+    finally:
+        # Ensure cleanup even if write/read fails
+        if file_path.exists():
+            file_path.unlink()
 
     print(content)
   `
@@ -99,20 +102,28 @@ const convertMatrixPythonString = (matrix: TouchstoneMatrix): string => {
   const nports = matrix.length
   const points = matrix[0][0].length
 
-  // Convert to Python format (frequency points × output ports × input ports)
-  const data = new Array(points)
+  // Build a Python-compatible complex literal array string
+  // Format: [ [ [complex(re, im), ...], [...] ], ... ]
+  let result = '['
   for (let p = 0; p < points; p++) {
-    data[p] = new Array(nports)
+    result += '['
     for (let outPort = 0; outPort < nports; outPort++) {
-      data[p][outPort] = new Array(nports)
+      result += '['
       for (let inPort = 0; inPort < nports; inPort++) {
-        const value = matrix[outPort][inPort][p]
-        data[p][outPort][inPort] = formatComplexNumber(value)
+        const val = matrix[outPort][inPort][p]
+        // Use complex() operator for maximum compatibility and clarity in Python
+        result += `complex(${val.re},${val.im})`
+        if (inPort < nports - 1) result += ','
       }
+      result += ']'
+      if (outPort < nports - 1) result += ','
     }
+    result += ']'
+    if (p < points - 1) result += ','
   }
+  result += ']'
 
-  return JSON.stringify(data, null, 2)
+  return result
 }
 
 /**
@@ -146,16 +157,4 @@ export const validateMatrix = (matrix: TouchstoneMatrix): void => {
   if (points === undefined) {
     throw new Error('Touchstone matrix is empty')
   }
-}
-
-/**
- * Format complex number for Python
- * @param value - Complex number to format
- * @returns Python complex number string representation
- */
-const formatComplexNumber = (value: { re: number; im: number }): string => {
-  const real = value.re
-  const imag = abs(value.im)
-  const sign = value.im >= 0 ? '+' : '-'
-  return `${real}${sign}${imag}j`
 }
