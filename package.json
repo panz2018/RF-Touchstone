@@ -58,7 +58,7 @@
     "coverage-badges-cli": "2.2.0",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
-    "globals": "16.5.0",
+    "globals": "17.0.0",
     "happy-dom": "20.0.11",
     "markdown-it-mathjax3": "5.2.0",
     "npm-run-all": "4.1.5",
