@@ -3889,7 +3889,7 @@ __metadata:
     prettier: "npm:^3.7.4"
     react: "npm:^19.2.3"
     react-dom: "npm:^19.2.3"
-    rf-touchstone: "npm:^0.0.3"
+    rf-touchstone: "npm:^0.0.4"
     typescript: "npm:^5.9.3"
     typescript-eslint: "npm:^8.51.0"
     vite: "npm:^7.3.0"
@@ -3897,12 +3897,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"rf-touchstone@npm:^0.0.3":
-  version: 0.0.3
-  resolution: "rf-touchstone@npm:0.0.3"
+"rf-touchstone@npm:^0.0.4":
+  version: 0.0.4
+  resolution: "rf-touchstone@npm:0.0.4"
   dependencies:
     mathjs: "npm:15.1.0"
-  checksum: 10c0/31fd2b652768a50523c047570e9337f64e7d848920399126d31106a140a71f8be8798ac8b0f1b739f67aea6cac21910e386a7d8339bb26e88fe8038c1438caaa
+  checksum: 10c0/57ad66635372d4a5c7504e1e6f737da5d8c5651ff90537b507f8110fae8c6dda0f04f0cbfe5cabda858911c0d85581a12562c3d8c5cc89d1d838f8f74fb48918
   languageName: node
   linkType: hard
 
