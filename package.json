@@ -6,6 +6,13 @@
   "main": "dist/Touchstone.cjs.js",
   "module": "dist/Touchstone.es.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/Touchstone.es.js",
+      "require": "./dist/Touchstone.cjs.js"
+    }
+  },
   "files": [
     "./dist",
     "./src",
