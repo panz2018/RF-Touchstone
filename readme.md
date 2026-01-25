@@ -102,7 +102,7 @@ This repository includes examples to demonstrate the usage of `rf-touchstone` in
 For detailed documentation, please visit:
 
 - [Project Website](https://panz2018.github.io/RF-Touchstone/)
-- [AI Usage Guide](.github/AI_USAGE_GUIDE.md) - Comprehensive guide for AI coding assistants and developers integrating this library
+- [AI Usage Guide](https://github.com/panz2018/RF-Touchstone/blob/main/.github/AI_USAGE_GUIDE.md) - Comprehensive guide for AI coding assistants and developers integrating this library
 - [DeepWiki Documentation](https://deepwiki.com/panz2018/RF-Touchstone) - Interactive AI documentation that allows you to converse and ask questions about this repository
 - [Changelog](https://github.com/panz2018/RF-Touchstone/releases)
 
