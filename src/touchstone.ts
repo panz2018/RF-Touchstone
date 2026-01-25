@@ -67,17 +67,23 @@ export type TouchstoneImpedance = number | number[]
  *
  * @remarks
  * The matrix is a 3D array with the following dimensions:
- * - First dimension: output port index (0 to nports-1)
- * - Second dimension: input port index (0 to nports-1)
- * - Third dimension: frequency point index
+ * - First dimension [i]: Output port index (0 to nports-1) - where the signal exits
+ * - Second dimension [j]: Input port index (0 to nports-1) - where the signal enters
+ * - Third dimension [k]: Frequency point index
  *
  * For example:
- * - matrix[i][j][k] represents the parameter from port j+1 to port i+1 at frequency k
- * - For S-parameters: matrix[1][0][5] is S₂₁ at the 6th frequency point
+ * - `matrix[i][j][k]` represents the parameter from port j+1 to port i+1 at frequency k
+ * - For S-parameters: `matrix[1][0][5]` is S₂₁ at the 6th frequency point
+ *   (signal enters at port 1, exits at port 2)
  *
- * Special case for 2-port networks:
- * - Indices are swapped to match traditional Touchstone format
- * - matrix[0][1][k] represents S₁₂ (not S₂₁)
+ * @example
+ * ```typescript
+ * // Access S21 (port 1 → port 2) at first frequency
+ * const s21 = touchstone.matrix[1][0][0]
+ *
+ * // Access S11 (port 1 → port 1, reflection) at first frequency
+ * const s11 = touchstone.matrix[0][0][0]
+ * ```
  */
 export type TouchstoneMatrix = Complex[][][]
 
@@ -457,10 +463,11 @@ export class Touchstone {
 
   /**
    * 3D array to store the network parameter data
-   * - The first dimension is the exits (output) port number
-   * - The second dimension is the enters (input) port number
-   * - The third dimension is the frequency index
-   * For example, data[i][j][k] would be the parameter from j+1 port to i+1 port at frequency index k
+   * - First dimension [i]: Output port index (0 to nports-1) - where signal exits
+   * - Second dimension [j]: Input port index (0 to nports-1) - where signal enters
+   * - Third dimension [k]: Frequency index
+   *
+   * For example: matrix[i][j][k] is the parameter from port j+1 to port i+1 at frequency k
    */
   private _matrix: TouchstoneMatrix | undefined
 
@@ -483,17 +490,21 @@ export class Touchstone {
    *
    * @remarks
    * Matrix Structure:
-   * - First dimension [i]: Output (exit) port number (0 to nports-1)
-   * - Second dimension [j]: Input (enter) port number (0 to nports-1)
+   * - First dimension [i]: Output port index (0 to nports-1) - where the signal exits
+   * - Second dimension [j]: Input port index (0 to nports-1) - where the signal enters
    * - Third dimension [k]: Frequency point index
    *
-   * Example:
-   * - matrix[i][j][k] represents the parameter from port j+1 to port i+1 at frequency k
-   * - For S-parameters: matrix[1][0][5] is S₂₁ at the 6th frequency point
+   * @example
+   * ```typescript
+   * // For any N-port network (2-port, 4-port, etc.):
+   * const s11 = touchstone.matrix[0][0][freqIdx] // S11: port 1 → port 1
+   * const s21 = touchstone.matrix[1][0][freqIdx] // S21: port 1 → port 2
+   * const s12 = touchstone.matrix[0][1][freqIdx] // S12: port 2 → port 1
+   * const s22 = touchstone.matrix[1][1][freqIdx] // S22: port 2 → port 2
    *
-   * Special case for 2-port networks:
-   * - Indices are swapped to match traditional Touchstone format
-   * - matrix[0][1][k] represents S₁₂ (not S₂₁)
+   * // General pattern: Sij = matrix[i-1][j-1][freqIdx]
+   * // where i is the output port number, j is the input port number
+   * ```
    *
    * @returns The current network parameter matrix, or undefined if not set
    */

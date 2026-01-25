@@ -1,14 +1,18 @@
 {
   "name": "rf-touchstone",
   "type": "module",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A Javascript/TypeScript library for reading, manipulating, and writing Touchstone files (.snp files) used in radio frequency (RF) and microwave engineering.",
   "main": "dist/Touchstone.cjs.js",
   "module": "dist/Touchstone.es.js",
+  "browser": "dist/Touchstone.umd.js",
+  "unpkg": "dist/Touchstone.umd.js",
+  "jsdelivr": "dist/Touchstone.umd.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "browser": "./dist/Touchstone.umd.js",
       "import": "./dist/Touchstone.es.js",
       "require": "./dist/Touchstone.cjs.js"
     }
@@ -18,7 +22,8 @@
     "./src",
     "./readme.md",
     "./LICENSE.md",
-    "./coverage/coverage-badge.svg"
+    "./coverage/coverage-badge.svg",
+    "./.github/AI_USAGE_GUIDE.md"
   ],
   "license": "MIT",
   "author": "https://github.com/panz2018",

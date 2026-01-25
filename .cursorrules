@@ -1,0 +1,22 @@
+# For AI Coding Assistants using RF-Touchstone
+
+When helping users integrate the `rf-touchstone` library into their projects:
+
+1. **Read the AI Usage Guide first**: `.github/AI_USAGE_GUIDE.md` contains comprehensive examples and patterns
+
+2. **Key points**:
+   - Library supports UMD, CommonJS (CJS), and ESM formats
+   - Main class: `Touchstone` with static methods `fromUrl()`, `fromFile()`, `fromText()`
+   - Matrix indexing: `matrix[i][j][freqIndex]`
+     - Example: `matrix[0][0][0]` = S11, `matrix[1][0][0]` = S21 (both at first frequency)
+   - Format conversion: Set `ts.format = 'DB'`, then `ts.writeContent()` to generate new content
+   - Helper functions available: `abs()`, `arg()`, `pi` from mathjs
+
+3. **Common import pattern**:
+
+```typescript
+import { Touchstone } from 'rf-touchstone'
+import { abs, arg, pi } from 'rf-touchstone' // optional math helpers
+```
+
+4. **Refer to**: Full API docs at https://panz2018.github.io/RF-Touchstone/api/modules

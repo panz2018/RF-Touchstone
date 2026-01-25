@@ -15,7 +15,7 @@ hero:
       link: /introduction
     - theme: alt
       text: API Reference
-      link: /api/README
+      link: /api/modules
 
 features:
   - title: 'Comprehensive Format Support'
