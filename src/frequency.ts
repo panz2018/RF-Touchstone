@@ -1,6 +1,11 @@
 /**
  * Supported frequency units in the Touchstone specification.
  * Note: THz is not officially supported as a file header unit in Touchstone v1.x/v2.x.
+ *
+ * @remarks
+ * While THz can be accessed programmatically via the `f_THz` getter/setter for unit conversion,
+ * it cannot be used as the `unit` property value. Attempting to set `frequency.unit = 'THz'`
+ * will throw an error.
  */
 export const FrequencyUnits = ['Hz', 'kHz', 'MHz', 'GHz'] as const
 
@@ -313,6 +318,10 @@ export class Frequency {
 
   /**
    * Gets the frequency points in Terahertz (THz).
+   *
+   * @remarks
+   * THz is available for programmatic unit conversion but is NOT a valid file format unit.
+   * Use this getter to convert existing frequency data to THz for calculations or display.
    */
   get f_THz(): number[] {
     return this._getFrequencyInTargetUnit('THz')
@@ -320,6 +329,11 @@ export class Frequency {
 
   /**
    * Sets the frequency points in Terahertz (THz).
+   *
+   * @remarks
+   * THz is available for programmatic unit conversion but is NOT a valid file format unit.
+   * This setter converts THz values to the current internal unit (set via `unit` property).
+   * Do not attempt to set `unit = 'THz'` as it will throw an error.
    */
   set f_THz(values: number[]) {
     this._setFrequencyFromTargetUnit(values, 'THz')
@@ -427,7 +441,13 @@ export class Frequency {
 
   /**
    * Sets the wavelength in meters (m).
-   * Note: Changing wavelengths will update the underlying frequency points.
+   *
+   * @remarks
+   * This is a bidirectional conversion: setting wavelength automatically calculates and updates
+   * the underlying frequency points using the relationship f = c/λ, where c is the speed of light.
+   * The resulting frequencies are stored in the current unit specified by the `unit` property.
+   *
+   * @throws Error if any wavelength value is zero (division by zero).
    */
   set wavelength_m(values: number[]) {
     this._setWavelengthFromTargetUnit(values, 'm')
@@ -442,6 +462,9 @@ export class Frequency {
 
   /**
    * Sets the wavelength in centimeters (cm).
+   *
+   * @remarks
+   * Bidirectional conversion: Updates frequency points via f = c/λ.
    */
   set wavelength_cm(values: number[]) {
     this._setWavelengthFromTargetUnit(values, 'cm')
@@ -456,6 +479,9 @@ export class Frequency {
 
   /**
    * Sets the wavelength in millimeters (mm).
+   *
+   * @remarks
+   * Bidirectional conversion: Updates frequency points via f = c/λ.
    */
   set wavelength_mm(values: number[]) {
     this._setWavelengthFromTargetUnit(values, 'mm')
@@ -470,6 +496,9 @@ export class Frequency {
 
   /**
    * Sets the wavelength in micrometers (μm).
+   *
+   * @remarks
+   * Bidirectional conversion: Updates frequency points via f = c/λ.
    */
   set wavelength_um(values: number[]) {
     this._setWavelengthFromTargetUnit(values, 'um')
@@ -484,6 +513,9 @@ export class Frequency {
 
   /**
    * Sets the wavelength in nanometers (nm).
+   *
+   * @remarks
+   * Bidirectional conversion: Updates frequency points via f = c/λ.
    */
   set wavelength_nm(values: number[]) {
     this._setWavelengthFromTargetUnit(values, 'nm')

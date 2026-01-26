@@ -31,13 +31,11 @@ import { Touchstone } from 'rf-touchstone'
 import { abs, arg, pi, complex } from 'rf-touchstone'
 ```
 
-## Core Concepts
-
-### 1. **Touchstone Class** - Main API Entry Point
+## Touchstone Class
 
 The `Touchstone` class is the primary interface for working with .snp files.
 
-#### Creating Touchstone Objects
+### Creating Touchstone Objects
 
 **From URL (Browser or Node.js with fetch):**
 
@@ -80,7 +78,7 @@ console.log(touchstone.format) // 'MA'
 console.log(touchstone.parameter) // 'S'
 ```
 
-### 2. **Accessing Touchstone Data**
+### Accessing Touchstone Data
 
 ```typescript
 const ts = await Touchstone.fromUrl('device.s2p')
@@ -100,7 +98,7 @@ const nports = ts.nports // Number of ports (1, 2, 3, 4, etc.)
 const matrix = ts.matrix // Complex number matrix
 ```
 
-### 3. **Understanding Matrix Indexing** ⚠️ CRITICAL
+### Understanding Matrix Indexing ⚠️ CRITICAL
 
 **Matrix Structure:**
 
@@ -133,7 +131,7 @@ const s12 = ts.matrix[0][1][freqIdx] // S12
 // General pattern: Sij = ts.matrix[i-1][j-1][freqIdx]
 ```
 
-### 4. **Format Conversion**
+### Format Conversion
 
 To convert between formats (RI, MA, DB):
 
@@ -149,7 +147,7 @@ const dbContent = ts.writeContent() // Generate new file content
 const dbTs = Touchstone.fromText(dbContent, ts.nports)
 ```
 
-### 5. **Writing Touchstone Content**
+### Writing Touchstone Content
 
 ```typescript
 const ts = await Touchstone.fromUrl('device.s2p')
@@ -170,7 +168,7 @@ import fs from 'fs/promises'
 await fs.writeFile('modified-device.s2p', content)
 ```
 
-### 6. **Working with Complex Numbers**
+### Working with Complex Numbers
 
 The library uses mathjs Complex type `{ re: number, im: number }`:
 
@@ -191,6 +189,114 @@ const magnitudeDB = 20 * Math.log10(magnitude)
 
 // Convert phase to degrees
 const phaseDegrees = (phase * 180) / pi
+```
+
+## Frequency Class
+
+The `Frequency` class provides powerful utilities for unit conversion and wavelength calculations. While it's typically accessed through `touchstone.frequency`, you can also work with it directly.
+
+### Accessing Frequency Data
+
+```typescript
+const ts = await Touchstone.fromUrl('device.s2p')
+
+// Access frequency points in the file's original unit
+const frequencies = ts.frequency.f_scaled // e.g., [1.0, 2.0, 3.0]
+const unit = ts.frequency.unit // e.g., 'GHz'
+
+// Get frequency points in different units
+const freqsInHz = ts.frequency.f_Hz // [1e9, 2e9, 3e9]
+const freqsInMHz = ts.frequency.f_MHz // [1000, 2000, 3000]
+const freqsInGHz = ts.frequency.f_GHz // [1.0, 2.0, 3.0]
+```
+
+### Converting Frequency Units
+
+```typescript
+const ts = await Touchstone.fromUrl('device.s2p')
+
+// Get current unit
+console.log(ts.frequency.unit) // 'GHz'
+console.log(ts.frequency.f_scaled) // [1.0, 2.0, 3.0]
+
+// Change unit - automatically rescales f_scaled
+ts.frequency.unit = 'MHz'
+console.log(ts.frequency.f_scaled) // [1000, 2000, 3000]
+
+// Access in any unit without changing internal representation
+const inHz = ts.frequency.f_Hz // [1e9, 2e9, 3e9]
+const inTHz = ts.frequency.f_THz // [0.001, 0.002, 0.003]
+```
+
+> [!IMPORTANT]
+> **THz Support**: While THz can be accessed programmatically via `f_THz` getter/setter, it is **not** an official unit in Touchstone v1.x/v2.x file formats. Do not set `frequency.unit = 'THz'` as it will throw an error. THz is only available through the `f_THz` property for conversion purposes.
+
+### Working with Wavelength
+
+The `Frequency` class can convert between frequency and wavelength using the relationship $\lambda = c/f$ where $c$ is the speed of light (299,792,458 m/s).
+
+```typescript
+const ts = await Touchstone.fromUrl('device.s2p')
+
+// Get wavelengths in different units
+const wavelengthsInM = ts.frequency.wavelength_m // meters
+const wavelengthsInCm = ts.frequency.wavelength_cm // centimeters
+const wavelengthsInMm = ts.frequency.wavelength_mm // millimeters
+const wavelengthsInUm = ts.frequency.wavelength_um // micrometers
+const wavelengthsInNm = ts.frequency.wavelength_nm // nanometers
+
+// Example: 1 GHz → λ ≈ 0.3 m = 30 cm = 300 mm
+```
+
+### Setting Frequency from Wavelength
+
+You can also set frequency points by specifying wavelengths. This is bidirectional - setting wavelength updates the underlying frequency data:
+
+```typescript
+import { Frequency } from 'rf-touchstone'
+
+const freq = new Frequency()
+freq.unit = 'GHz'
+
+// Set frequencies using wavelength in millimeters
+// For λ = 300 mm → f ≈ 1 GHz
+// For λ = 150 mm → f ≈ 2 GHz
+freq.wavelength_mm = [300, 150, 100]
+
+console.log(freq.f_GHz) // [~1.0, ~2.0, ~3.0]
+console.log(freq.f_scaled) // [~1.0, ~2.0, ~3.0]
+```
+
+### Practical Example: Frequency Range Analysis
+
+```typescript
+async function analyzeFrequencyRange(file: File) {
+  const ts = await Touchstone.fromFile(file)
+
+  const freqs = ts.frequency.f_GHz
+  const wavelengths = ts.frequency.wavelength_mm
+
+  return {
+    numPoints: freqs.length,
+    range: {
+      frequency: {
+        min: freqs[0],
+        max: freqs[freqs.length - 1],
+        unit: 'GHz',
+      },
+      wavelength: {
+        min: wavelengths[wavelengths.length - 1], // shortest
+        max: wavelengths[0], // longest
+        unit: 'mm',
+      },
+    },
+    // Calculate frequency spacing
+    spacing:
+      freqs.length > 1
+        ? ((freqs[freqs.length - 1] - freqs[0]) / (freqs.length - 1)).toFixed(3)
+        : 'N/A',
+  }
+}
 ```
 
 ## Common Use Cases
