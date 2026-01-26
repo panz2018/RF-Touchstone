@@ -42,9 +42,11 @@ The `Touchstone` class is the primary interface for working with .snp files.
 ```typescript
 // Auto-detect nports from filename (.s2p → 2-port)
 const ts = await Touchstone.fromUrl('https://example.com/device.s2p')
+console.log(ts.name) // 'device' - automatically extracted from filename
 
 // Explicit nports if filename doesn't indicate
 const ts = await Touchstone.fromUrl('https://example.com/data.txt', 2)
+console.log(ts.name) // 'data' - basename without extension
 ```
 
 **From File Object (Browser file input):**
@@ -53,6 +55,7 @@ const ts = await Touchstone.fromUrl('https://example.com/data.txt', 2)
 // In any framework with file input
 const handleFileUpload = async (file: File) => {
   const touchstone = await Touchstone.fromFile(file)
+  console.log(touchstone.name) // Filename without extension
   // Use touchstone object
 }
 ```
@@ -69,10 +72,11 @@ const s2pContent = `! 2-port S-parameter data
 2.0 0.45 -60 0.90 15 0.10 80 0.55 -45
 3.0 0.40 -75 0.85 20 0.15 75 0.50 -60`
 
-// Parse the text content
-const touchstone = Touchstone.fromText(s2pContent, 2) // 2 = 2-port network
+// Parse the text content with optional name
+const touchstone = Touchstone.fromText(s2pContent, 2, 'my_measurement') // 2 = 2-port network
 
 // Now you can use the parsed data
+console.log(touchstone.name) // 'my_measurement'
 console.log(touchstone.frequency.f_scaled) // [1.0, 2.0, 3.0]
 console.log(touchstone.format) // 'MA'
 console.log(touchstone.parameter) // 'S'
@@ -86,6 +90,10 @@ const ts = await Touchstone.fromUrl('device.s2p')
 // Frequency data
 const frequencies = ts.frequency.f_scaled // Array of numbers in specified unit
 const unit = ts.frequency.unit // 'Hz' | 'kHz' | 'MHz' | 'GHz'
+
+// Name property (automatically extracted from filename or manually set)
+const name = ts.name // e.g., 'device' (without extension)
+ts.name = 'modified_device' // Can be modified for plot legends, filenames, etc.
 
 // Options line data
 const format = ts.format // 'RI' | 'MA' | 'DB'
@@ -511,6 +519,7 @@ function downloadFile() {
 // Touchstone class
 class Touchstone {
   // Properties
+  name?: string // Filename without extension, used for legends and default filenames
   nports?: number
   frequency?: Frequency
   format?: 'RI' | 'MA' | 'DB'
@@ -520,10 +529,11 @@ class Touchstone {
   comments: string[]
 
   // Static methods
-  static fromText(content: string, nports: number): Touchstone
+  static fromText(content: string, nports: number, name?: string): Touchstone
   static fromUrl(url: string, nports?: number): Promise<Touchstone>
   static fromFile(file: File, nports?: number): Promise<Touchstone>
   static getFilename(pathOrUrl: string): string
+  static getBasename(filenameOrPath: string): string
   static parsePorts(filename: string): number | null
 
   // Instance methods

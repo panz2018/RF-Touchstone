@@ -67,16 +67,21 @@ import { Touchstone } from 'rf-touchstone'
 
 // Read from a URL (nports automatically determined from .s2p)
 const touchstone = await Touchstone.fromUrl('https://example.com/device.s2p')
+console.log(touchstone.name) // 'device' - automatically extracted from filename
 
 // Or from a File object (e.g., from a file input)
 const touchstoneFromFile = await Touchstone.fromFile(file)
+console.log(touchstoneFromFile.name) // Filename without extension
 
-// Or from a raw text string
-const touchstoneFromText = Touchstone.fromText(fileContent, 2)
+// Or from a raw text string with optional name
+const touchstoneFromText = Touchstone.fromText(fileContent, 2, 'my_measurement')
 
 // Access data
 console.log(touchstone.frequency.f_scaled)
 console.log(touchstone.matrix)
+
+// The name property is useful for plot legends and default filenames
+touchstone.name = 'modified_network' // Can be modified
 
 // Write back to Touchstone format
 const newContent = touchstone.writeContent()
