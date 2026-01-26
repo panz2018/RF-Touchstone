@@ -178,6 +178,22 @@ export class Touchstone {
   }
 
   /**
+   * Extracts the basename from a filename by removing the .snp extension.
+   *
+   * @param filename - The filename to process (e.g., 'network.s2p').
+   * @returns The basename without extension (e.g., 'network').
+   *
+   * @example
+   * ```typescript
+   * Touchstone.getBasename('myfile.s2p') // 'myfile'
+   * Touchstone.getBasename('data.s4p') // 'data'
+   * ```
+   */
+  public static getBasename(filename: string): string {
+    return filename.replace(/\.s\d+p$/i, '')
+  }
+
+  /**
    * Determines the number of ports based on the file extension (e.g., .s2p -> 2).
    *
    * @param filename - The filename or URL to inspect.
@@ -196,11 +212,17 @@ export class Touchstone {
    *
    * @param content - The raw text content of the Touchstone file
    * @param nports - The number of ports
+   * @param name - Optional name for this Touchstone object (used for plotting legends and default save filename)
    * @returns A new Touchstone instance
    */
-  public static fromText(content: string, nports: number): Touchstone {
+  public static fromText(
+    content: string,
+    nports: number,
+    name?: string
+  ): Touchstone {
     const ts = new Touchstone()
     ts.readContent(content, nports)
+    ts.name = name
     return ts
   }
 
@@ -222,9 +244,9 @@ export class Touchstone {
     }
     const textContent = await response.text()
 
+    const filename = this.getFilename(url)
     let determinedNports: number | null = nports ?? null
     if (determinedNports === null) {
-      const filename = this.getFilename(url)
       determinedNports = this.parsePorts(filename)
     }
 
@@ -233,7 +255,9 @@ export class Touchstone {
         `Could not determine number of ports from URL: ${url}. Please provide nports manually.`
       )
     }
-    return this.fromText(textContent, determinedNports)
+
+    const name = this.getBasename(filename)
+    return this.fromText(textContent, determinedNports, name)
   }
 
   /**
@@ -261,6 +285,7 @@ export class Touchstone {
         )
       }
 
+      const name = this.getBasename(file.name)
       const reader = new FileReader()
       reader.onload = (e) => {
         try {
@@ -269,7 +294,7 @@ export class Touchstone {
             reject(new Error('File content is empty'))
             return
           }
-          resolve(this.fromText(textContent, determinedNports))
+          resolve(this.fromText(textContent, determinedNports, name))
         } catch (err) {
           reject(err)
         }
@@ -280,6 +305,20 @@ export class Touchstone {
       reader.readAsText(file)
     })
   }
+
+  /**
+   * Name of the Touchstone file (without extension).
+   * Used as default filename when saving and as legend label in plots.
+   * Automatically set when using `fromUrl()` or `fromFile()`,
+   * can be manually provided in `fromText()` or set directly.
+   *
+   * @example
+   * ```typescript
+   * const ts = await Touchstone.fromUrl('http://example.com/network.s2p')
+   * console.log(ts.name) // 'network'
+   * ```
+   */
+  public name: string | undefined
 
   /**
    * Array of comment strings extracted from the Touchstone file header (lines starting with `!`).
