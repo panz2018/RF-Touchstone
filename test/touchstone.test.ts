@@ -846,6 +846,44 @@ describe('touchstone.ts', () => {
       expect(Touchstone.parsePorts('test')).toBe(null)
     })
 
+    it('getBasename', () => {
+      // Test removing .snp extensions from simple filenames
+      expect(Touchstone.getBasename('network.s2p')).toBe('network')
+      expect(Touchstone.getBasename('mydata.s4p')).toBe('mydata')
+      expect(Touchstone.getBasename('TEST.S1P')).toBe('TEST')
+      expect(Touchstone.getBasename('file.S10P')).toBe('file')
+      expect(Touchstone.getBasename('my-network-v2.s3p')).toBe('my-network-v2')
+
+      // Test with full paths (Unix-style)
+      expect(Touchstone.getBasename('/path/to/sample.s2p')).toBe('sample')
+      expect(Touchstone.getBasename('/usr/local/data.s4p')).toBe('data')
+
+      // Test with full paths (Windows-style)
+      expect(Touchstone.getBasename('C:\\path\\to\\sample.s2p')).toBe('sample')
+      expect(Touchstone.getBasename('D:\\Data\\network.s3p')).toBe('network')
+
+      // Test with URLs
+      expect(Touchstone.getBasename('https://example.com/file.s1p')).toBe(
+        'file'
+      )
+      expect(Touchstone.getBasename('http://test.com/data/test.s2p')).toBe(
+        'test'
+      )
+
+      // Test with non-.snp files (should remove any extension)
+      expect(Touchstone.getBasename('data.txt')).toBe('data')
+      expect(Touchstone.getBasename('document.pdf')).toBe('document')
+      expect(Touchstone.getBasename('/path/to/file.txt')).toBe('file')
+      expect(Touchstone.getBasename('archive.tar.gz')).toBe('archive.tar')
+
+      // Files without extension remain unchanged
+      expect(Touchstone.getBasename('noextension')).toBe('noextension')
+      expect(Touchstone.getBasename('/path/to/noext')).toBe('noext')
+
+      // Hidden files (starting with dot)
+      expect(Touchstone.getBasename('.gitignore')).toBe('.gitignore')
+    })
+
     it('fromText', () => {
       const content = '# MHz S MA R 50\n100 0.9 -10'
       const ts = Touchstone.fromText(content, 1)
@@ -859,6 +897,15 @@ describe('touchstone.ts', () => {
       expect(ts.matrix![0][0]).toStrictEqual([
         complex({ r: 0.9, phi: (-10 / 180) * pi }),
       ])
+      // Name should be undefined when not provided
+      expect(ts.name).toBeUndefined()
+    })
+
+    it('fromText with name', () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const ts = Touchstone.fromText(content, 1, 'my_measurement')
+      expect(ts).toBeInstanceOf(Touchstone)
+      expect(ts.name).toBe('my_measurement')
     })
 
     it('fromUrl', async () => {
@@ -880,6 +927,8 @@ describe('touchstone.ts', () => {
       expect(ts.matrix![0][0]).toStrictEqual([
         complex({ r: 0.9, phi: (-10 / 180) * pi }),
       ])
+      // Name should be extracted from URL (without extension)
+      expect(ts.name).toBe('sample')
 
       vi.unstubAllGlobals()
     })
@@ -921,6 +970,8 @@ describe('touchstone.ts', () => {
       expect(ts.matrix![0][0]).toStrictEqual([
         complex({ r: 0.9, phi: (-10 / 180) * pi }),
       ])
+      // Name should be 'data' (basename removes .txt extension too)
+      expect(ts.name).toBe('data')
 
       vi.unstubAllGlobals()
     })
@@ -968,6 +1019,8 @@ describe('touchstone.ts', () => {
       expect(ts.matrix![0][0]).toStrictEqual([
         complex({ r: 0.9, phi: (-10 / 180) * pi }),
       ])
+      // Name should be extracted from File object (without extension)
+      expect(ts.name).toBe('sample')
     })
 
     it('fromFile with explicit nports', async () => {
@@ -986,6 +1039,8 @@ describe('touchstone.ts', () => {
       expect(ts.matrix![0][0]).toStrictEqual([
         complex({ r: 0.9, phi: (-10 / 180) * pi }),
       ])
+      // Name should be 'data' (basename removes .txt extension)
+      expect(ts.name).toBe('data')
     })
 
     it('fromFile error: empty content', async () => {
@@ -1031,6 +1086,112 @@ describe('touchstone.ts', () => {
       await expect(Touchstone.fromFile(file, 2)).rejects.toThrow(
         'Touchstone invalid data number: 3, which should be multiple of 9'
       )
+    })
+  })
+
+  describe('Name Property', () => {
+    it('should be undefined by default', () => {
+      const ts = new Touchstone()
+      expect(ts.name).toBeUndefined()
+    })
+
+    it('should allow direct assignment', () => {
+      const ts = new Touchstone()
+      ts.name = 'my_network'
+      expect(ts.name).toBe('my_network')
+    })
+
+    it('should allow modification', () => {
+      const ts = new Touchstone()
+      ts.name = 'initial_name'
+      expect(ts.name).toBe('initial_name')
+      ts.name = 'modified_name'
+      expect(ts.name).toBe('modified_name')
+    })
+
+    it('should allow setting to undefined', () => {
+      const ts = new Touchstone()
+      ts.name = 'some_name'
+      ts.name = undefined
+      expect(ts.name).toBeUndefined()
+    })
+
+    it('fromText: should preserve name through readContent', () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const ts = Touchstone.fromText(content, 1, 'preserved_name')
+      expect(ts.name).toBe('preserved_name')
+      expect(ts.format).toBe('MA')
+    })
+
+    it('fromUrl: should extract name from different URL formats', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+      const mockResponse = {
+        ok: true,
+        text: () => Promise.resolve(content),
+      }
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse))
+
+      // Test various URL formats
+      const testCases = [
+        {
+          url: 'https://example.com/network.s2p',
+          expected: 'network',
+        },
+        {
+          url: 'http://example.com/path/to/data.s4p',
+          expected: 'data',
+        },
+        {
+          url: 'https://example.com/MyFile.S3P',
+          expected: 'MyFile',
+        },
+        {
+          url: 'https://example.com/test.s10p?query=123',
+          expected: 'test',
+        },
+      ]
+
+      for (const { url, expected } of testCases) {
+        const ts = await Touchstone.fromUrl(url, 1)
+        expect(ts.name).toBe(expected)
+      }
+
+      vi.unstubAllGlobals()
+    })
+
+    it('fromFile: should extract name from different file formats', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+
+      const testCases = [
+        { filename: 'network.s2p', expected: 'network' },
+        { filename: 'data.s4p', expected: 'data' },
+        { filename: 'MyFile.S3P', expected: 'MyFile' },
+        { filename: 'test.s10p', expected: 'test' },
+        { filename: 'data.txt', expected: 'data' }, // Any extension is removed
+      ]
+
+      for (const { filename, expected } of testCases) {
+        const file = new File([content], filename, { type: 'text/plain' })
+        const ts = await Touchstone.fromFile(file, 1)
+        expect(ts.name).toBe(expected)
+      }
+    })
+
+    it('should handle complex filenames', async () => {
+      const content = '# MHz S MA R 50\n100 0.9 -10'
+
+      const testCases = [
+        { filename: 'my-network-v2.s2p', expected: 'my-network-v2' },
+        { filename: 'test_data_2024.s4p', expected: 'test_data_2024' },
+        { filename: 'network (copy).s1p', expected: 'network (copy)' },
+        { filename: '123_456.s3p', expected: '123_456' },
+      ]
+
+      for (const { filename, expected } of testCases) {
+        const file = new File([content], filename, { type: 'text/plain' })
+        const ts = await Touchstone.fromFile(file, 1)
+        expect(ts.name).toBe(expected)
+      }
     })
   })
 })

@@ -178,19 +178,45 @@ export class Touchstone {
   }
 
   /**
-   * Extracts the basename from a filename by removing the .snp extension.
+   * Extracts the basename from a filename or path by removing the file extension.
    *
-   * @param filename - The filename to process (e.g., 'network.s2p').
-   * @returns The basename without extension (e.g., 'network').
+   * @remarks
+   * This method intelligently handles both simple filenames and full paths.
+   * If a path separator is detected (/ or \), it first extracts the filename,
+   * then removes any file extension.
+   *
+   * @param filenameOrPath - The filename or full path to process.
+   * @returns The basename without extension.
    *
    * @example
    * ```typescript
+   * // Works with simple filenames
    * Touchstone.getBasename('myfile.s2p') // 'myfile'
-   * Touchstone.getBasename('data.s4p') // 'data'
+   * Touchstone.getBasename('data.txt') // 'data'
+   * Touchstone.getBasename('document.pdf') // 'document'
+   *
+   * // Also works with full paths
+   * Touchstone.getBasename('/path/to/network.s2p') // 'network'
+   * Touchstone.getBasename('C:\\data\\test.s3p') // 'test'
+   * Touchstone.getBasename('https://example.com/file.txt') // 'file'
+   *
+   * // Files without extension remain unchanged
+   * Touchstone.getBasename('noextension') // 'noextension'
    * ```
    */
-  public static getBasename(filename: string): string {
-    return filename.replace(/\.s\d+p$/i, '')
+  public static getBasename(filenameOrPath: string): string {
+    // If the input contains path separators, extract filename first
+    let filename = filenameOrPath
+    if (filenameOrPath.includes('/') || filenameOrPath.includes('\\')) {
+      filename = this.getFilename(filenameOrPath)
+    }
+    // Remove any file extension (everything after the last dot)
+    const lastDotIndex = filename.lastIndexOf('.')
+    if (lastDotIndex === -1 || lastDotIndex === 0) {
+      // No extension or hidden file (starts with dot)
+      return filename
+    }
+    return filename.substring(0, lastDotIndex)
   }
 
   /**
@@ -244,7 +270,9 @@ export class Touchstone {
     }
     const textContent = await response.text()
 
+    // Extract filename once for efficiency
     const filename = this.getFilename(url)
+
     let determinedNports: number | null = nports ?? null
     if (determinedNports === null) {
       determinedNports = this.parsePorts(filename)
@@ -256,6 +284,7 @@ export class Touchstone {
       )
     }
 
+    // Pass filename to getBasename to avoid re-extracting it
     const name = this.getBasename(filename)
     return this.fromText(textContent, determinedNports, name)
   }
