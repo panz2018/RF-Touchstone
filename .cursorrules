@@ -7,6 +7,10 @@ When helping users integrate the `rf-touchstone` library into their projects:
 2. **Key points**:
    - Library supports UMD, CommonJS (CJS), and ESM formats
    - Main class: `Touchstone` with static methods `fromUrl()`, `fromFile()`, `fromText()`
+   - Name property: Automatically extracted from filename (without extension) when using `fromUrl()` or `fromFile()`
+     - Example: `fromUrl('device.s2p')` → `touchstone.name = 'device'`
+     - Can be manually set: `touchstone.name = 'my_network'`
+     - Useful for plot legends and default filenames
    - Matrix indexing: `matrix[i][j][freqIndex]`
      - Example: `matrix[0][0][0]` = S11, `matrix[1][0][0]` = S21 (both at first frequency)
    - Format conversion: Set `ts.format = 'DB'`, then `ts.writeContent()` to generate new content
