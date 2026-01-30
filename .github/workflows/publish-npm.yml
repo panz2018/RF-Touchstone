@@ -33,8 +33,22 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            // Get the workflow run that triggered this publish
+            const triggeringRun = context.payload.workflow_run;
+            console.log(`Triggered by: ${triggeringRun.name}`);
+            console.log(`Triggering event: ${triggeringRun.event}`);
+
+            // Skip if this was triggered by a scheduled test run
+            // We only want to publish on actual code pushes, not monthly tests
+            if (triggeringRun.event === 'schedule') {
+              console.log('⏭️  Skipping publish - triggered by scheduled test, not a code push.');
+              console.log('Monthly scheduled tests should not trigger npm publish.');
+              core.setOutput('all_passed', 'false');
+              return;
+            }
+
             // Get the commit SHA that triggered the workflows
-            const sha = context.payload.workflow_run.head_sha;
+            const sha = triggeringRun.head_sha;
             console.log(`Checking workflows for commit ${sha}`);
 
             // Define all required workflows that must pass
