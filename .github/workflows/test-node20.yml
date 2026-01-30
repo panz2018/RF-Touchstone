@@ -1,9 +1,14 @@
-name: Test
+name: Test Node.js 20
 
 on:
-  # Runs on pull requests targeting the default branch
-  pull_request:
+  # Runs on pushes to main branch (post-merge)
+  push:
     branches: ['main']
+
+  # Runs monthly to catch dependency issues
+  schedule:
+    # At 00:00 on day-of-month 1 (monthly)
+    - cron: '0 0 1 * *'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -11,23 +16,24 @@ on:
 permissions:
   contents: read
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Allow only one concurrent test run
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  pre-merge:
+  test-node-20:
     runs-on: ubuntu-latest
+    name: Test with Node.js 20
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
 
       - name: Enable Corepack
         run: corepack enable

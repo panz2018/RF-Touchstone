@@ -1,7 +1,11 @@
-name: Publish to npmjs
+name: Publish to npm
 
 on:
-  push:
+  # Trigger after all Node.js version test workflows complete successfully
+  workflow_run:
+    workflows: ['Test Node.js 20', 'Test Node.js 22', 'Test Node.js 24']
+    types:
+      - completed
     branches:
       - main
 
@@ -9,7 +13,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  build-and-publish-npm:
+    # Only run if all test workflows succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     environment: npm_publish
     permissions:
