@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  build-and-publish-npm:
     runs-on: ubuntu-latest
     environment: npm_publish
     permissions:
