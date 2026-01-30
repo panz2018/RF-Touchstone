@@ -7,8 +7,8 @@ on:
 
   # Runs monthly to catch dependency issues
   schedule:
-    # At 00:00 on day-of-month 1 (monthly)
-    - cron: '0 0 1 * *'
+    # At 03:32 on day-of-month 1 (monthly) - staggered with other versions
+    - cron: '32 3 1 * *'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
