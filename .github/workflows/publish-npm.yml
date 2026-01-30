@@ -12,19 +12,23 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Ensure only one publish runs at a time to prevent race conditions
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false # Don't cancel, just queue them
+
 jobs:
-  build-and-publish-npm:
-    # Only run if:
-    # 1. The triggering workflow succeeded, OR
-    # 2. This is a manual trigger
+  # First job: Verify all version tests passed
+  verify-all-versions:
+    # Only run if the triggering workflow succeeded
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-    environment: npm_publish
-    permissions:
-      contents: read
-      id-token: write # Must for OIDC authentication
+    outputs:
+      # This output tells the next job whether to proceed
+      all_tests_passed: ${{ steps.verify.outputs.all_passed }}
     steps:
-      - name: Check all previous workflows succeeded
+      - name: Verify all version tests succeeded
+        id: verify
         if: github.event_name == 'workflow_run'
         uses: actions/github-script@v7
         with:
@@ -33,10 +37,10 @@ jobs:
             const sha = context.payload.workflow_run.head_sha;
             console.log(`Checking workflows for commit ${sha}`);
 
-            // Define all required workflows
+            // Define all required workflows that must pass
             const requiredWorkflows = ['Test Node.js 20', 'Test Node.js 22', 'Test Node.js 24'];
 
-            // Fetch all workflow runs for this commit
+            // Fetch all workflow runs for this specific commit
             const runs = await github.rest.actions.listWorkflowRunsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -44,51 +48,69 @@ jobs:
               per_page: 100
             });
 
-            // Filter to get the required workflows
-            const requiredRuns = runs.data.workflow_runs.filter(run => 
+            // Filter to only get the test workflows we care about
+            const requiredRuns = runs.data.workflow_runs.filter(run =>
               requiredWorkflows.includes(run.name) && run.event === 'push'
             );
 
             console.log(`Found ${requiredRuns.length} required workflow runs`);
 
-            // Check each workflow
+            // Map results for easier checking
             const results = requiredRuns.map(run => ({
               name: run.name,
               status: run.status,
-              conclusion: run.conclusion,
-              url: run.html_url
+              conclusion: run.conclusion
             }));
 
             results.forEach(r => console.log(`${r.name}: status=${r.status}, conclusion=${r.conclusion}`));
 
-            // Check if we have all 3 workflows
+            // Check #1: Do we have all 3 workflows?
             if (results.length < 3) {
               const found = results.map(r => r.name);
               const missing = requiredWorkflows.filter(w => !found.includes(w));
               console.log(`⏳ Waiting for workflows to start: ${missing.join(', ')}`);
-              console.log('This publish run will be skipped. Another run will happen when all workflows complete.');
-              process.exit(0); // Exit gracefully, not as failure
+              console.log('Setting all_passed=false. This run will be skipped.');
+              core.setOutput('all_passed', 'false');
+              return; // Exit early, but don't fail
             }
 
-            // Check if all workflows completed
+            // Check #2: Are all workflows completed?
             const allCompleted = results.every(r => r.status === 'completed');
             if (!allCompleted) {
               const incomplete = results.filter(r => r.status !== 'completed');
               console.log(`⏳ Some workflows still running: ${incomplete.map(w => w.name).join(', ')}`);
-              console.log('This publish run will be skipped. Another run will happen when all workflows complete.');
-              process.exit(0); // Exit gracefully, not as failure
+              console.log('Setting all_passed=false. This run will be skipped.');
+              core.setOutput('all_passed', 'false');
+              return; // Exit early, but don't fail
             }
 
-            // Check if all succeeded
+            // Check #3: Did all workflows succeed?
             const allSuccess = results.every(r => r.conclusion === 'success');
 
             if (!allSuccess) {
               const failed = results.filter(r => r.conclusion !== 'success');
               core.setFailed(`Not all tests passed. Failed: ${failed.map(f => `${f.name} (${f.conclusion})`).join(', ')}`);
+              core.setOutput('all_passed', 'false');
             } else {
-              console.log('✓ All version tests passed! Proceeding with publish...');
+              console.log('✓ All version tests passed! Ready to publish.');
+              core.setOutput('all_passed', 'true');
             }
 
+      - name: Set output for manual dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: echo "all_passed=true" >> $GITHUB_OUTPUT
+
+  # Second job: Actually build and publish
+  build-and-publish-npm:
+    needs: verify-all-versions
+    # Only run if verification passed OR this is a manual trigger
+    if: needs.verify-all-versions.outputs.all_tests_passed == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: npm_publish
+    permissions:
+      contents: read
+      id-token: write # Required for OIDC authentication with npm
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -99,7 +121,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
 
       - name: Update npm to latest
-        run: npm install -g npm@latest # Ensures npm >=10.8.3 or higher for 2025 changes
+        run: npm install -g npm@latest # Ensures npm >=10.8.3 for 2025 provenance changes
 
       - name: Enable Corepack
         run: corepack enable
@@ -133,7 +155,7 @@ jobs:
 
           echo "Checking if $PACKAGE_NAME@$CURRENT_VERSION exists on npm..."
 
-          # Use npm view to fetch specific version. 
+          # Use npm view to fetch specific version
           # Redirecting stdout and stderr to hide potential "404 Not Found" errors
           if npm view "${PACKAGE_NAME}@${CURRENT_VERSION}" version >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -142,7 +164,7 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "Status: Version $CURRENT_VERSION is new. Ready to publish."
           fi
-        # Set to continue if package has never been published before (npm view might error)
+        # Continue even if package has never been published before (npm view might error)
         continue-on-error: true
 
       - name: Debug npm config
