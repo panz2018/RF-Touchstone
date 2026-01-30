@@ -4,7 +4,9 @@ A Javascript/TypeScript library for reading, manipulating, and writing Touchston
 
 <a href="https://deepwiki.com/panz2018/RF-Touchstone" target="_blank"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" align="right"></a>
 
-[![Tests](https://github.com/panz2018/RF-Touchstone/actions/workflows/test.yml/badge.svg?event=pull_request)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test.yml)
+[![Node.js 20](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-node20.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-node20.yml)
+[![Node.js 22](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-node22.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-node22.yml)
+[![Node.js 24](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-node24.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-node24.yml)
 [![Coverage](coverage/coverage-badge.svg)](coverage/coverage-badge.svg)
 
 ## Overview
