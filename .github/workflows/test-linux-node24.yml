@@ -1,4 +1,4 @@
-name: Test Node.js 24
+name: Linux 24
 
 on:
   # Runs on pushes to main branch (post-merge)

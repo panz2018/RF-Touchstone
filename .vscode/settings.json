@@ -103,5 +103,10 @@
     "**/dist/**": true,
     "**/coverage/**": true,
     "**/.venv/**": true
-  }
+  },
+
+  // ========================================
+  // Spell Checker Configuration
+  // ========================================
+  "cSpell.words": ["LOCALAPPDATA", "venv", "uvx", "pwsh", "macos", "uv"]
 }

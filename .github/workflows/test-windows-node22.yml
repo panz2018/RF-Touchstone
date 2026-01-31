@@ -1,4 +1,4 @@
-name: Linux 22
+name: Windows 22
 
 on:
   # Runs on pushes to main branch (post-merge)
@@ -7,8 +7,8 @@ on:
 
   # Runs monthly to catch dependency issues
   schedule:
-    # At 03:32 on day-of-month 1 (monthly) - staggered with other versions
-    - cron: '32 3 1 * *'
+    # At 04:32 on day-of-month 1 (monthly) - staggered time
+    - cron: '32 4 1 * *'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -22,9 +22,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-node-22:
-    runs-on: ubuntu-latest
-    name: Test with Node.js 22
+  test-windows:
+    runs-on: windows-latest
+    name: Test on Windows with Node.js 22
 
     steps:
       - name: Checkout repository
@@ -49,30 +49,23 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Cache uv global directory
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/uv # Default uv cache path on Linux
-          key: ${{ runner.os }}-uv-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-uv-
-
       - name: Install uv and Python dependencies
-        shell: bash
+        shell: pwsh
         run: |
-          # Install uv
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          # The installer script should add uv to PATH. If not, source the cargo env or add manually.
-          # Example if installed via cargo (common for Rust tools):
-          source "$HOME/.cargo/env"
+          # Install uv for Windows
+          irm https://astral.sh/uv/install.ps1 | iex
 
-          # Create virtual environment using uv, explicitly using the Python from setup-python
-          uv venv .venv --python $(which python)
+          # Add uv to PATH for current session
+          $env:Path = "$env:LOCALAPPDATA\Programs\uv;$env:Path"
 
-          # Activate virtual environment for this script block
-          source .venv/bin/activate
+          # Verify uv is available
+          uv --version
 
-          # Install packages using uv
+          # Create virtual environment
+          uv venv .venv --python (Get-Command python).Path
+
+          # Activate virtual environment and install packages
+          .\.venv\Scripts\Activate.ps1
           uv pip install -r requirements.txt --keyring-provider=disabled
 
       - name: Run tests
