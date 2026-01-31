@@ -1,0 +1,32 @@
+{
+  "recommendations": [
+    // Prettier: Auto-format TS/JS/JSON/MD, ensures consistent code style
+    "esbenp.prettier-vscode",
+
+    // Ruff: Fast Python linter & formatter (10-100x faster than alternatives)
+    "charliermarsh.ruff",
+
+    // Python: Manage virtual env, run tests, IntelliSense for scikit-rf scripts
+    "ms-python.python",
+
+    // ESLint: Detect code errors & enforce standards, auto-fix on save
+    "dbaeumer.vscode-eslint",
+
+    // Vitest: Test runner UI, run and debug tests directly in editor
+    "vitest.explorer",
+
+    // Pretty TypeScript Errors: Beautify TS error messages for better readability
+    "yoavbls.pretty-ts-errors",
+
+    // Error Lens: Show errors inline next to code without hovering
+    "usernamehw.errorlens",
+
+    // Code Spell Checker: Catch typos in variables, comments, and strings
+    "streetsidesoftware.code-spell-checker"
+  ],
+  "unwantedRecommendations": [
+    // Conflicts with Prettier
+    "hookyqr.beautify",
+    "HookyQR.beautify"
+  ]
+}

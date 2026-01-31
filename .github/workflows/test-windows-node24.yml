@@ -1,0 +1,66 @@
+name: Test Windows
+
+on:
+  # Runs on pushes to main branch (post-merge)
+  push:
+    branches: ['main']
+
+  # Runs monthly to catch dependency issues
+  schedule:
+    # At 04:17 on day-of-month 1 (monthly) - staggered time
+    - cron: '17 4 1 * *'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Allow only one concurrent test run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-windows:
+    runs-on: windows-latest
+    name: Test on Windows with Node.js 24
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Node.js dependencies (Root)
+        run: yarn install
+
+      - name: Install Node.js dependencies (React Example)
+        run: yarn --cwd examples/react install
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install uv and Python dependencies
+        shell: pwsh
+        run: |
+          # Install uv for Windows
+          irm https://astral.sh/uv/install.ps1 | iex
+
+          # Create virtual environment
+          uv venv .venv --python (Get-Command python).Path
+
+          # Activate virtual environment and install packages
+          .\.venv\Scripts\Activate.ps1
+          uv pip install -r requirements.txt --keyring-provider=disabled
+
+      - name: Run tests
+        run: yarn test

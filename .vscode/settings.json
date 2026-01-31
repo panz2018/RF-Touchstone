@@ -1,12 +1,107 @@
 {
+  // ========================================
+  // Package Manager Configuration
+  // ========================================
   "npm.packageManager": "yarn",
+
+  // ========================================
+  // Editor Formatting Configuration
+  // ========================================
   "editor.formatOnPaste": true,
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
   "editor.formatOnType": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit", // Auto-fix ESLint issues on save
+    "source.organizeImports": "explicit" // Auto-organize imports on save
+  },
+
+  // ========================================
+  // Default Formatters
+  // ========================================
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff"
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    }
   },
-  "terminal.integrated.defaultProfile.windows": "Command Prompt"
+
+  // ========================================
+  // TypeScript Configuration
+  // ========================================
+  "typescript.tsdk": "node_modules/typescript/lib", // Use workspace TypeScript version
+  "typescript.enablePromptUseWorkspaceTsdk": true, // Prompt to use workspace TypeScript
+  "typescript.preferences.importModuleSpecifier": "relative", // Use relative import paths
+  "typescript.updateImportsOnFileMove.enabled": "always", // Auto-update imports when moving files
+
+  // ========================================
+  // ESLint Configuration
+  // ========================================
+  "eslint.validate": ["javascript", "typescript"],
+  "eslint.useFlatConfig": true, // Use ESLint 9+ flat config
+
+  // ========================================
+  // File Management
+  // ========================================
+  "files.eol": "\n", // Use LF line endings for cross-platform compatibility
+  "files.insertFinalNewline": true, // Insert final newline at end of file
+  "files.trimTrailingWhitespace": true, // Auto-remove trailing whitespace
+  "files.exclude": {
+    "**/.git": true,
+    "**/.yarn": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverage": true,
+    "**/.venv": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true
+  },
+  "search.exclude": {
+    "**/.yarn": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/coverage": true,
+    "**/yarn.lock": true,
+    "**/.venv": true
+  },
+
+  // ========================================
+  // Editor Experience Optimization
+  // ========================================
+  "editor.suggestSelection": "first", // Default to first suggestion
+  "editor.wordWrap": "on", // Enable word wrapping
+  "editor.rulers": [80], // Show ruler at 80 characters (matches Prettier config)
+  "editor.bracketPairColorization.enabled": true, // Enable bracket pair colorization
+  "editor.guides.bracketPairs": true, // Show bracket pair guides
+  "editor.minimap.enabled": true, // Show code minimap
+  "editor.tabSize": 2, // Use 2-space indentation (matches Prettier config)
+  "editor.detectIndentation": false, // Disable auto-detection, enforce project settings
+
+  // ========================================
+  // Git Configuration
+  // ========================================
+  "git.autofetch": true, // Auto-fetch remote updates
+  "git.confirmSync": false, // Don't confirm sync operations
+  "git.enableSmartCommit": true, // Enable smart commit (auto-stage)
+
+  // ========================================
+  // Terminal Configuration
+  // ========================================
+  "terminal.integrated.defaultProfile.windows": "Command Prompt",
+  "terminal.integrated.scrollback": 10000, // Increase terminal scrollback buffer
+
+  // ========================================
+  // Performance Optimization
+  // ========================================
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.yarn/**": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/coverage/**": true,
+    "**/.venv/**": true
+  }
 }
