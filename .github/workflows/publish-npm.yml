@@ -6,7 +6,14 @@ on:
   # 1. This workflows list (L9)
   # 2. The requiredWorkflows array in verify-all-versions job (L41-45)
   workflow_run:
-    workflows: ['Test Node.js 20', 'Test Node.js 22', 'Test Node.js 24']
+    workflows:
+      [
+        'Test Node.js 20',
+        'Test Node.js 22',
+        'Test Node.js 24',
+        'Test Windows',
+        'Test macOS',
+      ]
     types:
       - completed # Triggers on ALL terminal states: success, failure, cancelled, skipped
     branches:
@@ -41,7 +48,9 @@ jobs:
             const requiredWorkflows = [
               'Test Node.js 20',
               'Test Node.js 22',
-              'Test Node.js 24'
+              'Test Node.js 24',
+              'Test Windows',
+              'Test macOS'
             ];
 
             // Get the workflow run that triggered this publish
