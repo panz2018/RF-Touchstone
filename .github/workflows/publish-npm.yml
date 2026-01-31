@@ -3,8 +3,8 @@ name: Publish to npm
 on:
   # ⚠️ SINGLE SOURCE OF TRUTH ⚠️
   # When adding/removing test workflows, update BOTH locations:
-  # 1. This workflows list (L9)
-  # 2. The requiredWorkflows array in verify-all-versions job (L41-45)
+  # 1. This workflows list
+  # 2. The requiredWorkflows array in verify-all-versions job (L52-62)
   workflow_run:
     workflows:
       [
@@ -47,7 +47,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            // ⚠️ IMPORTANT: Keep this list in sync with workflow_run.workflows (L9)
+            // ⚠️ IMPORTANT: Keep this list in sync with workflow_run.workflows (L9-L20)
             // This duplication is required due to GitHub Actions platform limitations
             const requiredWorkflows = [
               'Linux 20',

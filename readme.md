@@ -4,7 +4,7 @@ A Javascript/TypeScript library for reading, manipulating, and writing Touchston
 
 <a href="https://deepwiki.com/panz2018/RF-Touchstone" target="_blank"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" align="right"></a>
 
-**Coverage** [![Coverage](coverage/coverage-badge.svg)](coverage/coverage-badge.svg)
+[![Coverage](coverage/coverage-badge.svg)](coverage/coverage-badge.svg)
 
 ## CI/CD Status
 
