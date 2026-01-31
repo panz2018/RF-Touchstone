@@ -55,6 +55,12 @@ jobs:
           # Install uv for Windows
           irm https://astral.sh/uv/install.ps1 | iex
 
+          # Add uv to PATH for current session
+          $env:Path = "$env:LOCALAPPDATA\Programs\uv;$env:Path"
+
+          # Verify uv is available
+          uv --version
+
           # Create virtual environment
           uv venv .venv --python (Get-Command python).Path
 
