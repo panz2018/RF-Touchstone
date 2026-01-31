@@ -108,5 +108,13 @@
   // ========================================
   // Spell Checker Configuration
   // ========================================
-  "cSpell.words": ["LOCALAPPDATA", "venv", "uvx", "pwsh", "macos", "uv"]
+  "cSpell.words": [
+    "USERPROFILE",
+    "LOCALAPPDATA",
+    "venv",
+    "uvx",
+    "pwsh",
+    "macos",
+    "uv"
+  ]
 }
