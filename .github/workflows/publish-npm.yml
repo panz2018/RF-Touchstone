@@ -29,7 +29,7 @@ on:
 # Ensure only one publish runs at a time to prevent race conditions
 concurrency:
   group: npm-publish
-  cancel-in-progress: false # Don't cancel, just queue them
+  cancel-in-progress: true # Cancel old runs when a new one is triggered
 
 jobs:
   # First job: Verify all version tests passed
