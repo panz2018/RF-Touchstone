@@ -1,4 +1,4 @@
-name: Windows 24
+name: Win 24
 
 on:
   # Runs on pushes to main branch (post-merge)

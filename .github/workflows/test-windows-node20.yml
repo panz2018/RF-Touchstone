@@ -1,4 +1,4 @@
-name: Windows 20
+name: Win 20
 
 on:
   # Runs on pushes to main branch (post-merge)
