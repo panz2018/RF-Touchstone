@@ -8,11 +8,15 @@ on:
   workflow_run:
     workflows:
       [
-        'Test Node.js 20',
-        'Test Node.js 22',
-        'Test Node.js 24',
-        'Test Windows',
-        'Test macOS',
+        'Linux 20',
+        'Linux 22',
+        'Linux 24',
+        'Windows 20',
+        'Windows 22',
+        'Windows 24',
+        'macOS 20',
+        'macOS 22',
+        'macOS 24',
       ]
     types:
       - completed # Triggers on ALL terminal states: success, failure, cancelled, skipped
@@ -46,11 +50,15 @@ jobs:
             // ⚠️ IMPORTANT: Keep this list in sync with workflow_run.workflows (L9)
             // This duplication is required due to GitHub Actions platform limitations
             const requiredWorkflows = [
-              'Test Node.js 20',
-              'Test Node.js 22',
-              'Test Node.js 24',
-              'Test Windows',
-              'Test macOS'
+              'Linux 20',
+              'Linux 22',
+              'Linux 24',
+              'Windows 20',
+              'Windows 22',
+              'Windows 24',
+              'macOS 20',
+              'macOS 22',
+              'macOS 24'
             ];
 
             // Get the workflow run that triggered this publish
