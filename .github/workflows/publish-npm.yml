@@ -13,9 +13,9 @@ on:
         'Win 20',
         'Win 22',
         'Win 24',
-        'macOS 20',
-        'macOS 22',
-        'macOS 24',
+        'Mac 20',
+        'Mac 22',
+        'Mac 24',
       ]
     types:
       - completed # Triggers on ALL terminal states: success, failure, cancelled, skipped
