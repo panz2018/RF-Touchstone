@@ -8,3 +8,4 @@ Exceptions:
 
 - Translation files or i18n resources
 - Locale-specific test data
+- AI assistant working documents (planning, task tracking, walkthroughs) - use the conversation language for better communication
