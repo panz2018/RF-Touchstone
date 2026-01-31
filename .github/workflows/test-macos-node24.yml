@@ -1,4 +1,4 @@
-name: macOS 24
+name: Mac 24
 
 on:
   # Runs on pushes to main branch (post-merge)
