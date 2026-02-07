@@ -118,6 +118,7 @@
     "uv",
     "nports",
     "scikit-rf",
-    "treemap"
+    "treemap",
+    "mathjax"
   ]
 }
