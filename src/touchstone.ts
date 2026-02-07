@@ -40,7 +40,7 @@ export type TouchstoneFormat = (typeof TouchstoneFormats)[number]
  * - H: Hybrid-h parameters
  * - G: Hybrid-g parameters
  */
-export const TouchstoneParameters = ['S', 'Y', 'Z', 'G', 'H']
+export const TouchstoneParameters = ['S', 'Y', 'Z', 'G', 'H'] as const
 
 /**
  * Type representing the network parameter type.

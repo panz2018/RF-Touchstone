@@ -1,16 +1,16 @@
-import { describe, it, expect } from 'vitest'
-import { random, round } from 'mathjs'
-import { Touchstone } from '@/touchstone'
 import { Frequency } from '@/frequency'
-import { createRandomTouchstoneMatrix } from './randomTouchstoneMatrix'
+import { Touchstone } from '@/touchstone'
+import { random, round } from 'mathjs'
+import { describe, expect, it } from 'vitest'
 import { pythonReadContent } from './pythonReadContent'
+import { createRandomTouchstoneMatrix } from './randomTouchstoneMatrix'
 
 /**
  * Test suite for pythonReadContent functionality
  * Validates the compatibility between TypeScript Touchstone implementation
  * and Python scikit-rf library by comparing parsing results
  */
-describe('pythonReadContent.ts', () => {
+describe('pythonReadContent', () => {
   /**
    * Test case 1: 2-port network with Real-Imaginary format S-parameters
    *
@@ -90,34 +90,34 @@ describe('pythonReadContent.ts', () => {
     // Validate matrix structure and values
     validateMatrix(data.matrix, touchstone)
   })
-})
 
-/**
- * Helper function to validate the network parameter matrix
- * Compares dimensions and complex values between TypeScript and Python results
- *
- * @param matrix - Matrix data from Python parsing
- * @param touchstone - Original Touchstone instance
- */
-function validateMatrix(
-  matrix: { re: number; im: number }[][][],
-  touchstone: Touchstone
-) {
-  expect(matrix.length).toBe(touchstone.nports)
-  for (let m = 0; m < touchstone.nports!; m++) {
-    // Verify port dimensions
-    expect(matrix[m].length).toBe(touchstone.nports)
-    for (let n = 0; n < touchstone.nports!; n++) {
-      // Verify frequency points dimension
-      const points = touchstone.frequency!.f_scaled.length
-      expect(matrix[m][n].length).toBe(points)
-      for (let p = 0; p < points; p++) {
-        // Compare complex values with 5 decimal places tolerance
-        const expected = touchstone.matrix![m][n][p]
-        const actual = matrix[m][n][p]
-        expect(actual.re).toBeCloseTo(expected.re, 5)
-        expect(actual.im).toBeCloseTo(expected.im, 5)
+  /**
+   * Helper function to validate the network parameter matrix
+   * Compares dimensions and complex values between TypeScript and Python results
+   *
+   * @param matrix - Matrix data from Python parsing
+   * @param touchstone - Original Touchstone instance
+   */
+  function validateMatrix(
+    matrix: { re: number; im: number }[][][],
+    touchstone: Touchstone
+  ) {
+    expect(matrix.length).toBe(touchstone.nports)
+    for (let m = 0; m < touchstone.nports!; m++) {
+      // Verify port dimensions
+      expect(matrix[m].length).toBe(touchstone.nports)
+      for (let n = 0; n < touchstone.nports!; n++) {
+        // Verify frequency points dimension
+        const points = touchstone.frequency!.f_scaled.length
+        expect(matrix[m][n].length).toBe(points)
+        for (let p = 0; p < points; p++) {
+          // Compare complex values with 5 decimal places tolerance
+          const expected = touchstone.matrix![m][n][p]
+          const actual = matrix[m][n][p]
+          expect(actual.re).toBeCloseTo(expected.re, 5)
+          expect(actual.im).toBeCloseTo(expected.im, 5)
+        }
       }
     }
   }
-}
+})
