@@ -119,6 +119,7 @@
     "nports",
     "scikit-rf",
     "treemap",
-    "mathjax"
+    "mathjax",
+    "oxlint"
   ]
 }
