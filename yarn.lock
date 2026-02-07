@@ -711,7 +711,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:10.0.1":
+"@eslint/js@npm:^10.0.1":
   version: 10.0.1
   resolution: "@eslint/js@npm:10.0.1"
   peerDependencies:
@@ -1698,7 +1698,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:25.2.1, @types/node@npm:>=20.0.0":
+"@types/node@npm:>=20.0.0, @types/node@npm:^25.2.1":
   version: 25.2.1
   resolution: "@types/node@npm:25.2.1"
   dependencies:
@@ -1889,7 +1889,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/coverage-v8@npm:4.0.18":
+"@vitest/coverage-v8@npm:^4.0.18":
   version: 4.0.18
   resolution: "@vitest/coverage-v8@npm:4.0.18"
   dependencies:
@@ -2719,7 +2719,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"coverage-badges-cli@npm:2.2.0":
+"coverage-badges-cli@npm:^2.2.0":
   version: 2.2.0
   resolution: "coverage-badges-cli@npm:2.2.0"
   dependencies:
@@ -3267,7 +3267,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-prettier@npm:10.1.8":
+"eslint-config-prettier@npm:^10.1.8":
   version: 10.1.8
   resolution: "eslint-config-prettier@npm:10.1.8"
   peerDependencies:
@@ -3311,7 +3311,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:10.0.0":
+"eslint@npm:^10.0.0":
   version: 10.0.0
   resolution: "eslint@npm:10.0.0"
   dependencies:
@@ -3681,7 +3681,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:17.3.0":
+"globals@npm:^17.3.0":
   version: 17.3.0
   resolution: "globals@npm:17.3.0"
   checksum: 10c0/7f21443ecaa60c6e9ff56d9fb6f10a9b5f9514e7f22e5392f715472bb220ce31c865ebf414a32695150e733fb3e1013e6322dbce70fddd1e066f372b8d55a4b8
@@ -3712,7 +3712,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:20.5.0":
+"happy-dom@npm:^20.5.0":
   version: 20.5.0
   resolution: "happy-dom@npm:20.5.0"
   dependencies:
@@ -4487,7 +4487,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdown-it-mathjax3@npm:5.2.0":
+"markdown-it-mathjax3@npm:^5.2.0":
   version: 5.2.0
   resolution: "markdown-it-mathjax3@npm:5.2.0"
   dependencies:
@@ -4520,7 +4520,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mathjs@npm:15.1.0":
+"mathjs@npm:^15.1.0":
   version: 15.1.0
   resolution: "mathjs@npm:15.1.0"
   dependencies:
@@ -4860,7 +4860,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"npm-run-all@npm:4.1.5":
+"npm-run-all@npm:^4.1.5":
   version: 4.1.5
   resolution: "npm-run-all@npm:4.1.5"
   dependencies:
@@ -5197,7 +5197,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:3.8.1":
+"prettier@npm:^3.8.1":
   version: 3.8.1
   resolution: "prettier@npm:3.8.1"
   bin:
@@ -5368,28 +5368,28 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rf-touchstone@workspace:."
   dependencies:
-    "@eslint/js": "npm:10.0.1"
-    "@types/node": "npm:25.2.1"
-    "@vitest/coverage-v8": "npm:4.0.18"
-    coverage-badges-cli: "npm:2.2.0"
-    eslint: "npm:10.0.0"
-    eslint-config-prettier: "npm:10.1.8"
-    globals: "npm:17.3.0"
-    happy-dom: "npm:20.5.0"
-    markdown-it-mathjax3: "npm:5.2.0"
-    mathjs: "npm:15.1.0"
-    npm-run-all: "npm:4.1.5"
+    "@eslint/js": "npm:^10.0.1"
+    "@types/node": "npm:^25.2.1"
+    "@vitest/coverage-v8": "npm:^4.0.18"
+    coverage-badges-cli: "npm:^2.2.0"
+    eslint: "npm:^10.0.0"
+    eslint-config-prettier: "npm:^10.1.8"
+    globals: "npm:^17.3.0"
+    happy-dom: "npm:^20.5.0"
+    markdown-it-mathjax3: "npm:^5.2.0"
+    mathjs: "npm:^15.1.0"
+    npm-run-all: "npm:^4.1.5"
     oxlint: "npm:^1.43.0"
-    prettier: "npm:3.8.1"
-    rollup-plugin-visualizer: "npm:6.0.5"
-    typedoc: "npm:0.28.16"
-    typedoc-plugin-markdown: "npm:4.10.0"
+    prettier: "npm:^3.8.1"
+    rollup-plugin-visualizer: "npm:^6.0.5"
+    typedoc: "npm:^0.28.16"
+    typedoc-plugin-markdown: "npm:^4.10.0"
     typescript: "npm:5.9.3"
-    typescript-eslint: "npm:8.54.0"
-    vite: "npm:7.3.1"
-    vite-plugin-dts: "npm:4.5.4"
-    vitepress: "npm:1.6.4"
-    vitest: "npm:4.0.18"
+    typescript-eslint: "npm:^8.54.0"
+    vite: "npm:^7.3.1"
+    vite-plugin-dts: "npm:^4.5.4"
+    vitepress: "npm:^1.6.4"
+    vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
 
@@ -5400,7 +5400,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-visualizer@npm:6.0.5":
+"rollup-plugin-visualizer@npm:^6.0.5":
   version: 6.0.5
   resolution: "rollup-plugin-visualizer@npm:6.0.5"
   dependencies:
@@ -6251,7 +6251,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-markdown@npm:4.10.0":
+"typedoc-plugin-markdown@npm:^4.10.0":
   version: 4.10.0
   resolution: "typedoc-plugin-markdown@npm:4.10.0"
   peerDependencies:
@@ -6260,7 +6260,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc@npm:0.28.16":
+"typedoc@npm:^0.28.16":
   version: 0.28.16
   resolution: "typedoc@npm:0.28.16"
   dependencies:
@@ -6277,7 +6277,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript-eslint@npm:8.54.0":
+"typescript-eslint@npm:^8.54.0":
   version: 8.54.0
   resolution: "typescript-eslint@npm:8.54.0"
   dependencies:
@@ -6484,7 +6484,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite-plugin-dts@npm:4.5.4":
+"vite-plugin-dts@npm:^4.5.4":
   version: 4.5.4
   resolution: "vite-plugin-dts@npm:4.5.4"
   dependencies:
@@ -6504,61 +6504,6 @@ __metadata:
     vite:
       optional: true
   checksum: 10c0/5fcb7f3739d115f36195a692c0e9f9fca4e504bbbbabe29e71ee06630dd05ea2920169371e80e548eb4779d2eca14107277497838d7df588d53e1fadf84be861
-  languageName: node
-  linkType: hard
-
-"vite@npm:7.3.1":
-  version: 7.3.1
-  resolution: "vite@npm:7.3.1"
-  dependencies:
-    esbuild: "npm:^0.27.0"
-    fdir: "npm:^6.5.0"
-    fsevents: "npm:~2.3.3"
-    picomatch: "npm:^4.0.3"
-    postcss: "npm:^8.5.6"
-    rollup: "npm:^4.43.0"
-    tinyglobby: "npm:^0.2.15"
-  peerDependencies:
-    "@types/node": ^20.19.0 || >=22.12.0
-    jiti: ">=1.21.0"
-    less: ^4.0.0
-    lightningcss: ^1.21.0
-    sass: ^1.70.0
-    sass-embedded: ^1.70.0
-    stylus: ">=0.54.8"
-    sugarss: ^5.0.0
-    terser: ^5.16.0
-    tsx: ^4.8.1
-    yaml: ^2.4.2
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-    jiti:
-      optional: true
-    less:
-      optional: true
-    lightningcss:
-      optional: true
-    sass:
-      optional: true
-    sass-embedded:
-      optional: true
-    stylus:
-      optional: true
-    sugarss:
-      optional: true
-    terser:
-      optional: true
-    tsx:
-      optional: true
-    yaml:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: 10c0/5c7548f5f43a23533e53324304db4ad85f1896b1bfd3ee32ae9b866bac2933782c77b350eb2b52a02c625c8ad1ddd4c000df077419410650c982cd97fde8d014
   languageName: node
   linkType: hard
 
@@ -6660,7 +6605,62 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitepress@npm:1.6.4":
+"vite@npm:^7.3.1":
+  version: 7.3.1
+  resolution: "vite@npm:7.3.1"
+  dependencies:
+    esbuild: "npm:^0.27.0"
+    fdir: "npm:^6.5.0"
+    fsevents: "npm:~2.3.3"
+    picomatch: "npm:^4.0.3"
+    postcss: "npm:^8.5.6"
+    rollup: "npm:^4.43.0"
+    tinyglobby: "npm:^0.2.15"
+  peerDependencies:
+    "@types/node": ^20.19.0 || >=22.12.0
+    jiti: ">=1.21.0"
+    less: ^4.0.0
+    lightningcss: ^1.21.0
+    sass: ^1.70.0
+    sass-embedded: ^1.70.0
+    stylus: ">=0.54.8"
+    sugarss: ^5.0.0
+    terser: ^5.16.0
+    tsx: ^4.8.1
+    yaml: ^2.4.2
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    jiti:
+      optional: true
+    less:
+      optional: true
+    lightningcss:
+      optional: true
+    sass:
+      optional: true
+    sass-embedded:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+    tsx:
+      optional: true
+    yaml:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 10c0/5c7548f5f43a23533e53324304db4ad85f1896b1bfd3ee32ae9b866bac2933782c77b350eb2b52a02c625c8ad1ddd4c000df077419410650c982cd97fde8d014
+  languageName: node
+  linkType: hard
+
+"vitepress@npm:^1.6.4":
   version: 1.6.4
   resolution: "vitepress@npm:1.6.4"
   dependencies:
@@ -6696,7 +6696,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:4.0.18":
+"vitest@npm:^4.0.18":
   version: 4.0.18
   resolution: "vitest@npm:4.0.18"
   dependencies:
