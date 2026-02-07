@@ -117,6 +117,7 @@
     "macos",
     "uv",
     "nports",
-    "scikit-rf"
+    "scikit-rf",
+    "treemap"
   ]
 }
