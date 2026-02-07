@@ -49,7 +49,7 @@
   "packageManager": "yarn@4.12.0",
   "scripts": {
     "test": "run-p --print-label lint format test:unit test:coverage build && run-s --print-label docs:md docs:build",
-    "lint": "eslint . --fix --report-unused-disable-directives --max-warnings 0",
+    "lint": "oxlint --fix && eslint . --fix --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "test:watch": "vitest",
     "test:unit": "vitest run",
@@ -61,28 +61,29 @@
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
-    "mathjs": "15.1.0"
+    "mathjs": "^15.1.0"
   },
   "devDependencies": {
-    "@eslint/js": "9.39.2",
-    "@types/node": "25.0.3",
-    "@vitest/coverage-v8": "4.0.16",
-    "coverage-badges-cli": "2.2.0",
-    "eslint": "9.39.2",
-    "eslint-config-prettier": "10.1.8",
-    "globals": "17.0.0",
-    "happy-dom": "20.0.11",
-    "markdown-it-mathjax3": "5.2.0",
-    "npm-run-all": "4.1.5",
-    "prettier": "3.7.4",
-    "rollup-plugin-visualizer": "6.0.5",
-    "typedoc": "0.28.15",
-    "typedoc-plugin-markdown": "4.9.0",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.2.1",
+    "@vitest/coverage-v8": "^4.0.18",
+    "coverage-badges-cli": "^2.2.0",
+    "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.3.0",
+    "happy-dom": "^20.5.0",
+    "markdown-it-mathjax3": "^5.2.0",
+    "npm-run-all": "^4.1.5",
+    "oxlint": "^1.43.0",
+    "prettier": "^3.8.1",
+    "rollup-plugin-visualizer": "^6.0.5",
+    "typedoc": "^0.28.16",
+    "typedoc-plugin-markdown": "^4.10.0",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.51.0",
-    "vite": "7.3.0",
-    "vite-plugin-dts": "4.5.4",
-    "vitepress": "1.6.4",
-    "vitest": "4.0.16"
+    "typescript-eslint": "^8.54.0",
+    "vite": "^7.3.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vitepress": "^1.6.4",
+    "vitest": "^4.0.18"
   }
 }

@@ -1,8 +1,7 @@
-import { defineConfig, type PluginOption } from 'vite'
-import { configDefaults } from 'vitest/config'
 import path from 'path'
-import dts from 'vite-plugin-dts'
 import { visualizer } from 'rollup-plugin-visualizer'
+import dts from 'vite-plugin-dts'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 /**
  * Vite configuration for RF-Touchstone library
@@ -67,7 +66,7 @@ export default defineConfig({
       entryRoot: 'src',
       tsconfigPath: 'tsconfig.json', // Path to your tsconfig.json
       rollupTypes: false, // Generate individual files to ensure all types are preserved
-    }),
+    }) as any,
     // Generate build visualization report
     visualizer({
       filename: './build/build.html',
@@ -75,6 +74,6 @@ export default defineConfig({
       gzipSize: true, // Show size after gzip compression
       brotliSize: true, // Show size after brotli compression
       open: false, // Do not open the report in the browser
-    }) as PluginOption,
+    }) as any,
   ],
 })

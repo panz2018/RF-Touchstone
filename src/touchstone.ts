@@ -4,8 +4,8 @@ import {
   arg,
   complex,
   Complex,
-  log10,
   index,
+  log10,
   multiply,
   pi,
   pow,
@@ -725,11 +725,11 @@ export class Touchstone {
     // - First dimension: output ports (nports)
     // - Second dimension: input ports (nports)
     // - Third dimension: frequency points (points)
-    this.matrix = new Array(nports)
+    this.matrix = Array.from<Complex[][]>({ length: nports })
     for (let outPort = 0; outPort < nports; outPort++) {
-      this.matrix[outPort] = new Array(nports)
+      this.matrix[outPort] = Array.from<Complex[]>({ length: nports })
       for (let inPort = 0; inPort < nports; inPort++) {
-        this.matrix[outPort][inPort] = new Array(points)
+        this.matrix[outPort][inPort] = Array.from<Complex>({ length: points })
       }
     }
 

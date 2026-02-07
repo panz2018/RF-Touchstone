@@ -1,5 +1,5 @@
 import { Touchstone, TouchstoneMatrix } from '@/touchstone'
-import { complex, random, round } from 'mathjs'
+import { complex, Complex, random, round } from 'mathjs'
 
 /**
  * Creates a random Touchstone matrix for testing purposes.
@@ -35,11 +35,13 @@ export const createRandomTouchstoneMatrix = (
   }
 
   // Initialize the 3D matrix with dimensions: [nports][nports][frequency_points]
-  const matrix = new Array(touchstone.nports)
+  const matrix = Array.from<Complex[][]>({ length: touchstone.nports })
   for (let outPort = 0; outPort < touchstone.nports; outPort++) {
-    matrix[outPort] = new Array(touchstone.nports)
+    matrix[outPort] = Array.from<Complex[]>({ length: touchstone.nports })
     for (let inPort = 0; inPort < touchstone.nports; inPort++) {
-      matrix[outPort][inPort] = new Array(touchstone.frequency.f_scaled.length)
+      matrix[outPort][inPort] = Array.from<Complex>({
+        length: touchstone.frequency.f_scaled.length,
+      })
       for (let p = 0; p < touchstone.frequency.f_scaled.length; p++) {
         // Generate random complex number: real + j*imag
         matrix[outPort][inPort][p] = complex(
