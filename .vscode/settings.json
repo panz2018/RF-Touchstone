@@ -115,6 +115,8 @@
     "uvx",
     "pwsh",
     "macos",
-    "uv"
+    "uv",
+    "nports",
+    "scikit-rf"
   ]
 }
