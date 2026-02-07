@@ -108,18 +108,5 @@
   // ========================================
   // Spell Checker Configuration
   // ========================================
-  "cSpell.words": [
-    "USERPROFILE",
-    "LOCALAPPDATA",
-    "venv",
-    "uvx",
-    "pwsh",
-    "macos",
-    "uv",
-    "nports",
-    "scikit-rf",
-    "treemap",
-    "mathjax",
-    "oxlint"
-  ]
+  "cSpell.enabled": false
 }
