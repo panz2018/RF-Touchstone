@@ -1,6 +1,4 @@
-/* global console */
 // prettier-ignore
-// @ts-ignore
 import { Frequency, Touchstone, complex } from '../test-pkg-temp/package/dist/index.mjs'
 
 // Test Touchstone class

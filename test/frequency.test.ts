@@ -1,13 +1,13 @@
 // @vitest-environment node
-import { describe, it, expect } from 'vitest'
+import type { FrequencyUnit } from '@/frequency'
 import {
   Frequency,
-  FrequencyUnits,
   FREQUENCY_MULTIPLIERS,
+  FrequencyUnits,
   SPEED_OF_LIGHT,
   WAVELENGTH_MULTIPLIERS_TO_M,
 } from '@/frequency'
-import type { FrequencyUnit } from '@/frequency'
+import { describe, expect, it } from 'vitest'
 
 // Helper data for looped tests
 const testBaseUnits: (typeof FrequencyUnits)[number][] = [
