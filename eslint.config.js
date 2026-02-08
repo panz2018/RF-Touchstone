@@ -66,11 +66,11 @@ export default [
   // Apply TypeScript-specific rules only to TS files
   ...tseslint.configs.recommended.map((config) => ({
     ...config,
-    files: ['src/**/*.ts', 'test/**/*.ts', 'test-dist/**/*.ts'],
+    files: ['src/**/*.ts', 'test/**/*.ts'],
   })),
   {
     // Apply TypeScript-specific rule overrides
-    files: ['src/**/*.ts', 'test/**/*.ts', 'test-dist/**/*.ts'],
+    files: ['src/**/*.ts', 'test/**/*.ts'],
     plugins: {
       '@typescript-eslint': tseslint.plugin,
     },
@@ -83,13 +83,27 @@ export default [
   },
   {
     // Apply TypeScript project-based linting to source and test files
-    files: ['src/**/*.ts', 'test/**/*.ts', 'test-dist/**/*.ts'],
+    files: ['src/**/*.ts', 'test/**/*.ts'],
     languageOptions: {
       globals: { ...browserGlobals, ...nodeGlobals },
       parserOptions: {
         project: ['./tsconfig.json'],
         tsconfigRootDir: import.meta.dirname,
       },
+    },
+  },
+  {
+    // Apply basic TypeScript linting to test-dist files without project-based parsing
+    files: ['test-dist/**/*.ts'],
+    languageOptions: {
+      globals: { ...browserGlobals, ...nodeGlobals },
+      parser: tseslint.parser,
+      parserOptions: {
+        project: false,
+      },
+    },
+    rules: {
+      ...tseslint.configs.recommended[0].rules,
     },
   },
   pluginJs.configs.recommended,
