@@ -5,10 +5,10 @@ A Javascript/TypeScript library for reading, manipulating, and writing Touchston
 <a href="https://deepwiki.com/panz2018/RF-Touchstone" target="_blank"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" align="right"></a>
 
 [![Coverage](https://raw.githubusercontent.com/panz2018/RF-Touchstone/main/coverage/coverage-badge.svg)](https://raw.githubusercontent.com/panz2018/RF-Touchstone/main/coverage/coverage-badge.svg)
-[![CJS Bundle](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-cjs.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-cjs.yml)
-[![ESM Bundle](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-esm.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-esm.yml)
-[![UMD Bundle](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-umd.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-umd.yml)
-[![Types Bundle](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-types.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-types.yml)
+[![CJS](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-cjs.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-cjs.yml)
+[![ESM](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-esm.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-esm.yml)
+[![UMD](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-umd.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-umd.yml)
+[![Types](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-types.yml/badge.svg?branch=main)](https://github.com/panz2018/RF-Touchstone/actions/workflows/test-types.yml)
 
 ## Test Status
 

@@ -16,10 +16,10 @@ on:
         'Mac 20',
         'Mac 22',
         'Mac 24',
-        'CJS Bundle',
-        'ESM Bundle',
-        'UMD Bundle',
-        'Types Bundle',
+        'CJS',
+        'ESM',
+        'UMD',
+        'Types',
       ]
     types:
       - completed # Triggers on ALL terminal states: success, failure, cancelled, skipped

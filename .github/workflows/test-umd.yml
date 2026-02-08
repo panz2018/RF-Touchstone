@@ -1,4 +1,4 @@
-name: UMD Bundle
+name: UMD
 
 on:
   # Runs on pushes to main branch (post-merge)
