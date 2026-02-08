@@ -55,7 +55,7 @@
   ],
   "packageManager": "yarn@4.12.0",
   "scripts": {
-    "test": "run-p --print-label lint format test:unit test:coverage build && run-s --print-label docs:md docs:build",
+    "test": "run-s lint format test:coverage build docs:md docs:build",
     "lint": "oxlint --fix && eslint . --fix --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write .",
     "test:watch": "vitest",
