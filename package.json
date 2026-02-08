@@ -3,18 +3,26 @@
   "type": "module",
   "version": "0.0.6",
   "description": "A Javascript/TypeScript library for reading, manipulating, and writing Touchstone files (.snp files) used in radio frequency (RF) and microwave engineering.",
-  "main": "dist/Touchstone.cjs.js",
-  "module": "dist/Touchstone.es.js",
-  "browser": "dist/Touchstone.umd.js",
-  "unpkg": "dist/Touchstone.umd.js",
-  "jsdelivr": "dist/Touchstone.umd.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "browser": "dist/index.umd.js",
+  "unpkg": "dist/index.umd.js",
+  "jsdelivr": "dist/index.umd.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "browser": "./dist/Touchstone.umd.js",
-      "import": "./dist/Touchstone.es.js",
-      "require": "./dist/Touchstone.cjs.js"
+      "browser": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.umd.js"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
   "files": [
@@ -22,7 +30,6 @@
     "./src",
     "./readme.md",
     "./LICENSE.md",
-    "./coverage/coverage-badge.svg",
     "./.github/AI_USAGE_GUIDE.md"
   ],
   "license": "MIT",
@@ -54,7 +61,7 @@
     "test:watch": "vitest",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage && coverage-badges --source coverage/coverage-summary.json --output coverage/coverage-badge.svg",
-    "build": "tsc && vite build && yarn pack",
+    "build": "tsc && vite build && node -e \"const fs=require('fs'); fs.copyFileSync('dist/index.d.ts', 'dist/index.d.mts'); fs.copyFileSync('dist/index.d.ts', 'dist/index.d.cts')\" && yarn pack",
     "docs:md": "typedoc --tsconfig tsconfig.json",
     "docs:dev": "yarn --cwd examples/react build && node docs/.vitepress/copy-docs.mjs && vitepress dev docs",
     "docs:build": "yarn --cwd examples/react build && node docs/.vitepress/copy-docs.mjs && vitepress build docs",
@@ -64,7 +71,9 @@
     "mathjs": "^15.1.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
     "@eslint/js": "^10.0.1",
+    "@types/jsdom": "^27.0.0",
     "@types/node": "^25.2.1",
     "@vitest/coverage-v8": "^4.0.18",
     "coverage-badges-cli": "^2.2.0",
@@ -72,11 +81,14 @@
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.3.0",
     "happy-dom": "^20.5.0",
+    "jsdom": "^28.0.0",
     "markdown-it-mathjax3": "^5.2.0",
     "npm-run-all": "^4.1.5",
     "oxlint": "^1.43.0",
     "prettier": "^3.8.1",
+    "publint": "^0.3.17",
     "rollup-plugin-visualizer": "^6.0.5",
+    "tsx": "^4.21.0",
     "typedoc": "^0.28.16",
     "typedoc-plugin-markdown": "^4.10.0",
     "typescript": "5.9.3",

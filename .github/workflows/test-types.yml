@@ -1,0 +1,44 @@
+name: Types Bundle
+
+on:
+  # Runs on pushes to main branch (post-merge)
+  push:
+    branches: ['main']
+
+  # Runs monthly to catch dependency issues at staggered times
+  schedule:
+    # At 06:17 on day-of-month 1
+    - cron: '17 6 1 * *'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test-types:
+    runs-on: ubuntu-latest
+    name: Test Types Bundle
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install Dependencies
+        run: yarn install
+      - name: Build and Pack
+        run: yarn build
+      - name: Run attw (Are The Types Wrong?)
+        run: yarn attw package.tgz
+      - name: Run publint
+        run: yarn publint package.tgz
+      - name: Prepare Package
+        run: |
+          node -e "const fs = require('fs'); fs.rmSync('test-pkg-temp', { recursive: true, force: true }); fs.mkdirSync('test-pkg-temp', { recursive: true });"
+          tar -xzf package.tgz -C test-pkg-temp
+      - name: Run Types Integration Test
+        run: |
+          # 1. Static Type Check
+          yarn tsc test-dist/types-test.ts --noEmit --esModuleInterop --moduleResolution node --target esnext --skipLibCheck
+          # 2. Runtime Execution Check
+          yarn tsx test-dist/types-test.ts
