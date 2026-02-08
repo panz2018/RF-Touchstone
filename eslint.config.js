@@ -1,7 +1,7 @@
-import globals from 'globals'
 import pluginJs from '@eslint/js'
-import tseslint from 'typescript-eslint'
 import prettierConfig from 'eslint-config-prettier'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
 
 // Helper to fix potential whitespace issues in the globals package
 const fixGlobals = (obj) => {
@@ -36,6 +36,7 @@ export default [
       '**/.venv/**',
       '**/docs/**',
       '**/examples/**',
+      '**/test-pkg-temp/**',
     ],
   },
   {
@@ -89,6 +90,20 @@ export default [
         project: ['./tsconfig.json'],
         tsconfigRootDir: import.meta.dirname,
       },
+    },
+  },
+  {
+    // Apply basic TypeScript linting to test-dist files without project-based parsing
+    files: ['test-dist/**/*.ts'],
+    languageOptions: {
+      globals: { ...browserGlobals, ...nodeGlobals },
+      parser: tseslint.parser,
+      parserOptions: {
+        project: false,
+      },
+    },
+    rules: {
+      ...tseslint.configs.recommended[0].rules,
     },
   },
   pluginJs.configs.recommended,
