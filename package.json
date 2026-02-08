@@ -60,7 +60,7 @@
     "format": "prettier --write .",
     "test:watch": "vitest",
     "test:unit": "vitest run",
-    "test:coverage": "vitest run --coverage && coverage-badges --source coverage/coverage-summary.json --output coverage/coverage-badge.svg",
+    "test:coverage": "vitest run --coverage && coverage-badges --source coverage/coverage-summary.json --output coverage/coverage-badge.svg --label Coverage",
     "build": "tsc && vite build && node -e \"const fs=require('fs'); fs.copyFileSync('dist/index.d.ts', 'dist/index.d.mts'); fs.copyFileSync('dist/index.d.ts', 'dist/index.d.cts')\" && yarn pack",
     "docs:md": "typedoc --tsconfig tsconfig.json",
     "docs:dev": "yarn --cwd examples/react build && node docs/.vitepress/copy-docs.mjs && vitepress dev docs",
