@@ -58,3 +58,4 @@ docs/LICENSE.md
 
 # npm publish
 *.tgz
+test-pkg-temp

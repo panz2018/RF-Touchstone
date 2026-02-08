@@ -48,16 +48,6 @@
   "files.eol": "\n", // Use LF line endings for cross-platform compatibility
   "files.insertFinalNewline": true, // Insert final newline at end of file
   "files.trimTrailingWhitespace": true, // Auto-remove trailing whitespace
-  "files.exclude": {
-    "**/.git": true,
-    "**/.yarn": true,
-    "**/node_modules": true,
-    "**/dist": true,
-    "**/coverage": true,
-    "**/.venv": true,
-    "**/__pycache__": true,
-    "**/*.pyc": true
-  },
   "search.exclude": {
     "**/.yarn": true,
     "**/node_modules": true,

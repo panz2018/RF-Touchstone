@@ -1,0 +1,36 @@
+name: UMD Bundle
+
+on:
+  # Runs on pushes to main branch (post-merge)
+  push:
+    branches: ['main']
+
+  # Runs monthly to catch dependency issues at staggered times
+  schedule:
+    # At 06:02 on day-of-month 1
+    - cron: '02 6 1 * *'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test-umd:
+    runs-on: ubuntu-latest
+    name: Test UMD Bundle
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install Dependencies
+        run: yarn install
+      - name: Build and Pack
+        run: yarn build
+      - name: Prepare Package
+        run: |
+          node -e "const fs = require('fs'); fs.rmSync('test-pkg-temp', { recursive: true, force: true }); fs.mkdirSync('test-pkg-temp', { recursive: true });"
+          tar -xzf package.tgz -C test-pkg-temp
+      - name: Run UMD Integration Test
+        run: node test-dist/umd-test.cjs

@@ -44,7 +44,11 @@ export default defineConfig({
     lib: {
       entry: './src/index.ts', // Main library entry point
       name: 'Touchstone', // Global variable name when used in browser
-      fileName: (format) => `Touchstone.${format}.js`, // Generate different bundles for each format
+      fileName: (format) => {
+        if (format === 'es') return 'index.mjs'
+        if (format === 'cjs') return 'index.cjs'
+        return `index.${format}.js`
+      },
       formats: ['umd', 'cjs', 'es'], // Support ESM, CommonJS, and Universal Module Definition
     },
     rollupOptions: {
@@ -65,7 +69,7 @@ export default defineConfig({
       // Specify the main entry file to generate a single .d.ts file
       entryRoot: 'src',
       tsconfigPath: 'tsconfig.json', // Path to your tsconfig.json
-      rollupTypes: false, // Generate individual files to ensure all types are preserved
+      rollupTypes: true, // Consolidate types into a single file to avoid resolution issues
     }) as any,
     // Generate build visualization report
     visualizer({
